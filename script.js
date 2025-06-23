@@ -116,7 +116,6 @@ function navigateToView(viewId) {
 
 async function hashDataClient(data) {
   if (!bcrypt) {
-    // Check if bcrypt is available
     console.error("bcrypt.js not available for hashing! This should have been caught earlier.")
     showAuthMessage("Security component error. Please refresh.")
     return null
@@ -133,7 +132,6 @@ async function hashDataClient(data) {
 
 async function compareDataClient(plainData, hash) {
   if (!bcrypt) {
-    // Check if bcrypt is available
     console.error("bcrypt.js not available for comparison! This should have been caught earlier.")
     showAuthMessage("Security component error. Please refresh.")
     return false
@@ -188,28 +186,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   withdrawalForm = document.getElementById("withdrawal-form")
   withdrawalMessageEl = document.getElementById("withdrawal-message")
 
-  console.log("DOMContentLoaded event fired. Checking libraries...")
+  console.log("SCRIPT.JS: DOMContentLoaded event fired. Checking libraries...")
 
   // CRITICAL LIBRARY CHECKS
   if (typeof window.supabase === "undefined") {
-    console.error("Supabase client library is NOT LOADED! (Checked in DOMContentLoaded)")
+    console.error("SCRIPT.JS: CRITICAL: Supabase client library is NOT LOADED! (Checked in DOMContentLoaded)")
     if (loadingScreen) loadingScreen.style.display = "none"
     if (appContent) appContent.style.display = "block"
     showAuthMessage("Critical Error: Supabase library failed to load. Application cannot start.")
     return // Halt execution
   }
-  console.log("Supabase client library found in window object (Checked in DOMContentLoaded).")
+  console.log(
+    "SCRIPT.JS: Supabase client library found in window object (Checked in DOMContentLoaded). Initializing Supabase client...",
+  )
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  console.log("SCRIPT.JS: Supabase client initialized.")
 
   if (typeof window.bcrypt === "undefined") {
-    console.error("bcrypt.js library is NOT LOADED! (Checked in DOMContentLoaded)")
+    console.error("SCRIPT.JS: CRITICAL: bcrypt.js library is NOT LOADED! (Checked in DOMContentLoaded)")
     if (loadingScreen) loadingScreen.style.display = "none"
     if (appContent) appContent.style.display = "block"
     showAuthMessage("Security component (bcrypt.js) failed to load. Signup and Login will not work. Please refresh.")
     return // Halt execution
   }
-  console.log("bcrypt.js library found in window object (Checked in DOMContentLoaded).")
-  bcrypt = window.bcrypt // Assign to global variable for use in functions
+  console.log(
+    "SCRIPT.JS: bcrypt.js library found in window object (Checked in DOMContentLoaded). Assigning to global 'bcrypt' variable...",
+  )
+  bcrypt = window.bcrypt // Ensure this assignment happens
+  if (typeof bcrypt !== "undefined") {
+    console.log("SCRIPT.JS: Global 'bcrypt' variable has been assigned successfully.")
+  } else {
+    console.error(
+      "SCRIPT.JS: Global 'bcrypt' variable FAILED to assign, even though window.bcrypt was found. This is unexpected.",
+    )
+  }
 
   // Setup event listeners now that DOM is ready and elements are assigned
   setupEventListeners()
