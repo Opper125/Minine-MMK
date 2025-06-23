@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMK Mining Program</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="/placeholder.svg?width=32&height=32&text=MMK" type="image/svg+xml">
+    <script src="https://unpkg.com/lucide-static@latest/dist/lucide.min.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <img src="https://raw.githubusercontent.com/VCDeveloperTeam/MMK-Minine-Website/main/loding.png" alt="Loading Animation" id="loading-image-github" style="display:none;">
+        <img src="/placeholder.svg?width=100&height=100&text=Loading" alt="Loading Animation" id="loading-image-placeholder">
+        <p>Loading, please wait...</p>
+    </div>
+
+    <!-- Main Content Area (Initially hidden) -->
+    <div id="app-content" style="display: none;">
+
+        <!-- Auth Section (Login/Sign Up) -->
+        <section id="auth-section" class="auth-container view">
+            <div id="login-view">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="button-primary">Login</button>
+                </form>
+                <p class="auth-switch">Don't have an account? <a href="#" id="show-signup-link">Sign Up</a></p>
+            </div>
+
+            <div id="signup-view" style="display: none;">
+                <h2>Sign Up</h2>
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-name">Name</label>
+                        <input type="text" id="signup-name" placeholder="Your Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" placeholder="Choose a strong password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-pin">Payment PIN (6 digits)</label>
+                        <input type="password" id="signup-pin" placeholder="••••••" required pattern="\d{6}" maxlength="6" inputmode="numeric">
+                    </div>
+                    <button type="submit" class="button-primary">Sign Up</button>
+                </form>
+                <p class="auth-switch">Already have an account? <a href="#" id="show-login-link">Login</a></p>
+            </div>
+            <p id="auth-message" class="message" style="display:none;"></p>
+        </section>
+
+        <!-- Main App Section (After Login) -->
+        <main id="main-app-section" class="main-app-container view" style="display: none;">
+            <header class="app-header">
+                <div class="logo-title">
+                    <img src="/placeholder.svg?width=30&height=30&text=M" alt="MMK Logo" class="header-logo">
+                    <h1>MMK Mining</h1>
+                </div>
+                <div class="header-controls">
+                    <div class="balance-display">
+                        Balance: <span id="user-balance">0.00</span> MMK
+                    </div>
+                    <button id="logout-button" class="button-danger button-small"><i data-lucide="log-out" class="icon-small"></i> Logout</button>
+                </div>
+            </header>
+
+            <div id="page-content" class="page-content">
+                <!-- Mining Page Content -->
+                <div id="mining-page" class="page active-page">
+                    <h3><i data-lucide="activity"></i> Mining Zone</h3>
+                    <div class="mining-circle-container">
+                        <div class="mining-circle">
+                            <img src="/placeholder.svg?width=80&height=80&text=MMK" alt="MMK Coin" class="mining-coin-icon">
+                            <span id="mining-status-text">Initializing...</span>
+                            <div id="mining-power-display">Power: 0 P/s</div>
+                            <div id="mining-rate-display">Rate: 0.00000 MMK/s</div>
+                        </div>
+                    </div>
+                    <div id="active-plans-summary" class="card">
+                        <h4>Your Active Plans</h4>
+                        <ul id="active-plans-list">
+                            <li>No active plans.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Buy Mining Page Content -->
+                <div id="buy-mining-page" class="page">
+                    <h3><i data-lucide="shopping-cart"></i> Buy Mining Power</h3>
+                    <div id="mining-plans-container" class="plans-grid">
+                        <!-- Mining plans will be loaded here -->
+                        <p>Loading plans...</p>
+                    </div>
+                </div>
+
+                <!-- History Page Content -->
+                <div id="history-page" class="page">
+                    <h3><i data-lucide="history"></i> Transaction History</h3>
+                    <div class="history-tabs">
+                        <button class="tab-button active" data-tab="purchase-history">Purchase History</button>
+                        <button class="tab-button" data-tab="withdrawal-history">Withdrawal History</button>
+                         <button class="tab-button" data-tab="earning-history">Earning History</button>
+                    </div>
+                    <div id="purchase-history-content" class="tab-content active card">
+                        <h4>Mining Plan Purchases</h4>
+                        <ul id="purchase-history-list"><li>No purchase history.</li></ul>
+                    </div>
+                    <div id="withdrawal-history-content" class="tab-content card">
+                        <h4>Withdrawals</h4>
+                        <ul id="withdrawal-history-list"><li>No withdrawal history.</li></ul>
+                    </div>
+                    <div id="earning-history-content" class="tab-content card">
+                        <h4>Mining Earnings</h4>
+                        <ul id="earning-history-list"><li>No earning history.</li></ul>
+                    </div>
+                </div>
+
+                <!-- Profile Page Content -->
+                <div id="profile-page" class="page">
+                    <h3><i data-lucide="user"></i> Profile & Settings</h3>
+                    <div class="card">
+                        <h4>User Details</h4>
+                        <div id="user-details">
+                            <p><strong>Name:</strong> <span id="profile-name"></span></p>
+                            <p><strong>Email:</strong> <span id="profile-email"></span></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h4>Withdraw Funds</h4>
+                        <form id="withdrawal-form">
+                            <div class="form-group">
+                                <label for="withdrawal-amount">Amount (Min: 100,000 MMK)</label>
+                                <input type="number" id="withdrawal-amount" min="100000" placeholder="Enter amount" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="withdrawal-method">Payment Method</label>
+                                <select id="withdrawal-method" required>
+                                    <option value="" disabled selected>Select method</option>
+                                    <option value="kpay">KPay</option>
+                                    <option value="wavepay">WavePay</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="recipient-phone">Recipient Phone Number</label>
+                                <input type="tel" id="recipient-phone" placeholder="e.g., 09xxxxxxxxx" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="payment-pin-withdraw">Payment PIN</label>
+                                <input type="password" id="payment-pin-withdraw" placeholder="Your 6-digit PIN" required pattern="\d{6}" maxlength="6" inputmode="numeric">
+                            </div>
+                            <button type="submit" class="button-primary">Request Withdrawal</button>
+                        </form>
+                        <p id="withdrawal-message" class="message" style="display:none;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+                <button data-page="mining-page" class="nav-button active"><i data-lucide="activity"></i> <span>Mining</span></button>
+                <button data-page="buy-mining-page" class="nav-button"><i data-lucide="shopping-cart"></i> <span>Buy</span></button>
+                <button data-page="history-page" class="nav-button"><i data-lucide="history"></i> <span>History</span></button>
+                <button data-page="profile-page" class="nav-button"><i data-lucide="user"></i> <span>Profile</span></button>
+            </nav>
+        </main>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content card">
+            <span class="close-button" id="close-payment-modal">&times;</span>
+            <h4>Complete Your Purchase</h4>
+            <div id="payment-plan-details-modal"></div>
+            <p><strong>Payment Instructions:</strong></p>
+            <p>Please transfer the amount to KPay/WavePay at: <strong id="payment-phone-number-modal">Loading...</strong></p>
+            <form id="payment-form">
+                <input type="hidden" id="selected-plan-id-modal">
+                <div class="form-group">
+                    <label for="payment-method-modal">Select Payment Method:</label>
+                    <select id="payment-method-modal" required>
+                        <option value="" disabled selected>Select method</option>
+                        <option value="kpay">KPay</option>
+                        <option value="wavepay">WavePay</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payment-receipt-modal">Upload Payment Receipt (Screenshot):</label>
+                    <input type="file" id="payment-receipt-modal" accept="image/*" required>
+                </div>
+                <button type="submit" class="button-primary">Submit Payment Proof</button>
+            </form>
+            <p id="payment-message" class="message" style="display:none;"></p>
+        </div>
+    </div>
+
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- bcrypt.js for client-side hashing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script type="module" src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+            // Attempt to load GitHub image for loading screen
+            const githubLoadingImg = document.getElementById('loading-image-github');
+            const placeholderLoadingImg = document.getElementById('loading-image-placeholder');
+            githubLoadingImg.onload = () => {
+                placeholderLoadingImg.style.display = 'none';
+                githubLoadingImg.style.display = 'block';
+            };
+            githubLoadingImg.onerror = () => {
+                // If GitHub image fails, placeholder is already visible
+                console.warn("Failed to load GitHub loading image, using placeholder.");
+            };
+            // Set src to trigger load attempt
+            githubLoadingImg.src = "https://raw.githubusercontent.com/VCDeveloperTeam/MMK-Minine-Website/main/loding.png";
+        });
+    </script>
+</body>
+</html>
