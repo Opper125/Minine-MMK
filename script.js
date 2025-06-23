@@ -192,7 +192,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (typeof window.supabase === "undefined") {
     console.error("Supabase client library is NOT LOADED!")
     if (loadingScreen) loadingScreen.style.display = "none"
-    if (appContent) appContent.style.display = "block"
+    if (appContent) appContent.style.display = "block" // Show app content to display error
     showAuthMessage("Critical Error: Supabase library failed to load. Application cannot start.")
     return // Halt execution
   }
@@ -201,7 +201,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (typeof window.bcrypt === "undefined") {
     console.error("bcrypt.js library is NOT LOADED!")
     if (loadingScreen) loadingScreen.style.display = "none"
-    if (appContent) appContent.style.display = "block"
+    if (appContent) appContent.style.display = "block" // Show app content to display error
     showAuthMessage("Security component (bcrypt.js) failed to load. Signup and Login will not work. Please refresh.")
     return // Halt execution
   }
@@ -329,7 +329,9 @@ async function handleSignupSubmit(e) {
 
     const { data: newUser, error: insertError } = await supabase
       .from("users")
-      .insert([{ name, email, password_hash: passwordHash, payment_pin_hash: paymentPinHash, balance: 0 }])
+      .insert([
+        { name, email, password_hash: passwordHash, payment_pin_hash: paymentPinHash, balance: 0, is_admin: false },
+      ]) // Ensure is_admin is false for new signups
       .select()
       .single()
 
@@ -376,10 +378,15 @@ async function handleLoginSubmit(e) {
       return
     }
 
+    // Do NOT sign in with Supabase Auth here for regular users if you are not using Supabase's built-in auth for them.
+    // The current setup uses a custom user table and password hashing.
+    // If you want to use Supabase Auth, the signup/login flow needs to change to use supabase.auth.signUp and supabase.auth.signInWithPassword.
+    // For now, we proceed with the custom logic.
+
     await supabase.from("users").update({ last_login_at: new Date().toISOString() }).eq("id", user.id)
 
     currentUser = user
-    localStorage.setItem("mmk_mining_user_id", user.id)
+    localStorage.setItem("mmk_mining_user_id", user.id) // Store our custom user ID
     await initializeApp()
   } catch (error) {
     console.error("Login error:", error)
@@ -394,6 +401,9 @@ async function handleLogout() {
   localStorage.removeItem("mmk_mining_user_id")
   if (activeMiningInterval) clearInterval(activeMiningInterval)
   activeMiningInterval = null
+
+  // If you were using Supabase Auth session for users, you'd call supabase.auth.signOut() here.
+  // Since it's custom, just clearing local state is enough for the client.
 
   navigateToView("auth-section")
   if (mainAppSection) mainAppSection.style.display = "none"
@@ -440,7 +450,7 @@ async function handlePaymentFormSubmit(e) {
     const fileName = `receipts/${currentUser.id}/${Date.now()}_${planId}.${fileExt}`
 
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("payment_receipts") // Ensure this bucket name is correct
+      .from("payment_receipts") // Ensure this bucket name is correct in Supabase Storage
       .upload(fileName, receiptFile, {
         cacheControl: "3600",
         upsert: false,
@@ -571,7 +581,7 @@ async function initializeApp() {
 
   await fetchAdminSettings()
   await fetchUserBalance()
-  navigateToPage("mining-page")
+  navigateToPage("mining-page") // Default page after login
   showLoadingScreen(false)
 }
 
@@ -579,6 +589,7 @@ async function checkUserSession() {
   const userId = localStorage.getItem("mmk_mining_user_id")
   if (userId) {
     try {
+      // Fetch user data from your custom users table
       const { data: user, error } = await supabase.from("users").select("*").eq("id", userId).single()
       if (error || !user) {
         localStorage.removeItem("mmk_mining_user_id")
@@ -605,7 +616,7 @@ async function fetchAdminSettings() {
       .select("value")
       .eq("key", "payment_phone_number")
       .maybeSingle()
-    if (error && error.code !== "PGRST116") throw error // PGRST116 means no rows found, which is ok
+    if (error && error.code !== "PGRST116") throw error
     if (data && data.value) {
       paymentPhoneNumber = data.value
       if (paymentPhoneNumberModal) paymentPhoneNumberModal.textContent = paymentPhoneNumber
@@ -645,6 +656,7 @@ function navigateToPage(pageId) {
   if (targetPage) targetPage.classList.add("active-page")
   if (targetButton) targetButton.classList.add("active")
 
+  // Load data for the specific page
   if (pageId === "mining-page") loadMiningData()
   if (pageId === "buy-mining-page") loadMiningPlans()
   if (pageId === "history-page") {
@@ -668,7 +680,7 @@ function navigateToPage(pageId) {
 async function loadMiningData() {
   if (!currentUser) return
   showLoadingScreen(true)
-  await fetchUserBalance()
+  await fetchUserBalance() // Refresh balance before showing mining data
 
   try {
     const { data: purchasedPlans, error } = await supabase
@@ -678,11 +690,11 @@ async function loadMiningData() {
                 mining_plans (name, power_output_per_second, duration_days)
             `)
       .eq("user_id", currentUser.id)
-      .in("status", ["active"])
+      .in("status", ["active"]) // Only fetch active plans for mining calculation
 
     if (error) throw error
 
-    if (activePlansList) activePlansList.innerHTML = ""
+    if (activePlansList) activePlansList.innerHTML = "" // Clear previous list
     let totalEffectivePower = 0
 
     if (!purchasedPlans || purchasedPlans.length === 0) {
@@ -693,7 +705,7 @@ async function loadMiningData() {
         const planDetails = plan.mining_plans
         if (!planDetails) {
           console.warn(`Plan details missing for purchased plan ID: ${plan.id}`)
-          return
+          return // Skip this plan if details are missing
         }
         const now = new Date()
         const endDate = new Date(plan.end_date)
@@ -707,7 +719,9 @@ async function loadMiningData() {
             activePlansList.appendChild(listItem)
           }
         } else if (plan.status === "active" && now > endDate) {
+          // Plan has expired, ideally backend updates this. For now, just don't add its power.
           console.warn(`Plan ${planDetails.name} (ID: ${plan.id}) is marked active but past end_date.`)
+          // TODO: Optionally, call a function to update this plan's status to 'expired' in DB
         }
       })
       if (miningStatusText) miningStatusText.textContent = totalEffectivePower > 0 ? "Mining Active" : "No Active Plans"
@@ -722,11 +736,13 @@ async function loadMiningData() {
     if (miningPowerDisplay) miningPowerDisplay.textContent = `Total Power: ${totalEffectivePower.toFixed(5)} P/s`
     if (miningRateDisplay) miningRateDisplay.textContent = `Est. Rate: ${totalEffectivePower.toFixed(5)} MMK/s`
 
-    if (activeMiningInterval) clearInterval(activeMiningInterval)
+    if (activeMiningInterval) clearInterval(activeMiningInterval) // Clear existing interval
 
     if (totalEffectivePower > 0) {
       activeMiningInterval = setInterval(async () => {
-        const earningsThisSecond = totalEffectivePower
+        const earningsThisSecond = totalEffectivePower // Simplified: power = earnings per second
+
+        // Update client-side balance immediately for responsiveness
         userBalance += earningsThisSecond
         if (userBalanceDisplay)
           userBalanceDisplay.textContent = userBalance.toLocaleString(undefined, {
@@ -734,19 +750,23 @@ async function loadMiningData() {
             maximumFractionDigits: 2,
           })
 
+        // Call RPC to increment balance and log transaction in DB
         try {
           const { error: rpcError } = await supabase.rpc("increment_balance_and_log_earning", {
             p_user_id: currentUser.id,
             p_amount: earningsThisSecond,
             p_description: `Mining earning for 1 sec at ${totalEffectivePower.toFixed(5)} P/s`,
           })
+
           if (rpcError) {
             console.warn("Failed to update balance and log earning in DB via RPC:", rpcError.message)
+            // Potentially revert client-side balance update or show warning
+            // For now, client balance remains updated, DB might be out of sync if RPC fails repeatedly
           }
         } catch (dbError) {
           console.warn("DB Error during earning RPC call:", dbError.message)
         }
-      }, 1000)
+      }, 1000) // Every second
     }
   } catch (error) {
     console.error("Error loading mining data:", error)
@@ -767,9 +787,9 @@ async function loadMiningPlans() {
       .order("price", { ascending: true })
 
     if (error) throw error
-    miningPlansCache = data
+    miningPlansCache = data // Cache for use in payment modal
 
-    if (miningPlansContainer) miningPlansContainer.innerHTML = ""
+    if (miningPlansContainer) miningPlansContainer.innerHTML = "" // Clear loading message
     if (!data || data.length === 0) {
       if (miningPlansContainer)
         miningPlansContainer.innerHTML = "<p>No mining plans available at the moment. Please check back later.</p>"
@@ -797,6 +817,7 @@ async function loadMiningPlans() {
       if (miningPlansContainer) miningPlansContainer.appendChild(planCard)
     })
 
+    // Add event listeners to new buttons
     document.querySelectorAll(".buy-plan-button").forEach((button) => {
       button.addEventListener("click", (e) => {
         const planId = e.target.getAttribute("data-plan-id")
@@ -832,7 +853,7 @@ async function loadHistoryData(activeTabKey) {
   showLoadingScreen(true)
 
   const renderListItem = (content, listElement, itemClass = "") => {
-    if (!listElement) return
+    if (!listElement) return // Guard against null element
     const li = document.createElement("li")
     if (itemClass) li.className = itemClass
     li.innerHTML = content
@@ -855,7 +876,7 @@ async function loadHistoryData(activeTabKey) {
         .order("created_at", { ascending: false })
 
       if (error) throw error
-      if (purchaseHistoryList) purchaseHistoryList.innerHTML = ""
+      if (purchaseHistoryList) purchaseHistoryList.innerHTML = "" // Clear loading/previous
       if (!data || data.length === 0) {
         if (purchaseHistoryList) purchaseHistoryList.innerHTML = "<li>No purchase history found.</li>"
       } else {
@@ -917,7 +938,7 @@ async function loadHistoryData(activeTabKey) {
         .eq("user_id", currentUser.id)
         .eq("type", "mining_earning")
         .order("created_at", { ascending: false })
-        .limit(100)
+        .limit(100) // Limit for performance
 
       if (error) throw error
       if (earningHistoryList) earningHistoryList.innerHTML = ""
