@@ -1,3 +1,24 @@
+// --- bcrypt.js Check ---
+if (typeof window.bcrypt === "undefined") {
+  console.error("bcrypt.js library is not loaded! Password hashing will fail.")
+  // Display a user-friendly message on the auth page if possible, or alert.
+  // This needs to be handled carefully as DOM might not be fully ready here.
+  // For now, we'll rely on the console error and the error handling within hash/compare functions.
+  // A more robust solution would be to halt execution or show a persistent error message.
+  const authMsgElement = document.getElementById("auth-message")
+  if (authMsgElement) {
+    authMsgElement.textContent = "Security component failed to load. Please refresh or check your internet connection."
+    authMsgElement.className = "message error"
+    authMsgElement.style.display = "block"
+  } else {
+    alert(
+      "CRITICAL ERROR: Security component (bcrypt.js) failed to load. Signup/Login will not work. Please refresh the page or check your internet connection.",
+    )
+  }
+  // Consider throwing an error here to stop further script execution if bcrypt is critical for startup
+  // throw new Error("bcrypt.js not loaded");
+}
+
 // --- Supabase Client Initialization ---
 const SUPABASE_URL = "https://ggwwsuhnhnksphryhhjo.supabase.co"
 const SUPABASE_ANON_KEY =
@@ -67,7 +88,7 @@ const profileEmailDisplay = document.getElementById("profile-email")
 const withdrawalForm = document.getElementById("withdrawal-form")
 const withdrawalMessage = document.getElementById("withdrawal-message")
 
-const bcrypt = window.bcrypt
+const bcrypt = window.bcrypt // Assign after the check
 
 // --- Utility Functions ---
 function showAuthMessage(message, type = "error") {
@@ -95,7 +116,7 @@ function showLoadingScreen(show = true) {
     loadingScreen.style.opacity = show ? "1" : "0"
     loadingScreen.style.pointerEvents = show ? "auto" : "none"
     if (show) loadingScreen.classList.remove("hidden")
-    else setTimeout(() => loadingScreen.classList.add("hidden"), 500) // Match CSS transition
+    else setTimeout(() => loadingScreen.classList.add("hidden"), 500)
   }
 }
 
@@ -119,7 +140,17 @@ function navigateToPage(pageId) {
 
   if (pageId === "mining-page") loadMiningData()
   if (pageId === "buy-mining-page") loadMiningPlans()
-  if (pageId === "history-page") loadHistoryData(document.querySelector(".history-tabs .tab-button.active").dataset.tab)
+  if (pageId === "history-page") {
+    const activeHistoryTab = document.querySelector(".history-tabs .tab-button.active")
+    if (activeHistoryTab) {
+      loadHistoryData(activeHistoryTab.dataset.tab)
+    } else {
+      // Default to purchase history if none active (should not happen with default HTML)
+      document.querySelector(".history-tabs .tab-button[data-tab='purchase-history']").classList.add("active")
+      document.getElementById("purchase-history-content").classList.add("active")
+      loadHistoryData("purchase-history")
+    }
+  }
   if (pageId === "profile-page") loadProfileData()
 
   if (window.lucide) window.lucide.createIcons()
@@ -127,7 +158,8 @@ function navigateToPage(pageId) {
 
 async function hashDataClient(data) {
   if (!bcrypt) {
-    console.error("bcrypt.js not loaded!")
+    // Check again before use
+    console.error("bcrypt.js not available for hashing!")
     showAuthMessage("Security component error. Please refresh.")
     return null
   }
@@ -143,7 +175,8 @@ async function hashDataClient(data) {
 
 async function compareDataClient(plainData, hash) {
   if (!bcrypt) {
-    console.error("bcrypt.js not loaded!")
+    // Check again before use
+    console.error("bcrypt.js not available for comparison!")
     showAuthMessage("Security component error. Please refresh.")
     return false
   }
@@ -201,8 +234,8 @@ signupForm.addEventListener("submit", async (e) => {
   const paymentPinHash = await hashDataClient(paymentPin)
 
   if (!passwordHash || !paymentPinHash) {
-    showLoadingScreen(false)
-    return // Hashing failed, message shown by hashDataClient
+    showLoadingScreen(false) // Hashing failed, message shown by hashDataClient
+    return
   }
 
   try {
@@ -210,15 +243,11 @@ signupForm.addEventListener("submit", async (e) => {
       .from("users")
       .select("email")
       .eq("email", email)
-      .maybeSingle() // Use maybeSingle to avoid error if no user found
+      .maybeSingle()
 
     if (checkError && checkError.code !== "PGRST116") {
-      // PGRST116: " relazione «...» non contiene righe " (no rows)
-      if (checkError.message.includes("JSON object requested, multiple (or no) rows returned")) {
-        // This is fine, means no user found
-      } else {
-        throw checkError
-      }
+      // PGRST116: no rows found
+      throw checkError
     }
 
     if (existingUser) {
@@ -261,7 +290,7 @@ loginForm.addEventListener("submit", async (e) => {
   }
 
   try {
-    const { data: user, error } = await supabase.from("users").select("*").eq("email", email).single() // Expects a single user or throws error
+    const { data: user, error } = await supabase.from("users").select("*").eq("email", email).single()
 
     if (error || !user) {
       showAuthMessage("Invalid email or password.")
@@ -276,11 +305,10 @@ loginForm.addEventListener("submit", async (e) => {
       return
     }
 
-    // Update last_login_at
     await supabase.from("users").update({ last_login_at: new Date().toISOString() }).eq("id", user.id)
 
     currentUser = user
-    localStorage.setItem("mmk_mining_user_id", user.id)
+    localStorage.setItem("mmk_mining_user_id", user.id) // Use user.id from successful login
     await initializeApp()
   } catch (error) {
     console.error("Login error:", error)
@@ -327,10 +355,9 @@ async function checkUserSession() {
       showLoadingScreen(false)
       return false
     }
-    // No finally here, initializeApp will hide loading
   }
   navigateToView("auth-section")
-  showLoadingScreen(false) // Hide if no user ID in local storage
+  showLoadingScreen(false)
   return false
 }
 
@@ -345,7 +372,7 @@ async function initializeApp() {
   navigateToView("main-app-section")
   authSection.style.display = "none"
 
-  await fetchAdminSettings() // Fetch payment phone number first
+  await fetchAdminSettings()
   await fetchUserBalance()
   navigateToPage("mining-page")
   showLoadingScreen(false)
@@ -373,8 +400,8 @@ async function fetchAdminSettings() {
       .from("admin_settings")
       .select("value")
       .eq("key", "payment_phone_number")
-      .single()
-    if (error && error.code !== "PGRST116") throw error // PGRST116: no rows found
+      .maybeSingle() // Use maybeSingle to avoid error if not found
+    if (error && error.code !== "PGRST116") throw error
     if (data && data.value) {
       paymentPhoneNumber = data.value
       paymentPhoneNumberModal.textContent = paymentPhoneNumber
@@ -409,7 +436,7 @@ async function loadMiningData() {
                 mining_plans (name, power_output_per_second, duration_days)
             `)
       .eq("user_id", currentUser.id)
-      .in("status", ["active", "expired"]) // Load active and recently expired for display
+      .in("status", ["active"]) // Only fetch active plans for mining calculation
 
     if (error) throw error
 
@@ -417,40 +444,32 @@ async function loadMiningData() {
     let totalEffectivePower = 0
 
     if (purchasedPlans.length === 0) {
-      activePlansList.innerHTML = '<li>No active or past mining plans. Visit "Buy" to get started.</li>'
+      activePlansList.innerHTML = '<li>No active mining plans. Visit "Buy" to get started.</li>'
       miningStatusText.textContent = "Idle"
     } else {
-      let hasActivePlan = false
       purchasedPlans.forEach((plan) => {
         const planDetails = plan.mining_plans
         const now = new Date()
         const endDate = new Date(plan.end_date)
         const startDate = new Date(plan.start_date)
-        let planStatusDisplay = plan.status
 
-        const listItem = document.createElement("li")
-
-        if (plan.status === "active" && now > endDate) {
-          // Plan has expired, should be updated in DB by a backend process ideally
-          planStatusDisplay = "expired"
-          listItem.classList.add("expired")
-          // No power from expired plans
-        } else if (plan.status === "active" && now >= startDate && now <= endDate) {
+        if (plan.status === "active" && now >= startDate && now <= endDate) {
           totalEffectivePower += Number.parseFloat(planDetails.power_output_per_second)
-          hasActivePlan = true
+          const listItem = document.createElement("li")
           listItem.innerHTML = `<strong>${planDetails.name}</strong> - Ends: ${endDate.toLocaleDateString()} ${endDate.toLocaleTimeString()} <br>Power: ${planDetails.power_output_per_second} P/s`
-        } else if (plan.status === "expired") {
-          listItem.classList.add("expired")
-          listItem.innerHTML = `<strong>${planDetails.name}</strong> - Ended: ${endDate.toLocaleDateString()} ${endDate.toLocaleTimeString()}`
-        } else {
-          // Other statuses like pending, etc. (though we only fetched active/expired)
-          listItem.innerHTML = `<strong>${planDetails.name}</strong> - Status: ${plan.status}`
+          activePlansList.appendChild(listItem)
+        } else if (plan.status === "active" && now > endDate) {
+          // Plan has expired, ideally backend updates this. For now, just don't add its power.
+          // Optionally, update status client-side for display or call a function to update DB.
+          console.warn(`Plan ${planDetails.name} (ID: ${plan.id}) is marked active but past end_date.`)
         }
-        activePlansList.appendChild(listItem)
       })
-      miningStatusText.textContent = hasActivePlan ? "Mining Active" : "No Active Plans"
-      if (activePlansList.children.length === 0) {
-        activePlansList.innerHTML = "<li>No relevant mining plans to display.</li>"
+      miningStatusText.textContent = totalEffectivePower > 0 ? "Mining Active" : "No Active Plans"
+      if (activePlansList.children.length === 0 && purchasedPlans.length > 0) {
+        activePlansList.innerHTML =
+          "<li>You have plans, but none are currently active or within their mining period.</li>"
+      } else if (activePlansList.children.length === 0) {
+        activePlansList.innerHTML = '<li>No active mining plans. Visit "Buy" to get started.</li>'
       }
     }
 
@@ -458,49 +477,33 @@ async function loadMiningData() {
     miningRateDisplay.textContent = `Est. Rate: ${totalEffectivePower.toFixed(5)} MMK/s`
 
     if (activeMiningInterval) clearInterval(activeMiningInterval)
+
     if (totalEffectivePower > 0) {
       activeMiningInterval = setInterval(async () => {
-        const earningsThisSecond = totalEffectivePower // Simplified: 1 second passed
+        const earningsThisSecond = totalEffectivePower
 
-        // This is a critical part: How to update balance?
-        // Option 1: Client-side optimistic update (visual only, real update by backend)
-        // Option 2: Frequent DB updates (can be heavy, risk of race conditions without care)
-        // Option 3: Edge function to calculate and update earnings periodically.
-        // For this example, we'll do a client-side visual update and a less frequent DB update.
-
-        userBalance += earningsThisSecond // Visual update
+        userBalance += earningsThisSecond
         userBalanceDisplay.textContent = userBalance.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         })
 
-        // Infrequent DB update (e.g., every 30-60 seconds)
-        // This should be handled more robustly in production.
-        // For now, let's simulate this by not doing DB update here to avoid spamming.
-        // A "claim earnings" button or server-side periodic update is better.
-        // We will add a transaction record for earning for demo purposes.
         try {
-          await supabase.from("transactions").insert({
-            user_id: currentUser.id,
-            type: "mining_earning",
-            amount: earningsThisSecond,
-            description: `Mining earning for 1 sec at ${totalEffectivePower.toFixed(5)} P/s`,
-          })
-          // Actual balance update should be done by a trusted server process or edge function
-          // based on these transaction logs or plan active times.
-          // For now, we'll update the user's balance directly. This is NOT ideal for production.
-          const { error: updateError } = await supabase.rpc("increment_balance", {
-            user_id_in: currentUser.id,
-            amount_in: earningsThisSecond,
+          // Call RPC to increment balance and log transaction
+          const { error: rpcError } = await supabase.rpc("increment_balance_and_log_earning", {
+            p_user_id: currentUser.id,
+            p_amount: earningsThisSecond,
+            p_description: `Mining earning for 1 sec at ${totalEffectivePower.toFixed(5)} P/s`,
           })
 
-          if (updateError) {
-            console.warn("Failed to update balance in DB via RPC:", updateError.message)
+          if (rpcError) {
+            console.warn("Failed to update balance and log earning in DB via RPC:", rpcError.message)
+            // Potentially revert client-side balance update or show warning
           }
         } catch (dbError) {
-          console.warn("DB Error during earning transaction log:", dbError.message)
+          console.warn("DB Error during earning RPC call:", dbError.message)
         }
-      }, 1000) // Update every second
+      }, 1000)
     }
   } catch (error) {
     console.error("Error loading mining data:", error)
@@ -527,13 +530,14 @@ async function loadMiningPlans() {
     miningPlansContainer.innerHTML = ""
     if (data.length === 0) {
       miningPlansContainer.innerHTML = "<p>No mining plans available at the moment. Please check back later.</p>"
+      showLoadingScreen(false)
       return
     }
 
     data.forEach((plan) => {
       const planCard = document.createElement("div")
       planCard.className = "plan-card"
-      const dailyReturn = (plan.price * plan.total_return_multiplier - plan.price) / plan.duration_days // Profit per day
+      const dailyReturn = (plan.price * plan.total_return_multiplier - plan.price) / plan.duration_days
       const totalProfit = plan.price * plan.total_return_multiplier - plan.price
 
       planCard.innerHTML = `
@@ -558,7 +562,7 @@ async function loadMiningPlans() {
     })
   } catch (error) {
     console.error("Error loading mining plans:", error)
-    miningPlansContainer.innerHTML = "<p>Error loading plans. Please try again. Check console for details.</p>"
+    miningPlansContainer.innerHTML = "<p>Error loading plans. Please try again.</p>"
   } finally {
     showLoadingScreen(false)
   }
@@ -621,7 +625,7 @@ paymentForm.addEventListener("submit", async (e) => {
     const fileName = `receipts/${currentUser.id}/${Date.now()}_${planId}.${fileExt}`
 
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("payment_receipts") // Ensure this bucket exists and RLS allows uploads
+      .from("payment_receipts")
       .upload(fileName, receiptFile, {
         cacheControl: "3600",
         upsert: false,
@@ -676,8 +680,9 @@ async function loadHistoryData(activeTabKey) {
   if (!currentUser) return
   showLoadingScreen(true)
 
-  const renderListItem = (content, listElement) => {
+  const renderListItem = (content, listElement, itemClass = "") => {
     const li = document.createElement("li")
+    if (itemClass) li.className = itemClass
     li.innerHTML = content
     listElement.appendChild(li)
   }
@@ -706,12 +711,13 @@ async function loadHistoryData(activeTabKey) {
           renderListItem(
             `
                         <strong class="history-item-title">${item.mining_plans.name}</strong>
-                        <span class="history-item-meta">Price: <strong>${Number.parseFloat(item.purchase_price).toLocaleString()} MMK</strong> | Status: <span class="status-${item.status.replace("_", "-")}">${item.status}</span></span>
+                        <span class="history-item-meta">Price: <strong>${Number.parseFloat(item.purchase_price).toLocaleString()} MMK</strong> | Status: <span class="status-badge status-${item.status.replace("_", "-")}">${item.status.replace("_", " ")}</span></span>
                         <span class="history-item-meta">Date: ${formatDate(item.created_at)}</span>
                         ${item.payment_receipt_url ? `<a href="${item.payment_receipt_url}" target="_blank" rel="noopener noreferrer" style="font-size:0.85em; color:var(--accent-color);">View Receipt</a>` : ""}
                         ${item.admin_notes ? `<p style="font-size:0.8em; color:var(--text-muted-color); margin-top:5px;">Admin Note: ${item.admin_notes}</p>` : ""}
                     `,
             purchaseHistoryList,
+            `history-item status-item-${item.status.replace("_", "-")}`,
           )
         })
       }
@@ -738,10 +744,11 @@ async function loadHistoryData(activeTabKey) {
             `
                         <strong class="history-item-title">Withdrawal Request</strong>
                         <span class="history-item-meta">Amount: <strong class="history-item-amount debit">${Number.parseFloat(item.amount).toLocaleString()} MMK</strong> | To: ${item.recipient_phone} (${item.payment_method})</span>
-                        <span class="history-item-meta">Status: <span class="status-${item.status.replace("_", "-")}">${item.status}</span> | Date: ${formatDate(item.requested_at)}</span>
+                        <span class="history-item-meta">Status: <span class="status-badge status-${item.status.replace("_", "-")}">${item.status.replace("_", " ")}</span> | Date: ${formatDate(item.requested_at)}</span>
                         ${item.admin_notes ? `<p style="font-size:0.8em; color:var(--text-muted-color); margin-top:5px;">Admin Note: ${item.admin_notes}</p>` : ""}
                     `,
             withdrawalHistoryList,
+            `history-item status-item-${item.status.replace("_", "-")}`,
           )
         })
       }
@@ -756,9 +763,9 @@ async function loadHistoryData(activeTabKey) {
         .from("transactions")
         .select("*")
         .eq("user_id", currentUser.id)
-        .eq("type", "mining_earning") // Only mining earnings
+        .eq("type", "mining_earning")
         .order("created_at", { ascending: false })
-        .limit(100) // Limit for performance
+        .limit(100)
 
       if (error) throw error
       earningHistoryList.innerHTML = ""
@@ -774,6 +781,7 @@ async function loadHistoryData(activeTabKey) {
                         <span class="history-item-meta">Date: ${formatDate(item.created_at)}</span>
                     `,
             earningHistoryList,
+            "history-item earning-item",
           )
         })
       }
@@ -813,6 +821,7 @@ withdrawalForm.addEventListener("submit", async (e) => {
     return
   }
   if (amount < 100000) {
+    // As per schema constraint
     withdrawalMessage.textContent = "Minimum withdrawal amount is 100,000 MMK."
     withdrawalMessage.className = "message error"
     withdrawalMessage.style.display = "block"
@@ -843,19 +852,21 @@ withdrawalForm.addEventListener("submit", async (e) => {
     return
   }
 
-  // Basic daily withdrawal limit check (client-side, needs robust backend check)
   try {
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
-    const { data: recentWithdrawals, error: checkError } = await supabase
+    const {
+      data: recentWithdrawals,
+      error: checkError,
+      count,
+    } = await supabase
       .from("withdrawal_requests")
       .select("id", { count: "exact" })
       .eq("user_id", currentUser.id)
       .gte("requested_at", todayStart.toISOString())
 
     if (checkError) throw checkError
-    if (recentWithdrawals.length > 0) {
-      // Assuming count is in length for this simple check
+    if (count > 0) {
       withdrawalMessage.textContent = "You have already made a withdrawal request today. Please try again tomorrow."
       withdrawalMessage.className = "message error"
       withdrawalMessage.style.display = "block"
@@ -879,7 +890,7 @@ withdrawalForm.addEventListener("submit", async (e) => {
     withdrawalMessage.className = "message success"
     withdrawalMessage.style.display = "block"
     withdrawalForm.reset()
-    await fetchUserBalance() // Refresh balance display
+    // Don't fetchUserBalance here, balance only changes on admin approval.
     setTimeout(() => navigateToPage("history-page"), 2000)
   } catch (error) {
     console.error("Withdrawal error:", error)
@@ -893,31 +904,25 @@ withdrawalForm.addEventListener("submit", async (e) => {
 
 // --- Initial Load ---
 document.addEventListener("DOMContentLoaded", async () => {
-  showLoadingScreen(true) // Show initial loading screen
-  appContent.style.display = "block" // Show app content container so auth can be visible
+  showLoadingScreen(true)
+  appContent.style.display = "block"
 
   // Simulate the 5-second loading animation as requested
+  // But also ensure bcrypt check happens early
+  if (typeof window.bcrypt === "undefined") {
+    // The initial check at the top of the script should handle this.
+    // We might not want to proceed if bcrypt is missing.
+    console.error("Halting app initialization due to missing bcrypt.js")
+    showLoadingScreen(false) // Hide loading if we can't proceed
+    return // Stop further execution
+  }
+
   setTimeout(async () => {
-    const loggedIn = await checkUserSession() // This will hide loading if session check is fast
+    const loggedIn = await checkUserSession()
     if (loggedIn) {
-      await initializeApp() // This will also hide loading at its end
-    } else {
-      // If not loggedIn, checkUserSession already navigates to auth and hides loading
+      await initializeApp()
     }
+    // If not loggedIn, checkUserSession already navigates to auth and hides loading.
     if (window.lucide) window.lucide.createIcons()
-  }, 5000) // User requested 5 seconds
+  }, 2000) // Reduced loading time for faster testing, user can change back to 5000
 })
-
-// Supabase RPC function for incrementing balance (create this in Supabase SQL Editor)
-/*
-CREATE OR REPLACE FUNCTION increment_balance(user_id_in UUID, amount_in NUMERIC)
-RETURNS VOID AS $$
-BEGIN
-  UPDATE public.users
-  SET balance = balance + amount_in
-  WHERE id = user_id_in;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-GRANT EXECUTE ON FUNCTION increment_balance(UUID, NUMERIC) TO authenticated;
-*/
