@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MMK Mining</title>
+    <script src="https://unpkg.com/lucide-static@latest/dist/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        :root {
+            --admin-primary: #007bff;
+            --admin-secondary: #6c757d;
+            --admin-success: #28a745;
+            --admin-danger: #dc3545;
+            --admin-warning: #ffc107;
+            --admin-info: #17a2b8;
+            --admin-light: #f8f9fa;
+            --admin-dark: #343a40;
+            --admin-bg: #f4f6f9;
+            --admin-text: #212529;
+            --admin-surface: #ffffff;
+            --admin-border: #dee2e6;
+            --admin-font: 'Roboto', sans-serif;
+        }
+        body {
+            font-family: var(--admin-font);
+            margin: 0;
+            background-color: var(--admin-bg);
+            color: var(--admin-text);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        #admin-app header {
+            background-color: var(--admin-dark);
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #admin-app header h1 { margin: 0; font-size: 1.6em; font-weight: 500; }
+        #admin-logout-button { background-color: var(--admin-danger); color:white; border:none; padding: 8px 15px; cursor:pointer; border-radius:4px; font-size:0.9em;}
+        #admin-logout-button:hover { background-color: #c82333; }
+
+        #admin-login-section {
+            width: 100%;
+            max-width: 380px;
+            margin: 60px auto;
+            padding: 30px;
+            background-color: var(--admin-surface);
+            border-radius: 6px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        #admin-login-section h2 { text-align: center; margin-bottom: 25px; color: var(--admin-dark); font-weight:500; }
+        .admin-form-group { margin-bottom: 18px; }
+        .admin-form-group label { display:block; margin-bottom:6px; font-weight:500; }
+        .admin-form-group input { width: 100%; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: 4px; box-sizing: border-box; font-size:1em;}
+        .admin-form-group input:focus { border-color: var(--admin-primary); outline:none; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
+        .admin-button-primary { width: 100%; padding: 10px 15px; background-color: var(--admin-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size:1.05em; font-weight:500;}
+        .admin-button-primary:hover { background-color: #0056b3; }
+        #admin-login-message { margin-top:15px; text-align:center; color: var(--admin-danger); }
+
+
+        #admin-main-content { display: flex; min-height: calc(100vh - 67px); /* Header height */ }
+        #admin-main-content nav {
+            width: 230px;
+            background-color: var(--admin-dark);
+            padding: 20px 0;
+            color: #adb5bd;
+        }
+        #admin-main-content nav button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 20px;
+            background-color: transparent;
+            color: #adb5bd;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        #admin-main-content nav button i { width:18px; height:18px; }
+        #admin-main-content nav button:hover, #admin-main-content nav button.active {
+            background-color: var(--admin-primary);
+            color: white;
+        }
+
+        .admin-content-section {
+            flex-grow: 1;
+            padding: 25px;
+            background-color: var(--admin-bg); /* or var(--admin-surface) if preferred */
+        }
+        .admin-content-section h2 {
+            margin-top: 0;
+            color: var(--admin-dark);
+            border-bottom: 1px solid var(--admin-border);
+            padding-bottom:15px;
+            margin-bottom:25px;
+            font-size: 1.8em;
+            font-weight: 500;
+        }
+        .admin-card {
+            background-color: var(--admin-surface);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        .admin-card h3 { margin-top:0; font-size:1.2em; color: var(--admin-primary); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom:25px;}
+        .stat-card {
+            background-color: var(--admin-surface);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card .stat-value { font-size: 2em; font-weight: bold; color: var(--admin-primary); display:block; margin-bottom:5px;}
+        .stat-card .stat-label { font-size: 0.95em; color: var(--admin-secondary); }
+
+
+        .admin-table-wrapper { overflow-x: auto; }
+        table.admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: var(--admin-surface);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .admin-table th, .admin-table td {
+            border: 1px solid var(--admin-border);
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .admin-table th { background-color: var(--admin-light); font-weight: 500; }
+        .admin-table td button, .admin-table a.admin-button {
+            margin-right: 5px;
+            padding: 6px 10px;
+            cursor:pointer;
+            border-radius:4px;
+            border:1px solid transparent;
+            font-size:0.85em;
+            text-decoration: none;
+            display:inline-flex; align-items:center; gap: 4px;
+        }
+        .admin-table td button i, .admin-table a.admin-button i { width:14px; height:14px;}
+        .admin-button-success { background-color: var(--admin-success); color:white; border-color:var(--admin-success);}
+        .admin-button-success:hover { background-color: #1e7e34;}
+        .admin-button-danger { background-color: var(--admin-danger); color:white; border-color:var(--admin-danger);}
+        .admin-button-danger:hover { background-color: #bd2130;}
+        .admin-button-warning { background-color: var(--admin-warning); color:var(--admin-text); border-color:var(--admin-warning);}
+        .admin-button-warning:hover { background-color: #e0a800;}
+        .admin-button-info { background-color: var(--admin-info); color:white; border-color:var(--admin-info);}
+        .admin-button-info:hover { background-color: #117a8b;}
+
+        #add-edit-plan-form, #admin-settings-form {
+            max-width: 700px;
+        }
+        #add-edit-plan-form .admin-form-group, #admin-settings-form .admin-form-group {
+            margin-bottom: 15px;
+        }
+        #add-edit-plan-form textarea { min-height: 80px; }
+        #add-edit-plan-form .form-actions button { margin-right:10px; }
+        .admin-filter-bar { margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .admin-filter-bar input, .admin-filter-bar select {
+            padding: 8px 10px;
+            border: 1px solid var(--admin-border);
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        .admin-filter-bar input { flex-grow: 1; max-width: 300px; }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: 500;
+            color: white;
+            display: inline-block;
+        }
+        .status-pending_payment, .status-pending_approval { background-color: var(--admin-warning); color: var(--admin-text); }
+        .status-active, .status-approved { background-color: var(--admin-success); }
+        .status-completed { background-color: var(--admin-info); }
+        .status-rejected_payment, .status-rejected { background-color: var(--admin-danger); }
+        .status-expired { background-color: var(--admin-secondary); }
+
+        #mining-plans-list-admin .plan-item {
+            background-color: var(--admin-light);
+            padding: 15px;
+            border: 1px solid var(--admin-border);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #mining-plans-list-admin .plan-details { font-size: 0.95em; }
+        #mining-plans-list-admin .plan-actions button { margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <div id="admin-app">
+        <header>
+            <h1><i data-lucide="shield-check" style="vertical-align: middle; margin-right:10px;"></i>Admin Dashboard</h1>
+            <button id="admin-logout-button" style="display:none;"><i data-lucide="log-out" style="width:16px; height:16px; vertical-align: middle; margin-right:5px;"></i>Logout</button>
+        </header>
+
+        <section id="admin-login-section">
+            <h2>Admin Login</h2>
+            <form id="admin-login-form">
+                <div class="admin-form-group">
+                    <label for="admin-email">Email</label>
+                    <input type="email" id="admin-email" value="admin@example.com" required>
+                </div>
+                <div class="admin-form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" value="adminpassword" required>
+                </div>
+                <button type="submit" class="admin-button-primary">Login</button>
+            </form>
+            <p id="admin-login-message" style="display:none;"></p>
+        </section>
+
+        <main id="admin-main-content" style="display:none;">
+            <nav>
+                <button data-section="dashboard-summary" class="active"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+                <button data-section="manage-users"><i data-lucide="users"></i> Users</button>
+                <button data-section="manage-purchases"><i data-lucide="shopping-bag"></i> Purchases</button>
+                <button data-section="manage-withdrawals"><i data-lucide="arrow-down-left-from-circle"></i> Withdrawals</button>
+                <button data-section="manage-plans"><i data-lucide="server"></i> Mining Plans</button>
+                <button data-section="admin-settings"><i data-lucide="settings"></i> Settings</button>
+            </nav>
+
+            <div class="admin-content-section" id="dashboard-summary-section">
+                <h2>Dashboard Summary</h2>
+                <div class="stats-grid">
+                    <div class="stat-card"><span id="total-users-stat" class="stat-value">0</span><span class="stat-label">Total Users</span></div>
+                    <div class="stat-card"><span id="active-plans-stat" class="stat-value">0</span><span class="stat-label">Active User Plans</span></div>
+                    <div class="stat-card"><span id="pending-purchases-stat" class="stat-value">0</span><span class="stat-label">Pending Purchases</span></div>
+                    <div class="stat-card"><span id="pending-withdrawals-stat" class="stat-value">0</span><span class="stat-label">Pending Withdrawals</span></div>
+                </div>
+                <!-- More summary charts or data could go here -->
+            </div>
+
+            <div class="admin-content-section" id="manage-users-section" style="display:none;">
+                <h2>Manage Users</h2>
+                <div class="admin-filter-bar">
+                    <input type="text" id="search-user-input" placeholder="Search by name or email...">
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table" id="users-table">
+                        <thead><tr><th>Name</th><th>Email</th><th>Balance (MMK)</th><th>Joined</th><th>Actions</th></tr></thead>
+                        <tbody><!-- User data here --></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-content-section" id="manage-purchases-section" style="display:none;">
+                <h2>Manage Purchase Orders</h2>
+                 <div class="admin-filter-bar">
+                    <select id="filter-purchase-status">
+                        <option value="">All Statuses</option>
+                        <option value="pending_payment">Pending Payment</option>
+                        <option value="active">Active</option>
+                        <option value="rejected_payment">Rejected</option>
+                        <option value="completed">Completed</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table" id="purchases-table">
+                        <thead><tr><th>User Email</th><th>Plan Name</th><th>Price</th><th>Receipt</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                        <tbody><!-- Purchase data here --></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-content-section" id="manage-withdrawals-section" style="display:none;">
+                <h2>Manage Withdrawal Requests</h2>
+                <div class="admin-filter-bar">
+                     <select id="filter-withdrawal-status">
+                        <option value="">All Statuses</option>
+                        <option value="pending_approval">Pending Approval</option>
+                        <option value="approved">Approved</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table" id="withdrawals-table">
+                        <thead><tr><th>User Email</th><th>Amount</th><th>Method</th><th>Phone</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                        <tbody><!-- Withdrawal data here --></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-content-section" id="manage-plans-section" style="display:none;">
+                <h2>Manage Mining Plans</h2>
+                <button id="add-new-plan-button" class="admin-button-primary" style="margin-bottom:20px; width:auto;"><i data-lucide="plus-circle"></i> Add New Plan</button>
+                
+                <div id="add-edit-plan-form-container" class="admin-card" style="display:none;">
+                    <h3 id="plan-form-title">Add New Plan</h3>
+                    <form id="add-edit-plan-form">
+                        <input type="hidden" id="plan-id-admin">
+                        <div class="admin-form-group"><label for="plan-name-admin">Name:</label><input type="text" id="plan-name-admin" required></div>
+                        <div class="admin-form-group"><label for="plan-price-admin">Price (MMK):</label><input type="number" step="1000" id="plan-price-admin" required></div>
+                        <div class="admin-form-group"><label for="plan-duration-admin">Duration (Days):</label><input type="number" id="plan-duration-admin" required></div>
+                        <div class="admin-form-group"><label for="plan-return-multiplier-admin">Total Return Multiplier (e.g., 1.8 for 180%):</label><input type="number" step="0.01" id="plan-return-multiplier-admin" required></div>
+                        <div class="admin-form-group"><label for="plan-power-admin">Power (MMK/sec):</label><input type="number" step="0.00001" id="plan-power-admin" required></div>
+                        <div class="admin-form-group"><label for="plan-description-admin">Description:</label><textarea id="plan-description-admin"></textarea></div>
+                        <div class="admin-form-group" style="display:flex; align-items:center;"><input type="checkbox" id="plan-active-admin" checked style="width:auto; margin-right:10px;"><label for="plan-active-admin" style="margin-bottom:0;">Active</label></div>
+                        <div class="form-actions">
+                            <button type="submit" id="save-plan-button" class="admin-button-success">Save Plan</button>
+                            <button type="button" id="cancel-plan-button" class="admin-button-secondary">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="mining-plans-list-admin" class="admin-card">
+                    <h3>Existing Plans</h3>
+                    <!-- Admin list of plans with edit/delete -->
+                </div>
+            </div>
+            
+            <div class="admin-content-section" id="admin-settings-section" style="display:none;">
+                <h2>Admin Settings</h2>
+                <div class="admin-card">
+                    <form id="admin-settings-form">
+                        <div class="admin-form-group">
+                            <label for="setting-payment-phone">Payment Phone Number (for KPay/Wave):</label>
+                            <input type="text" id="setting-payment-phone" name="payment_phone_number">
+                        </div>
+                        <button type="submit" class="admin-button-primary" style="width:auto;">Save Settings</button>
+                    </form>
+                    <p id="admin-settings-message" style="display:none; margin-top:15px;"></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        // --- Supabase Client Initialization (Admin) ---
+        const SUPABASE_URL_ADMIN = 'https://ggwwsuhnhnksphryhhjo.supabase.co';
+        const SUPABASE_ANON_KEY_ADMIN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdnd3dzdWhuaG5rc3BocnloaGpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzM3ODQsImV4cCI6MjA2NjIwOTc4NH0.nZRj7cnC9jSo6CnilIlgz9193D-Vjf094H5XzPJBUxY';
+        
+        // IMPORTANT: For a real admin panel, you would NOT use the anon key if it doesn't have sufficient privileges.
+        // You'd typically authenticate an admin user who has a specific role, and RLS policies would grant
+        // permissions to that role. Or, use Supabase Edge Functions with the service_role key for sensitive operations.
+        // This example proceeds with the anon key, assuming RLS is configured for an 'admin' role or similar.
+        const supabaseAdmin = window.supabase.createClient(SUPABASE_URL_ADMIN, SUPABASE_ANON_KEY_ADMIN);
+
+        // --- Admin State ---
+        let currentAdminUser = null; 
+
+        // --- DOM Elements (Admin) ---
+        const adminLoginSectionEl = document.getElementById('admin-login-section');
+        const adminLoginFormEl = document.getElementById('admin-login-form');
+        const adminLoginMessageEl = document.getElementById('admin-login-message');
+        const adminMainContentEl = document.getElementById('admin-main-content');
+        const adminLogoutButtonEl = document.getElementById('admin-logout-button');
+
+        const adminNavButtonsEl = document.querySelectorAll('#admin-main-content nav button');
+        const adminContentSectionsEl = document.querySelectorAll('#admin-main-content .admin-content-section');
+
+        const totalUsersStatEl = document.getElementById('total-users-stat');
+        const activePlansStatEl = document.getElementById('active-plans-stat');
+        const pendingPurchasesStatEl = document.getElementById('pending-purchases-stat');
+        const pendingWithdrawalsStatEl = document.getElementById('pending-withdrawals-stat');
+
+        const usersTableBodyEl = document.querySelector('#users-table tbody');
+        const searchUserInputEl = document.getElementById('search-user-input');
+
+        const purchasesTableBodyEl = document.querySelector('#purchases-table tbody');
+        const filterPurchaseStatusEl = document.getElementById('filter-purchase-status');
+
+        const withdrawalsTableBodyEl = document.querySelector('#withdrawals-table tbody');
+        const filterWithdrawalStatusEl = document.getElementById('filter-withdrawal-status');
+        
+        const addNewPlanButtonEl = document.getElementById('add-new-plan-button');
+        const addEditPlanFormContainerEl = document.getElementById('add-edit-plan-form-container');
+        const planFormTitleEl = document.getElementById('plan-form-title');
+        const addEditPlanFormEl = document.getElementById('add-edit-plan-form');
+        const miningPlansListAdminEl = document.getElementById('mining-plans-list-admin');
+        const planIdAdminInputEl = document.getElementById('plan-id-admin');
+        const savePlanButtonEl = document.getElementById('save-plan-button');
+        const cancelPlanButtonEl = document.getElementById('cancel-plan-button');
+
+        const adminSettingsFormEl = document.getElementById('admin-settings-form');
+        const settingPaymentPhoneInputEl = document.getElementById('setting-payment-phone');
+        const adminSettingsMessageEl = document.getElementById('admin-settings-message');
+
+        // --- Admin Utility Functions ---
+        function showAdminLoginMessage(message, isError = true) {
+            adminLoginMessageEl.textContent = message;
+            adminLoginMessageEl.style.color = isError ? 'var(--admin-danger)' : 'var(--admin-success)';
+            adminLoginMessageEl.style.display = 'block';
+        }
+        
+        function showAdminSettingsMessage(message, isError = true) {
+            adminSettingsMessageEl.textContent = message;
+            adminSettingsMessageEl.style.color = isError ? 'var(--admin-danger)' : 'var(--admin-success)';
+            adminSettingsMessageEl.style.display = 'block';
+            setTimeout(() => adminSettingsMessageEl.style.display = 'none', 3000);
+        }
+
+        function showAdminSection(sectionId) {
+            adminContentSectionsEl.forEach(section => section.style.display = 'none');
+            adminNavButtonsEl.forEach(btn => btn.classList.remove('active'));
+
+            const targetSection = document.getElementById(sectionId + '-section');
+            const targetButton = document.querySelector(`#admin-main-content nav button[data-section="${sectionId}"]`);
+
+            if (targetSection) targetSection.style.display = 'block';
+            if (targetButton) targetButton.classList.add('active');
+
+            if (sectionId === 'dashboard-summary') loadDashboardSummaryAdmin();
+            if (sectionId === 'manage-users') loadUsersAdmin();
+            if (sectionId === 'manage-purchases') loadPurchasesAdmin();
+            if (sectionId === 'manage-withdrawals') loadWithdrawalsAdmin();
+            if (sectionId === 'manage-plans') loadMiningPlansAdmin();
+            if (sectionId === 'admin-settings') loadCurrentAdminSettingsAdmin();
+            
+            if (window.lucide) window.lucide.createIcons();
+        }
+        
+        const formatDateAdmin = (dateString) => {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+        };
+
+        // --- Admin Authentication (Placeholder - VERY INSECURE FOR PRODUCTION) ---
+        adminLoginFormEl.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+
+            // !!! REPLACE THIS WITH SECURE AUTHENTICATION !!!
+            if (email === "admin@example.com" && password === "adminpassword") {
+                currentAdminUser = { email: email, role: 'admin_placeholder' }; // Simulate admin session
+                localStorage.setItem('mmk_admin_session_placeholder', JSON.stringify(currentAdminUser));
+                adminLoginSectionEl.style.display = 'none';
+                adminMainContentEl.style.display = 'flex';
+                adminLogoutButtonEl.style.display = 'block';
+                showAdminSection('dashboard-summary'); 
+            } else {
+                showAdminLoginMessage("Invalid admin credentials.");
+            }
+        });
+
+        adminLogoutButtonEl.addEventListener('click', () => {
+            currentAdminUser = null;
+            localStorage.removeItem('mmk_admin_session_placeholder');
+            adminMainContentEl.style.display = 'none';
+            adminLogoutButtonEl.style.display = 'none';
+            adminLoginSectionEl.style.display = 'block';
+            adminLoginMessageEl.style.display = 'none';
+        });
+
+        function checkAdminSession() {
+            const adminSession = localStorage.getItem('mmk_admin_session_placeholder');
+            if (adminSession) {
+                currentAdminUser = JSON.parse(adminSession);
+                if (currentAdminUser && currentAdminUser.role === 'admin_placeholder') {
+                    adminLoginSectionEl.style.display = 'none';
+                    adminMainContentEl.style.display = 'flex';
+                    adminLogoutButtonEl.style.display = 'block';
+                    showAdminSection('dashboard-summary');
+                    return true;
+                }
+            }
+            adminMainContentEl.style.display = 'none';
+            adminLoginSectionEl.style.display = 'block';
+            return false;
+        }
+
+        // --- Admin Navigation ---
+        adminNavButtonsEl.forEach(button => {
+            button.addEventListener('click', () => {
+                const sectionId = button.dataset.section;
+                showAdminSection(sectionId);
+            });
+        });
+
+        // --- Admin Data Loading Functions ---
+        async function loadDashboardSummaryAdmin() {
+            try {
+                const { count: userCount } = await supabaseAdmin.from('users').select('*', { count: 'exact', head: true });
+                totalUsersStatEl.textContent = userCount || 0;
+
+                const { count: activePlansCount } = await supabaseAdmin.from('user_purchased_plans').select('*', { count: 'exact', head: true }).eq('status', 'active');
+                activePlansStatEl.textContent = activePlansCount || 0;
+                
+                const { count: purchaseCount } = await supabaseAdmin.from('user_purchased_plans').select('*', { count: 'exact', head: true }).eq('status', 'pending_payment');
+                pendingPurchasesStatEl.textContent = purchaseCount || 0;
+
+                const { count: withdrawalCount } = await supabaseAdmin.from('withdrawal_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending_approval');
+                pendingWithdrawalsStatEl.textContent = withdrawalCount || 0;
+
+            } catch (error) {
+                console.error("Error loading dashboard summary:", error);
+                alert("Failed to load dashboard summary.");
+            }
+        }
+
+        async function loadUsersAdmin(searchTerm = '') {
+            usersTableBodyEl.innerHTML = '<tr><td colspan="5">Loading users...</td></tr>';
+            try {
+                let query = supabaseAdmin.from('users').select('id, name, email, balance, created_at').order('created_at', { ascending: false });
+                if (searchTerm) {
+                    query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+                }
+                const { data: users, error } = await query;
+                if (error) throw error;
+
+                usersTableBodyEl.innerHTML = '';
+                if (users.length === 0) {
+                    usersTableBodyEl.innerHTML = '<tr><td colspan="5">No users found.</td></tr>';
+                    return;
+                }
+                users.forEach(user => {
+                    const row = usersTableBodyEl.insertRow();
+                    row.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${parseFloat(user.balance).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                        <td>${formatDateAdmin(user.created_at)}</td>
+                        <td>
+                            <button class="admin-button-info view-user-details-btn" data-user-id="${user.id}"><i data-lucide="eye"></i> Details</button>
+                            <!-- More actions like edit balance (with caution), suspend, etc. -->
+                        </td>
+                    `;
+                });
+                if (window.lucide) window.lucide.createIcons();
+            } catch (error) {
+                console.error("Error loading users for admin:", error);
+                usersTableBodyEl.innerHTML = '<tr><td colspan="5">Error loading users.</td></tr>';
+            }
+        }
+        searchUserInputEl.addEventListener('input', (e) => loadUsersAdmin(e.target.value.trim()));
+
+        async function loadPurchasesAdmin() {
+            purchasesTableBodyEl.innerHTML = '<tr><td colspan="7">Loading purchases...</td></tr>';
+            const statusFilter = filterPurchaseStatusEl.value;
+            try {
+                let query = supabaseAdmin
+                    .from('user_purchased_plans')
+                    .select(`id, purchase_price, status, created_at, payment_receipt_url, admin_notes, user_id, users (email), mining_plans (name, duration_days)`)
+                    .order('created_at', { ascending: false });
+                
+                if (statusFilter) {
+                    query = query.eq('status', statusFilter);
+                }
+
+                const { data: purchases, error } = await query;
+                if (error) throw error;
+
+                purchasesTableBodyEl.innerHTML = '';
+                if (purchases.length === 0) {
+                    purchasesTableBodyEl.innerHTML = '<tr><td colspan="7">No purchases found for the selected filter.</td></tr>';
+                    return;
+                }
+                purchases.forEach(purchase => {
+                    const row = purchasesTableBodyEl.insertRow();
+                    row.innerHTML = `
+                        <td>${purchase.users ? purchase.users.email : 'N/A'}</td>
+                        <td>${purchase.mining_plans ? purchase.mining_plans.name : 'N/A'}</td>
+                        <td>${parseFloat(purchase.purchase_price).toLocaleString()} MMK</td>
+                        <td><a href="${purchase.payment_receipt_url}" target="_blank" rel="noopener noreferrer" class="admin-button admin-button-info"><i data-lucide="image"></i> View</a></td>
+                        <td><span class="status-badge status-${purchase.status.replace('_','-')}">${purchase.status}</span></td>
+                        <td>${formatDateAdmin(purchase.created_at)}</td>
+                        <td>
+                            ${purchase.status === 'pending_payment' ? `
+                                <button class="admin-button-success approve-purchase-btn" data-id="${purchase.id}" data-user-id="${purchase.user_id}" data-plan-duration="${purchase.mining_plans.duration_days}" data-purchase-price="${purchase.purchase_price}"><i data-lucide="check-circle"></i> Approve</button>
+                                <button class="admin-button-danger reject-purchase-btn" data-id="${purchase.id}"><i data-lucide="x-circle"></i> Reject</button>
+                            ` : (purchase.status === 'active' || purchase.status === 'completed' || purchase.status === 'expired') ? 'Processed' : 'N/A'}
+                        </td>
+                    `;
+                });
+                if (window.lucide) window.lucide.createIcons();
+            } catch (error) {
+                console.error("Error loading purchases for admin:", error);
+                purchasesTableBodyEl.innerHTML = '<tr><td colspan="7">Error loading purchases.</td></tr>';
+            }
+        }
+        filterPurchaseStatusEl.addEventListener('change', loadPurchasesAdmin);
+
+
+        async function loadWithdrawalsAdmin() {
+            withdrawalsTableBodyEl.innerHTML = '<tr><td colspan="7">Loading withdrawals...</td></tr>';
+            const statusFilter = filterWithdrawalStatusEl.value;
+            try {
+                let query = supabaseAdmin
+                    .from('withdrawal_requests')
+                    .select(`id, amount, payment_method, recipient_phone, status, requested_at, user_id, users (email)`)
+                    .order('requested_at', { ascending: false });
+
+                if (statusFilter) {
+                    query = query.eq('status', statusFilter);
+                }
+                const { data: withdrawals, error } = await query;
+
+                if (error) throw error;
+                withdrawalsTableBodyEl.innerHTML = '';
+                if (withdrawals.length === 0) {
+                    withdrawalsTableBodyEl.innerHTML = '<tr><td colspan="7">No withdrawal requests found for the selected filter.</td></tr>';
+                    return;
+                }
+                withdrawals.forEach(withdrawal => {
+                    const row = withdrawalsTableBodyEl.insertRow();
+                    row.innerHTML = `
+                        <td>${withdrawal.users ? withdrawal.users.email : 'N/A'}</td>
+                        <td>${parseFloat(withdrawal.amount).toLocaleString()} MMK</td>
+                        <td>${withdrawal.payment_method}</td>
+                        <td>${withdrawal.recipient_phone}</td>
+                        <td><span class="status-badge status-${withdrawal.status.replace('_','-')}">${withdrawal.status}</span></td>
+                        <td>${formatDateAdmin(withdrawal.requested_at)}</td>
+                        <td>
+                            ${withdrawal.status === 'pending_approval' ? `
+                                <button class="admin-button-success approve-withdrawal-btn" data-id="${withdrawal.id}" data-user-id="${withdrawal.user_id}" data-amount="${withdrawal.amount}"><i data-lucide="check-circle"></i> Approve</button>
+                                <button class="admin-button-danger reject-withdrawal-btn" data-id="${withdrawal.id}"><i data-lucide="x-circle"></i> Reject</button>
+                            ` : 'Processed'}
+                        </td>
+                    `;
+                });
+                if (window.lucide) window.lucide.createIcons();
+            } catch (error) {
+                console.error("Error loading withdrawals for admin:", error);
+                withdrawalsTableBodyEl.innerHTML = '<tr><td colspan="7">Error loading withdrawals.</td></tr>';
+            }
+        }
+        filterWithdrawalStatusEl.addEventListener('change', loadWithdrawalsAdmin);
+
+        // --- Admin Action Handlers ---
+        document.addEventListener('click', async (e) => {
+            const targetButton = e.target.closest('button');
+            if (!targetButton) return;
+
+            const purchaseId = targetButton.dataset.id;
+            const userId = targetButton.dataset.userId;
+            const planDuration = parseInt(targetButton.dataset.planDuration);
+            const purchasePrice = parseFloat(targetButton.dataset.purchasePrice);
+            const withdrawalAmount = parseFloat(targetButton.dataset.amount);
+
+            if (targetButton.classList.contains('approve-purchase-btn')) {
+                if (!confirm("Are you sure you want to approve this purchase? This will activate the plan for the user.")) return;
+                try {
+                    const startDate = new Date();
+                    const endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + planDuration);
+
+                    const { error } = await supabaseAdmin
+                        .from('user_purchased_plans')
+                        .update({ status: 'active', start_date: startDate.toISOString(), end_date: endDate.toISOString(), admin_notes: 'Approved by admin.' })
+                        .eq('id', purchaseId);
+                    if (error) throw error;
+                    
+                    // Optional: Log transaction for purchase fee (if not already handled)
+                    // This depends on your accounting model. If price is deducted from balance, log it.
+                    // If it's an external payment, this step might be different.
+                    // For now, assuming external payment, no balance change here.
+
+                    alert("Purchase approved and activated.");
+                    loadPurchasesAdmin();
+                    loadDashboardSummaryAdmin();
+                } catch (err) {
+                    console.error("Error approving purchase:", err);
+                    alert("Failed to approve purchase: " + err.message);
+                }
+            } else if (targetButton.classList.contains('reject-purchase-btn')) {
+                const reason = prompt("Enter reason for rejection (optional):");
+                if (reason === null) return; // User cancelled prompt
+                if (!confirm("Are you sure you want to reject this purchase?")) return;
+                try {
+                    const { error } = await supabaseAdmin
+                        .from('user_purchased_plans')
+                        .update({ status: 'rejected_payment', admin_notes: `Rejected by admin. Reason: ${reason || 'Not specified'}` })
+                        .eq('id', purchaseId);
+                    if (error) throw error;
+                    alert("Purchase rejected.");
+                    loadPurchasesAdmin();
+                    loadDashboardSummaryAdmin();
+                } catch (err) {
+                    console.error("Error rejecting purchase:", err);
+                    alert("Failed to reject purchase: " + err.message);
+                }
+            } else if (targetButton.classList.contains('approve-withdrawal-btn')) {
+                 if (!confirm(`Approve withdrawal of ${withdrawalAmount.toLocaleString()} MMK for user ${userId}? This will deduct from their balance.`)) return;
+                // IMPORTANT: This should be a transaction or an Edge Function for atomicity
+                try {
+                    const { data: userData, error: userFetchError } = await supabaseAdmin
+                        .from('users').select('balance').eq('id', userId).single();
+                    if (userFetchError || !userData) throw userFetchError || new Error("User not found.");
+
+                    if (parseFloat(userData.balance) < withdrawalAmount) {
+                        alert("User has insufficient balance. Rejecting withdrawal.");
+                        await supabaseAdmin.from('withdrawal_requests').update({ status: 'rejected', admin_notes: 'Insufficient funds at time of admin approval.' }).eq('id', purchaseId);
+                        loadWithdrawalsAdmin();
+                        return;
+                    }
+
+                    const { error: balanceUpdateError } = await supabaseAdmin
+                        .from('users').update({ balance: parseFloat(userData.balance) - withdrawalAmount }).eq('id', userId);
+                    if (balanceUpdateError) throw balanceUpdateError;
+
+                    const { error: withdrawalUpdateError } = await supabaseAdmin
+                        .from('withdrawal_requests').update({ status: 'approved', processed_at: new Date().toISOString(), admin_notes: 'Approved by admin.' }).eq('id', purchaseId);
+                    if (withdrawalUpdateError) throw withdrawalUpdateError;
+                    
+                    // Log transaction for withdrawal
+                    await supabaseAdmin.from('transactions').insert({
+                        user_id: userId,
+                        type: 'withdrawal_debit',
+                        amount: -withdrawalAmount,
+                        description: `Withdrawal approved for ${withdrawalAmount.toLocaleString()} MMK.`,
+                        related_withdrawal_id: purchaseId
+                    });
+
+                    alert("Withdrawal approved and user balance updated.");
+                    loadWithdrawalsAdmin();
+                    loadUsersAdmin(); // To reflect new balance
+                    loadDashboardSummaryAdmin();
+                } catch (err) {
+                    console.error("Error approving withdrawal:", err);
+                    alert("Failed to approve withdrawal: " + err.message);
+                }
+            } else if (targetButton.classList.contains('reject-withdrawal-btn')) {
+                const reason = prompt("Enter reason for rejection (optional):");
+                if (reason === null) return;
+                if (!confirm("Are you sure you want to reject this withdrawal?")) return;
+                try {
+                    const { error } = await supabaseAdmin
+                        .from('withdrawal_requests').update({ status: 'rejected', processed_at: new Date().toISOString(), admin_notes: `Rejected by admin. Reason: ${reason || 'Not specified'}` }).eq('id', purchaseId);
+                    if (error) throw error;
+                    alert("Withdrawal rejected.");
+                    loadWithdrawalsAdmin();
+                    loadDashboardSummaryAdmin();
+                } catch (err) {
+                    console.error("Error rejecting withdrawal:", err);
+                    alert("Failed to reject withdrawal: " + err.message);
+                }
+            }
+        });
+
+        // --- Manage Mining Plans (Admin) ---
+        async function loadMiningPlansAdmin() {
+            miningPlansListAdminEl.innerHTML = '<p>Loading plans...</p>';
+            try {
+                const { data: plans, error } = await supabaseAdmin.from('mining_plans').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+
+                miningPlansListAdminEl.innerHTML = '<h3>Existing Plans</h3>';
+                if (plans.length === 0) {
+                    miningPlansListAdminEl.innerHTML += '<p>No mining plans created yet.</p>';
+                    return;
+                }
+                plans.forEach(plan => {
+                    const planItem = document.createElement('div');
+                    planItem.className = 'plan-item';
+                    planItem.innerHTML = `
+                        <div class="plan-details">
+                            <strong>${plan.name}</strong> (Price: ${plan.price} MMK, Duration: ${plan.duration_days} days, Active: ${plan.is_active})
+                        </div>
+                        <div class="plan-actions">
+                            <button class="admin-button-warning edit-plan-btn" data-plan='${JSON.stringify(plan)}'><i data-lucide="edit-3"></i> Edit</button>
+                            <button class="admin-button-danger delete-plan-btn" data-plan-id="${plan.id}"><i data-lucide="trash-2"></i> Delete</button>
+                        </div>
+                    `;
+                    miningPlansListAdminEl.appendChild(planItem);
+                });
+                if (window.lucide) window.lucide.createIcons();
+
+                miningPlansListAdminEl.querySelectorAll('.edit-plan-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const planData = JSON.parse(btn.dataset.plan);
+                        populatePlanFormAdmin(planData);
+                    });
+                });
+                miningPlansListAdminEl.querySelectorAll('.delete-plan-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const planIdToDelete = btn.dataset.planId;
+                        if (confirm(`Are you sure you want to delete plan ID: ${planIdToDelete}? This cannot be undone and might affect reporting if purchases are linked.`)) {
+                            try {
+                                const { error: deleteError } = await supabaseAdmin.from('mining_plans').delete().eq('id', planIdToDelete);
+                                if (deleteError) throw deleteError;
+                                alert('Plan deleted successfully.');
+                                loadMiningPlansAdmin();
+                            } catch (err) {
+                                alert('Error deleting plan: ' + err.message + '\n(Ensure no active user purchases are linked, or handle cascades in DB schema if needed.)');
+                            }
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error loading mining plans for admin:", error);
+                miningPlansListAdminEl.innerHTML = '<p>Error loading plans.</p>';
+            }
+        }
+
+        addNewPlanButtonEl.addEventListener('click', () => {
+            addEditPlanFormEl.reset();
+            planIdAdminInputEl.value = '';
+            planFormTitleEl.textContent = 'Add New Plan';
+            addEditPlanFormContainerEl.style.display = 'block';
+            savePlanButtonEl.textContent = 'Create Plan';
+        });
+
+        cancelPlanButtonEl.addEventListener('click', () => {
+            addEditPlanFormContainerEl.style.display = 'none';
+            addEditPlanFormEl.reset();
+        });
+
+        function populatePlanFormAdmin(plan) {
+            planIdAdminInputEl.value = plan.id;
+            document.getElementById('plan-name-admin').value = plan.name;
+            document.getElementById('plan-price-admin').value = plan.price;
+            document.getElementById('plan-duration-admin').value = plan.duration_days;
+            document.getElementById('plan-return-multiplier-admin').value = plan.total_return_multiplier;
+            document.getElementById('plan-power-admin').value = plan.power_output_per_second;
+            document.getElementById('plan-description-admin').value = plan.description || '';
+            document.getElementById('plan-active-admin').checked = plan.is_active;
+            planFormTitleEl.textContent = 'Edit Plan';
+            addEditPlanFormContainerEl.style.display = 'block';
+            savePlanButtonEl.textContent = 'Update Plan';
+        }
+
+        addEditPlanFormEl.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const planData = {
+                name: document.getElementById('plan-name-admin').value,
+                price: parseFloat(document.getElementById('plan-price-admin').value),
+                duration_days: parseInt(document.getElementById('plan-duration-admin').value),
+                total_return_multiplier: parseFloat(document.getElementById('plan-return-multiplier-admin').value),
+                power_output_per_second: parseFloat(document.getElementById('plan-power-admin').value),
+                description: document.getElementById('plan-description-admin').value,
+                is_active: document.getElementById('plan-active-admin').checked,
+                updated_at: new Date().toISOString()
+            };
+
+            const planId = planIdAdminInputEl.value;
+            try {
+                let error;
+                if (planId) {
+                    const { error: updateError } = await supabaseAdmin.from('mining_plans').update(planData).eq('id', planId);
+                    error = updateError;
+                } else {
+                    const { error: insertError } = await supabaseAdmin.from('mining_plans').insert(planData);
+                    error = insertError;
+                }
+                if (error) throw error;
+                alert(`Plan ${planId ? 'updated' : 'created'} successfully!`);
+                addEditPlanFormContainerEl.style.display = 'none';
+                addEditPlanFormEl.reset();
+                loadMiningPlansAdmin();
+            } catch (error) {
+                console.error("Error saving plan:", error);
+                alert("Failed to save plan: " + error.message);
+            }
+        });
+
+        // Admin Settings
+        async function loadCurrentAdminSettingsAdmin() {
+            try {
+                const { data, error } = await supabaseAdmin.from('admin_settings').select('value').eq('key', 'payment_phone_number').maybeSingle();
+                if (error && error.code !== 'PGRST116') throw error;
+                settingPaymentPhoneInputEl.value = data ? data.value || '' : '';
+            } catch (error) {
+                console.error("Error loading admin settings:", error);
+                showAdminSettingsMessage("Failed to load admin settings.", true);
+            }
+        }
+
+        adminSettingsFormEl.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newPhoneNumber = settingPaymentPhoneInputEl.value.trim();
+            try {
+                const { error } = await supabaseAdmin.from('admin_settings').upsert({ key: 'payment_phone_number', value: newPhoneNumber, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+                if (error) throw error;
+                showAdminSettingsMessage("Admin settings saved successfully!", false);
+            } catch (error) {
+                console.error("Error saving admin settings:", error);
+                showAdminSettingsMessage("Failed to save admin settings: " + error.message, true);
+            }
+        });
+
+        // --- Initial Admin Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!checkAdminSession()) {
+                // Not logged in, login form is shown by checkAdminSession
+            }
+            if (window.lucide) window.lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
