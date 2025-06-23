@@ -209,14 +209,17 @@
     <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- bcrypt.js for client-side hashing -->
+    <!-- Make sure this is loaded BEFORE your script.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-    <script type="module" src="script.js"></script>
+    
+    <!-- Your main application script -->
+    <script type="module" src="script.js"></script> 
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) {
                 lucide.createIcons();
             }
-            // Attempt to load GitHub image for loading screen
             const githubLoadingImg = document.getElementById('loading-image-github');
             const placeholderLoadingImg = document.getElementById('loading-image-placeholder');
             githubLoadingImg.onload = () => {
@@ -224,10 +227,8 @@
                 githubLoadingImg.style.display = 'block';
             };
             githubLoadingImg.onerror = () => {
-                // If GitHub image fails, placeholder is already visible
                 console.warn("Failed to load GitHub loading image, using placeholder.");
             };
-            // Set src to trigger load attempt
             githubLoadingImg.src = "https://raw.githubusercontent.com/VCDeveloperTeam/MMK-Minine-Website/main/loding.png";
         });
     </script>
