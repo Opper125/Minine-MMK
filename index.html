@@ -208,16 +208,12 @@
     <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- bcrypt.js for client-side hashing -->
-    <!-- CRITICAL: Load bcrypt.js BEFORE your main script.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
     
     <!-- Your main application script -->
     <script type="module" src="script.js"></script> 
     
     <script>
-        // This script runs after all preceding scripts (including bcrypt.min.js and script.js if type="module")
-        // have been downloaded and, for regular scripts, executed.
-        // For type="module", script.js execution is deferred.
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) {
                 lucide.createIcons();
@@ -233,7 +229,6 @@
                 githubLoadingImg.onerror = () => {
                     console.warn("Failed to load GitHub loading image, using placeholder.");
                 };
-                // Set src to trigger load attempt
                 githubLoadingImg.src = "https://raw.githubusercontent.com/VCDeveloperTeam/MMK-Minine-Website/main/loding.png";
             }
         });
