@@ -1,13 +1,15 @@
-// Constants for Supabase URL and Key
-const SUPABASE_URL = "https://ggwwsuhnhnksphryhhjo.supabase.co"
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdnd3dzdWhuaG5rc3BocnloaGpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzM3ODQsImV4cCI6MjA2NjIwOTc4NH0.nZRj7cnC9jSo6CnilIlgz9193D-Vjf094H5XzPJBUxY"
+import { dbData as initialDbData } from "./database.js"
 
-// Global variables for Supabase and bcrypt instances
-let supabase
-let bcrypt // This will be assigned after bcrypt.js loads
+// Make a deep copy of initialDbData to prevent direct modification of the imported module's data
+// This localDbData will be what the client interacts with.
+// For global persistence, database.js itself must be manually updated and redeployed by an admin.
+const localDbData = JSON.parse(JSON.stringify(initialDbData))
+console.log("SCRIPT.JS: Initial localDbData (cloned from database.js):", localDbData)
 
-// DOM Element variables - will be assigned in DOMContentLoaded
+// Global variables for bcrypt instance
+let bcryptInstance // Will be assigned after bcrypt.js loads and is confirmed
+
+// DOM Element variables
 let loadingScreen,
   appContent,
   authSection,
@@ -48,13 +50,17 @@ let loadingScreen,
   withdrawalMessageEl
 
 // Global State
-let currentUser = null
-let userBalance = 0
+let currentUser = null // Will store the currently logged-in user object from localDbData.users
+let userBalance = 0 // Local cache of user balance, primarily from localDbData and localStorage
 let activeMiningInterval = null
-let miningPlansCache = []
-let paymentPhoneNumber = "09786284670" // Default, will be fetched
+// miningPlansCache is now directly from localDbData.mining_plans
+// paymentPhoneNumber is now from localDbData.admin_settings.payment_phone_number
 
 // --- Utility Functions ---
+function generateSimpleId(prefix = "item-") {
+  return prefix + Date.now() + Math.random().toString(16).slice(2)
+}
+
 function showAuthMessage(message, type = "error") {
   if (authMessage) {
     authMessage.textContent = message
@@ -62,7 +68,7 @@ function showAuthMessage(message, type = "error") {
     authMessage.style.display = "block"
   } else {
     console.error("authMessage element not ready. Message:", message)
-    alert(`Auth: ${message}`) // Fallback
+    alert(`Auth: ${message}`)
   }
 }
 
@@ -79,7 +85,6 @@ function showPaymentMessage(message, type = "error") {
     alert(`Payment: ${message}`)
   }
 }
-
 function hidePaymentMessage() {
   if (paymentMessageEl) paymentMessageEl.style.display = "none"
 }
@@ -98,11 +103,7 @@ function showLoadingScreen(show = true) {
   if (loadingScreen) {
     loadingScreen.style.opacity = show ? "1" : "0"
     loadingScreen.style.pointerEvents = show ? "auto" : "none"
-    if (show) {
-      loadingScreen.classList.remove("hidden")
-    } else {
-      setTimeout(() => loadingScreen.classList.add("hidden"), 300)
-    }
+    loadingScreen.style.display = show ? "flex" : "none" // Ensure it's visible
   }
 }
 
@@ -115,14 +116,14 @@ function navigateToView(viewId) {
 }
 
 async function hashDataClient(data) {
-  if (!bcrypt) {
-    console.error("bcrypt.js not available for hashing! This should have been caught earlier.")
-    showAuthMessage("Security component error. Please refresh.")
+  if (!bcryptInstance) {
+    console.error("bcrypt.js (bcryptInstance) not available for hashing!")
+    showAuthMessage("Security component error. Please refresh or check console.")
     return null
   }
   try {
-    const salt = bcrypt.genSaltSync(10)
-    return bcrypt.hashSync(data, salt)
+    const salt = bcryptInstance.genSaltSync(10)
+    return bcryptInstance.hashSync(data, salt)
   } catch (err) {
     console.error("Hashing error:", err)
     showAuthMessage("Error processing security data. Please try again.")
@@ -131,13 +132,13 @@ async function hashDataClient(data) {
 }
 
 async function compareDataClient(plainData, hash) {
-  if (!bcrypt) {
-    console.error("bcrypt.js not available for comparison! This should have been caught earlier.")
-    showAuthMessage("Security component error. Please refresh.")
+  if (!bcryptInstance) {
+    console.error("bcrypt.js (bcryptInstance) not available for comparison!")
+    showAuthMessage("Security component error. Please refresh or check console.")
     return false
   }
   try {
-    return bcrypt.compareSync(plainData, hash)
+    return bcryptInstance.compareSync(plainData, hash)
   } catch (err) {
     console.error("Comparison error:", err)
     showAuthMessage("Error verifying security data. Please try again.")
@@ -186,110 +187,89 @@ document.addEventListener("DOMContentLoaded", async () => {
   withdrawalForm = document.getElementById("withdrawal-form")
   withdrawalMessageEl = document.getElementById("withdrawal-message")
 
-  console.log("SCRIPT.JS: DOMContentLoaded event fired. Checking libraries...")
+  console.log("SCRIPT.JS: DOMContentLoaded event fired.")
 
-  // CRITICAL LIBRARY CHECKS
-  if (typeof window.supabase === "undefined") {
-    console.error("SCRIPT.JS: CRITICAL: Supabase client library is NOT LOADED! (Checked in DOMContentLoaded)")
-    if (loadingScreen) loadingScreen.style.display = "none"
-    if (appContent) appContent.style.display = "block"
-    showAuthMessage("Critical Error: Supabase library failed to load. Application cannot start.")
-    return // Halt execution
-  }
-  console.log(
-    "SCRIPT.JS: Supabase client library found in window object (Checked in DOMContentLoaded). Initializing Supabase client...",
-  )
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  console.log("SCRIPT.JS: Supabase client initialized.")
-
-  if (typeof window.bcrypt === "undefined") {
-    console.error("SCRIPT.JS: CRITICAL: bcrypt.js library is NOT LOADED! (Checked in DOMContentLoaded)")
-    if (loadingScreen) loadingScreen.style.display = "none"
-    if (appContent) appContent.style.display = "block"
-    showAuthMessage("Security component (bcrypt.js) failed to load. Signup and Login will not work. Please refresh.")
-    return // Halt execution
-  }
-  console.log(
-    "SCRIPT.JS: bcrypt.js library found in window object (Checked in DOMContentLoaded). Assigning to global 'bcrypt' variable...",
-  )
-  bcrypt = window.bcrypt // Ensure this assignment happens
-  if (typeof bcrypt !== "undefined") {
-    console.log("SCRIPT.JS: Global 'bcrypt' variable has been assigned successfully.")
+  if (typeof window.bcrypt !== "undefined") {
+    bcryptInstance = window.bcrypt
+    console.log("SCRIPT.JS: bcrypt.js library confirmed and assigned to bcryptInstance.")
   } else {
     console.error(
-      "SCRIPT.JS: Global 'bcrypt' variable FAILED to assign, even though window.bcrypt was found. This is unexpected.",
+      "SCRIPT.JS: CRITICAL - bcrypt.js library is NOT available on window object at DOMContentLoaded. Signup/Login will fail.",
     )
+    showAuthMessage(
+      "Critical security component failed to load. Please refresh. If the problem persists, contact support.",
+    )
+    // Optionally, hide the app or show a persistent error message
+    if (appContent) appContent.style.display = "none"
+    if (loadingScreen) loadingScreen.style.display = "none"
+    const errorDiv = document.createElement("div")
+    errorDiv.innerHTML =
+      '<p style="color:red; text-align:center; padding:20px;">A critical security component (bcrypt.js) failed to load. The application cannot start securely. Please check your internet connection and try refreshing. If the issue continues, please contact support.</p>'
+    document.body.prepend(errorDiv)
+    return // Halt further execution
   }
 
-  // Setup event listeners now that DOM is ready and elements are assigned
   setupEventListeners()
-
-  // Proceed with app initialization
-  if (appContent) appContent.style.display = "block"
+  if (appContent) appContent.style.display = "block" // Show app content container
   showLoadingScreen(true)
 
   setTimeout(async () => {
-    const loggedIn = await checkUserSession()
-    if (loggedIn) {
-      await initializeApp()
+    const loggedInUserId = localStorage.getItem("mmk_current_user_id")
+    if (loggedInUserId) {
+      currentUser = localDbData.users.find((u) => u.id === loggedInUserId)
+      if (currentUser) {
+        await initializeApp()
+      } else {
+        // User ID in localStorage but not in dbData, treat as logged out
+        localStorage.removeItem("mmk_current_user_id")
+        navigateToView("auth-section")
+        showLoadingScreen(false)
+      }
     } else {
-      showLoadingScreen(false) // checkUserSession handles navigation
+      navigateToView("auth-section")
+      showLoadingScreen(false)
     }
     if (window.lucide) window.lucide.createIcons()
-  }, 2000)
+  }, 1000) // Reduced timeout for faster perceived load
 })
 
 function setupEventListeners() {
-  if (showSignupLink) {
+  if (showSignupLink)
     showSignupLink.addEventListener("click", (e) => {
       e.preventDefault()
-      if (loginView) loginView.style.display = "none"
-      if (signupView) signupView.style.display = "block"
+      loginView.style.display = "none"
+      signupView.style.display = "block"
       hideAuthMessage()
     })
-  }
-  if (showLoginLink) {
+  if (showLoginLink)
     showLoginLink.addEventListener("click", (e) => {
       e.preventDefault()
-      if (signupView) signupView.style.display = "none"
-      if (loginView) loginView.style.display = "block"
+      signupView.style.display = "none"
+      loginView.style.display = "block"
       hideAuthMessage()
     })
-  }
   if (signupForm) signupForm.addEventListener("submit", handleSignupSubmit)
   if (loginForm) loginForm.addEventListener("submit", handleLoginSubmit)
   if (logoutButton) logoutButton.addEventListener("click", handleLogout)
-
-  if (navButtons) {
-    navButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const pageId = button.getAttribute("data-page")
-        navigateToPage(pageId)
-      })
-    })
-  }
+  if (navButtons)
+    navButtons.forEach((button) => button.addEventListener("click", () => navigateToPage(button.dataset.page)))
   if (paymentForm) paymentForm.addEventListener("submit", handlePaymentFormSubmit)
-  if (closePaymentModalButton) {
+  if (closePaymentModalButton)
     closePaymentModalButton.addEventListener("click", () => {
-      if (paymentModal) paymentModal.style.display = "none"
-      if (paymentForm) paymentForm.reset()
+      paymentModal.style.display = "none"
+      paymentForm.reset()
       hidePaymentMessage()
     })
-  }
-  if (historyTabs) {
-    historyTabs.forEach((tab) => {
+  if (historyTabs)
+    historyTabs.forEach((tab) =>
       tab.addEventListener("click", () => {
         historyTabs.forEach((t) => t.classList.remove("active"))
-        if (historyTabContents) historyTabContents.forEach((c) => c.classList.remove("active"))
-
+        historyTabContents.forEach((c) => c.classList.remove("active"))
         tab.classList.add("active")
-        const activeTabContentId = tab.dataset.tab + "-content"
-        const activeContentEl = document.getElementById(activeTabContentId)
-        if (activeContentEl) activeContentEl.classList.add("active")
+        document.getElementById(tab.dataset.tab + "-content").classList.add("active")
         loadHistoryData(tab.dataset.tab)
-      })
-    })
-  }
+      }),
+    )
   if (withdrawalForm) withdrawalForm.addEventListener("submit", handleWithdrawalFormSubmit)
 }
 
@@ -304,63 +284,52 @@ async function handleSignupSubmit(e) {
   const paymentPin = document.getElementById("signup-pin").value
 
   if (!name || !email || !password || !paymentPin) {
-    showAuthMessage("All fields are required.")
-    showLoadingScreen(false)
-    return
+    return showAuthMessage("All fields are required."), showLoadingScreen(false)
   }
   if (paymentPin.length !== 6 || !/^\d+$/.test(paymentPin)) {
-    showAuthMessage("Payment PIN must be exactly 6 digits.")
-    showLoadingScreen(false)
-    return
+    return showAuthMessage("Payment PIN must be exactly 6 digits."), showLoadingScreen(false)
   }
   if (password.length < 6) {
-    showAuthMessage("Password must be at least 6 characters long.")
-    showLoadingScreen(false)
-    return
+    return showAuthMessage("Password must be at least 6 characters long."), showLoadingScreen(false)
+  }
+
+  if (localDbData.users.find((user) => user.email === email)) {
+    return showAuthMessage("Email already registered. Please login."), showLoadingScreen(false)
   }
 
   const passwordHash = await hashDataClient(password)
   const paymentPinHash = await hashDataClient(paymentPin)
 
   if (!passwordHash || !paymentPinHash) {
-    showLoadingScreen(false)
-    return
+    return showLoadingScreen(false) /* Message shown by hashDataClient */
   }
 
-  try {
-    const { data: existingUser, error: checkError } = await supabase
-      .from("users")
-      .select("email")
-      .eq("email", email)
-      .maybeSingle()
-
-    if (checkError && checkError.code !== "PGRST116") throw checkError
-    if (existingUser) {
-      showAuthMessage("Email already registered. Please login or use a different email.")
-      showLoadingScreen(false)
-      return
-    }
-
-    const { data: newUser, error: insertError } = await supabase
-      .from("users")
-      .insert([
-        { name, email, password_hash: passwordHash, payment_pin_hash: paymentPinHash, balance: 0, is_admin: false },
-      ])
-      .select()
-      .single()
-
-    if (insertError) throw insertError
-
-    showAuthMessage("Sign up successful! Please login.", "success")
-    if (signupForm) signupForm.reset()
-    if (loginView) loginView.style.display = "block"
-    if (signupView) signupView.style.display = "none"
-  } catch (error) {
-    console.error("Sign up error:", error)
-    showAuthMessage(`Sign up failed: ${error.message || "Unknown error"}`)
-  } finally {
-    showLoadingScreen(false)
+  const newUser = {
+    id: generateSimpleId("user-"),
+    name,
+    email,
+    password_hash: passwordHash,
+    payment_pin_hash: paymentPinHash,
+    balance: 0,
+    is_admin: false,
+    created_at: new Date().toISOString(),
+    last_login_at: null,
   }
+
+  // IMPORTANT: This adds the user to the *local* copy of the data.
+  // For this user to exist globally, database.js needs to be manually updated by an admin and redeployed.
+  localDbData.users.push(newUser)
+  console.log("User signed up (locally):", newUser)
+  console.log("Current localDbData.users:", localDbData.users)
+  alert(
+    "Signup successful (locally)! \nIMPORTANT: For this account to be permanent, an admin needs to update the main database file and redeploy the site.",
+  )
+
+  showAuthMessage("Sign up successful! Please login.", "success")
+  signupForm.reset()
+  loginView.style.display = "block"
+  signupView.style.display = "none"
+  showLoadingScreen(false)
 }
 
 async function handleLoginSubmit(e) {
@@ -371,52 +340,236 @@ async function handleLoginSubmit(e) {
   const password = document.getElementById("login-password").value
 
   if (!email || !password) {
-    showAuthMessage("Email and password are required.")
-    showLoadingScreen(false)
-    return
+    return showAuthMessage("Email and password are required."), showLoadingScreen(false)
   }
 
-  try {
-    const { data: user, error } = await supabase.from("users").select("*").eq("email", email).single()
+  const user = localDbData.users.find((u) => u.email === email)
 
-    if (error || !user) {
-      showAuthMessage("Invalid email or password.")
-      showLoadingScreen(false)
-      return
-    }
-
-    const passwordMatch = await compareDataClient(password, user.password_hash)
-    if (!passwordMatch) {
-      showAuthMessage("Invalid email or password.")
-      showLoadingScreen(false)
-      return
-    }
-
-    await supabase.from("users").update({ last_login_at: new Date().toISOString() }).eq("id", user.id)
-
-    currentUser = user
-    localStorage.setItem("mmk_mining_user_id", user.id)
-    await initializeApp()
-  } catch (error) {
-    console.error("Login error:", error)
-    showAuthMessage(`Login failed: ${error.message || "Please check your credentials."}`)
-    showLoadingScreen(false)
+  if (!user) {
+    return showAuthMessage("Invalid email or password."), showLoadingScreen(false)
   }
+
+  const passwordMatch = await compareDataClient(password, user.password_hash)
+  if (!passwordMatch) {
+    return showAuthMessage("Invalid email or password."), showLoadingScreen(false)
+  }
+
+  currentUser = user
+  currentUser.last_login_at = new Date().toISOString() // Update last login for local copy
+  localStorage.setItem("mmk_current_user_id", currentUser.id)
+
+  // Update user balance from localStorage if available (from previous mining sessions)
+  const storedBalance = localStorage.getItem(`mmk_balance_${currentUser.id}`)
+  if (storedBalance !== null) {
+    currentUser.balance = Number.parseFloat(storedBalance)
+    userBalance = currentUser.balance // Sync global userBalance
+  } else {
+    userBalance = currentUser.balance // Use balance from dbData
+  }
+
+  console.log("User logged in:", currentUser)
+  await initializeApp()
+  showLoadingScreen(false)
 }
 
 async function handleLogout() {
   showLoadingScreen(true)
+  if (currentUser && activeMiningInterval) {
+    // Save current balance before logging out
+    localStorage.setItem(`mmk_balance_${currentUser.id}`, userBalance.toString())
+  }
   currentUser = null
-  localStorage.removeItem("mmk_mining_user_id")
+  localStorage.removeItem("mmk_current_user_id")
   if (activeMiningInterval) clearInterval(activeMiningInterval)
   activeMiningInterval = null
 
   navigateToView("auth-section")
-  if (mainAppSection) mainAppSection.style.display = "none"
-  if (loginForm) loginForm.reset()
-  if (signupForm) signupForm.reset()
+  mainAppSection.style.display = "none"
+  loginForm.reset()
+  signupForm.reset()
   hideAuthMessage()
   showLoadingScreen(false)
+}
+
+async function initializeApp() {
+  if (!currentUser) {
+    navigateToView("auth-section")
+    mainAppSection.style.display = "none"
+    showLoadingScreen(false)
+    return
+  }
+  navigateToView("main-app-section")
+  authSection.style.display = "none"
+
+  fetchUserBalance() // This will now use localDbData and localStorage
+  fetchAdminSettings() // For payment phone number
+  navigateToPage("mining-page")
+  showLoadingScreen(false)
+}
+
+function fetchAdminSettings() {
+  const paymentPhone = localDbData.admin_settings.payment_phone_number
+  if (paymentPhoneNumberModal) {
+    paymentPhoneNumberModal.textContent = paymentPhone || "N/A (Admin setup needed)"
+  }
+}
+
+function fetchUserBalance() {
+  if (!currentUser) return
+  // Prioritize localStorage balance for continuity of client-side mining
+  const storedBalance = localStorage.getItem(`mmk_balance_${currentUser.id}`)
+  if (storedBalance !== null) {
+    userBalance = Number.parseFloat(storedBalance)
+  } else {
+    // Fallback to balance from localDbData (which is from database.js initially)
+    const userInData = localDbData.users.find((u) => u.id === currentUser.id)
+    userBalance = userInData ? Number.parseFloat(userInData.balance) : 0
+  }
+
+  currentUser.balance = userBalance // Keep currentUser object in sync
+
+  if (userBalanceDisplay) {
+    userBalanceDisplay.textContent = userBalance.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  }
+}
+
+function navigateToPage(pageId) {
+  pages.forEach((page) => page.classList.remove("active-page"))
+  navButtons.forEach((btn) => btn.classList.remove("active"))
+  document.getElementById(pageId).classList.add("active-page")
+  document.querySelector(`.nav-button[data-page="${pageId}"]`).classList.add("active")
+
+  if (pageId === "mining-page") loadMiningData()
+  if (pageId === "buy-mining-page") loadMiningPlans()
+  if (pageId === "history-page") {
+    const activeHistoryTab = document.querySelector(".history-tabs .tab-button.active")
+    loadHistoryData(activeHistoryTab ? activeHistoryTab.dataset.tab : "purchase-history")
+  }
+  if (pageId === "profile-page") loadProfileData()
+  if (window.lucide) window.lucide.createIcons()
+}
+
+function loadMiningData() {
+  if (!currentUser) return
+  showLoadingScreen(true)
+  fetchUserBalance()
+
+  const userPurchases = localDbData.user_purchased_plans.filter(
+    (p) => p.user_id === currentUser.id && p.status === "active",
+  )
+  activePlansList.innerHTML = ""
+  let totalEffectivePower = 0
+
+  if (userPurchases.length === 0) {
+    activePlansList.innerHTML = '<li>No active mining plans. Visit "Buy" to get started.</li>'
+    miningStatusText.textContent = "Idle"
+  } else {
+    userPurchases.forEach((purchase) => {
+      const planDetails = localDbData.mining_plans.find((mp) => mp.id === purchase.plan_id)
+      if (!planDetails || !purchase.start_date || !purchase.end_date) return
+
+      const now = new Date()
+      const startDate = new Date(purchase.start_date)
+      const endDate = new Date(purchase.end_date)
+
+      if (now >= startDate && now <= endDate) {
+        totalEffectivePower += Number.parseFloat(planDetails.power_output_per_second)
+        const listItem = document.createElement("li")
+        listItem.innerHTML = `<strong>${planDetails.name}</strong> - Ends: ${endDate.toLocaleDateString()} <br>Power: ${planDetails.power_output_per_second} P/s`
+        activePlansList.appendChild(listItem)
+      }
+    })
+    miningStatusText.textContent = totalEffectivePower > 0 ? "Mining Active" : "No Active Plans"
+    if (activePlansList.children.length === 0 && userPurchases.length > 0) {
+      activePlansList.innerHTML =
+        "<li>You have plans, but none are currently active or within their mining period (Admin might need to activate them).</li>"
+    } else if (activePlansList.children.length === 0) {
+      activePlansList.innerHTML = '<li>No active mining plans. Visit "Buy" to get started.</li>'
+    }
+  }
+
+  miningPowerDisplay.textContent = `Total Power: ${totalEffectivePower.toFixed(5)} P/s`
+  miningRateDisplay.textContent = `Est. Rate: ${totalEffectivePower.toFixed(5)} MMK/s`
+
+  if (activeMiningInterval) clearInterval(activeMiningInterval)
+  if (totalEffectivePower > 0) {
+    activeMiningInterval = setInterval(() => {
+      const earningsThisSecond = totalEffectivePower
+      userBalance += earningsThisSecond
+      currentUser.balance = userBalance // Update currentUser object
+      if (userBalanceDisplay)
+        userBalanceDisplay.textContent = userBalance.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 5,
+        }) // Show more precision for earnings
+
+      // Persist to localStorage frequently for client-side mining continuity
+      localStorage.setItem(`mmk_balance_${currentUser.id}`, userBalance.toString())
+
+      // Log earning locally (not to global dbData unless admin updates)
+      const earningRecord = {
+        id: generateSimpleId("earn-"),
+        user_id: currentUser.id,
+        type: "mining_earning",
+        amount: earningsThisSecond,
+        description: `Mining: ${totalEffectivePower.toFixed(5)} P/s`,
+        created_at: new Date().toISOString(),
+      }
+      // This transaction history is also local to this session unless admin merges.
+      // For simplicity, we might not even store it in localDbData.transactions here,
+      // but rather just update balance and rely on admin to reconcile.
+      // Let's add it to a temporary local array for the history page.
+      if (!localDbData.transactions) localDbData.transactions = [] // Ensure transactions array exists
+      localDbData.transactions.push(earningRecord)
+    }, 1000)
+  }
+  showLoadingScreen(false)
+}
+
+function loadMiningPlans() {
+  showLoadingScreen(true)
+  miningPlansContainer.innerHTML = "<p>Loading available plans...</p>"
+  const activePlans = localDbData.mining_plans.filter((p) => p.is_active)
+
+  miningPlansContainer.innerHTML = ""
+  if (activePlans.length === 0) {
+    miningPlansContainer.innerHTML = "<p>No mining plans available. Admin needs to add them.</p>"
+    showLoadingScreen(false)
+    return
+  }
+  activePlans.forEach((plan) => {
+    const planCard = document.createElement("div")
+    planCard.className = "plan-card"
+    const dailyReturn = (plan.price * plan.total_return_multiplier - plan.price) / plan.duration_days
+    const totalProfit = plan.price * plan.total_return_multiplier - plan.price
+    planCard.innerHTML = `
+            <h4>${plan.name}</h4>
+            <p class="price">${Number.parseFloat(plan.price).toLocaleString()} MMK</p>
+            <p class="details"><strong>Duration:</strong> <span>${plan.duration_days} days</span></p>
+            <p class="details"><strong>Power:</strong> <span>${plan.power_output_per_second} P/s</span></p>
+            <p class="details"><strong>Est. Daily Profit:</strong> <span style="color:var(--success-color)">${dailyReturn.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MMK</span></p>
+            <p class="details"><strong>Total Est. Profit:</strong> <span style="color:var(--success-color)">${totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MMK</span></p>
+            <button class="button-primary buy-plan-button" data-plan-id="${plan.id}">Buy This Plan</button>`
+    miningPlansContainer.appendChild(planCard)
+  })
+  document
+    .querySelectorAll(".buy-plan-button")
+    .forEach((button) => button.addEventListener("click", (e) => openPaymentModal(e.target.dataset.planId)))
+  showLoadingScreen(false)
+}
+
+function openPaymentModal(planId) {
+  const plan = localDbData.mining_plans.find((p) => p.id === planId)
+  if (!plan) {
+    return alert("Plan not found.")
+  }
+  selectedPlanIdInputModal.value = planId
+  paymentPlanDetailsModal.innerHTML = `<strong>Plan:</strong> ${plan.name}<br><strong>Price:</strong> ${Number.parseFloat(plan.price).toLocaleString()} MMK`
+  paymentModal.style.display = "flex"
+  hidePaymentMessage()
 }
 
 async function handlePaymentFormSubmit(e) {
@@ -426,547 +579,178 @@ async function handlePaymentFormSubmit(e) {
 
   const planId = selectedPlanIdInputModal.value
   const paymentMethodVal = document.getElementById("payment-method-modal").value
-  const receiptFile = paymentReceiptInputModal.files[0]
+  const receiptFile = paymentReceiptInputModal.files[0] // File object
 
-  if (!paymentMethodVal) {
-    showPaymentMessage("Please select a payment method.")
-    showLoadingScreen(false)
-    return
-  }
-  if (!receiptFile) {
-    showPaymentMessage("Please upload a payment receipt screenshot.")
-    showLoadingScreen(false)
-    return
+  if (!paymentMethodVal || !receiptFile) {
+    return showPaymentMessage("Please select method and upload receipt."), showLoadingScreen(false)
   }
   if (!currentUser) {
-    showPaymentMessage("User not logged in. Please re-login.")
-    showLoadingScreen(false)
-    return
+    return showPaymentMessage("User not logged in."), showLoadingScreen(false)
   }
 
-  const plan = miningPlansCache.find((p) => p.id === planId)
+  const plan = localDbData.mining_plans.find((p) => p.id === planId)
   if (!plan) {
-    showPaymentMessage("Selected plan details not found. Please refresh.")
-    showLoadingScreen(false)
-    return
+    return showPaymentMessage("Selected plan not found."), showLoadingScreen(false)
   }
 
-  try {
-    const fileExt = receiptFile.name.split(".").pop()
-    const fileName = `receipts/${currentUser.id}/${Date.now()}_${planId}.${fileExt}`
+  // Simulate receipt upload by just using its name for now.
+  // In a real scenario without a backend, you can't really "upload".
+  // You could use FileReader to display it or store as base64 in localStorage if small.
+  const simulatedReceiptUrl = `simulated_receipt_for_${receiptFile.name}`
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("payment_receipts")
-      .upload(fileName, receiptFile, {
-        cacheControl: "3600",
-        upsert: false,
-      })
-
-    if (uploadError) throw uploadError
-
-    const { data: urlData } = supabase.storage.from("payment_receipts").getPublicUrl(fileName)
-    const receiptUrl = urlData.publicUrl
-
-    const { error: insertError } = await supabase.from("user_purchased_plans").insert([
-      {
-        user_id: currentUser.id,
-        plan_id: planId,
-        purchase_price: plan.price,
-        status: "pending_payment",
-        payment_method: paymentMethodVal,
-        payment_receipt_url: receiptUrl,
-      },
-    ])
-
-    if (insertError) throw insertError
-
-    showPaymentMessage("Purchase request submitted! It will be reviewed by an admin shortly.", "success")
-    setTimeout(() => {
-      if (paymentModal) paymentModal.style.display = "none"
-      if (paymentForm) paymentForm.reset()
-      navigateToPage("history-page")
-    }, 2000)
-  } catch (error) {
-    console.error("Payment submission error:", error)
-    showPaymentMessage(`Error submitting payment: ${error.message || "Unknown error"}`)
-  } finally {
-    showLoadingScreen(false)
+  const newPurchaseRequest = {
+    id: generateSimpleId("purchase-"),
+    user_id: currentUser.id,
+    plan_id: planId,
+    purchase_price: plan.price,
+    status: "pending_payment", // Admin needs to change this to 'active'
+    payment_method: paymentMethodVal,
+    payment_receipt_url: simulatedReceiptUrl, // Store file name or a placeholder
+    admin_notes: "User submitted payment proof. Awaiting admin approval.",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    start_date: null, // Admin will set these
+    end_date: null,
   }
+
+  // Add to localDbData.user_purchased_plans. This is a LOCAL change.
+  localDbData.user_purchased_plans.push(newPurchaseRequest)
+  console.log("New purchase request (local):", newPurchaseRequest)
+  alert(
+    "Purchase request submitted (locally). An admin needs to review this, update the main database.js file, and redeploy the site to make this purchase active globally.",
+  )
+
+  showPaymentMessage("Purchase request submitted for admin review!", "success")
+  setTimeout(() => {
+    paymentModal.style.display = "none"
+    paymentForm.reset()
+    navigateToPage("history-page")
+  }, 2000)
+  showLoadingScreen(false)
 }
 
 async function handleWithdrawalFormSubmit(e) {
   e.preventDefault()
   showLoadingScreen(true)
-  if (withdrawalMessageEl) withdrawalMessageEl.style.display = "none"
+  withdrawalMessageEl.style.display = "none"
 
   const amount = Number.parseFloat(document.getElementById("withdrawal-amount").value)
   const paymentMethodVal = document.getElementById("withdrawal-method").value
   const recipientPhone = document.getElementById("recipient-phone").value.trim()
   const paymentPin = document.getElementById("payment-pin-withdraw").value
 
-  if (!paymentMethodVal) {
-    showWithdrawalMessage("Please select a withdrawal method.")
-    showLoadingScreen(false)
-    return
+  if (!paymentMethodVal || !recipientPhone) {
+    return showWithdrawalMessage("All fields except PIN are required."), showLoadingScreen(false)
   }
   if (amount < 100000) {
-    showWithdrawalMessage("Minimum withdrawal amount is 100,000 MMK.")
-    showLoadingScreen(false)
-    return
+    return showWithdrawalMessage("Minimum withdrawal is 100,000 MMK."), showLoadingScreen(false)
   }
   if (amount > userBalance) {
-    showWithdrawalMessage("Insufficient balance for this withdrawal amount.")
-    showLoadingScreen(false)
-    return
-  }
-  if (!recipientPhone) {
-    showWithdrawalMessage("Recipient phone number is required.")
-    showLoadingScreen(false)
-    return
+    return showWithdrawalMessage("Insufficient balance."), showLoadingScreen(false)
   }
 
   const pinMatch = await compareDataClient(paymentPin, currentUser.payment_pin_hash)
   if (!pinMatch) {
-    showWithdrawalMessage("Incorrect Payment PIN.")
-    showLoadingScreen(false)
-    return
+    return showWithdrawalMessage("Incorrect Payment PIN."), showLoadingScreen(false)
   }
 
-  try {
-    const todayStart = new Date()
-    todayStart.setHours(0, 0, 0, 0)
-    const {
-      data: recentWithdrawals,
-      error: checkError,
-      count,
-    } = await supabase
-      .from("withdrawal_requests")
-      .select("id", { count: "exact" })
-      .eq("user_id", currentUser.id)
-      .gte("requested_at", todayStart.toISOString())
-
-    if (checkError) throw checkError
-    if (count > 0) {
-      showWithdrawalMessage("You have already made a withdrawal request today. Please try again tomorrow.")
+  // Check for existing pending withdrawal for the day (simplified check)
+  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  const existingTodayRequest = localDbData.withdrawal_requests.find(
+    (req) =>
+      req.user_id === currentUser.id &&
+      req.requested_at.startsWith(today) &&
+      (req.status === "pending_approval" || req.status === "approved"), // Consider approved ones too for daily limit
+  )
+  if (existingTodayRequest) {
+    return (
+      showWithdrawalMessage(
+        "You have already made a withdrawal request today or one is being processed. Please try again tomorrow.",
+      ),
       showLoadingScreen(false)
-      return
-    }
-
-    const { error: insertError } = await supabase.from("withdrawal_requests").insert([
-      {
-        user_id: currentUser.id,
-        amount,
-        payment_method: paymentMethodVal,
-        recipient_phone: recipientPhone,
-        status: "pending_approval",
-      },
-    ])
-
-    if (insertError) throw insertError
-
-    showWithdrawalMessage("Withdrawal request submitted successfully. It will be processed by an admin.", "success")
-    if (withdrawalForm) withdrawalForm.reset()
-    setTimeout(() => navigateToPage("history-page"), 2000)
-  } catch (error) {
-    console.error("Withdrawal error:", error)
-    showWithdrawalMessage(`Withdrawal failed: ${error.message || "Unknown error"}`)
-  } finally {
-    showLoadingScreen(false)
+    )
   }
-}
 
-async function initializeApp() {
-  if (!currentUser) {
-    navigateToView("auth-section")
-    if (mainAppSection) mainAppSection.style.display = "none"
-    showLoadingScreen(false)
-    return
+  const newWithdrawalRequest = {
+    id: generateSimpleId("withdraw-"),
+    user_id: currentUser.id,
+    amount,
+    payment_method: paymentMethodVal,
+    recipient_phone: recipientPhone,
+    status: "pending_approval", // Admin needs to process this
+    admin_notes: "User requested withdrawal. Awaiting admin approval.",
+    requested_at: new Date().toISOString(),
+    processed_at: null,
   }
-  navigateToView("main-app-section")
-  if (authSection) authSection.style.display = "none"
+  localDbData.withdrawal_requests.push(newWithdrawalRequest)
+  console.log("New withdrawal request (local):", newWithdrawalRequest)
+  alert(
+    "Withdrawal request submitted (locally). An admin needs to review this, update the main database.js file, and redeploy the site to process this withdrawal.",
+  )
 
-  await fetchAdminSettings()
-  await fetchUserBalance()
-  navigateToPage("mining-page")
+  showWithdrawalMessage("Withdrawal request submitted for admin review!", "success")
+  withdrawalForm.reset()
+  setTimeout(() => navigateToPage("history-page"), 2000)
   showLoadingScreen(false)
 }
 
-async function checkUserSession() {
-  const userId = localStorage.getItem("mmk_mining_user_id")
-  if (userId) {
-    try {
-      const { data: user, error } = await supabase.from("users").select("*").eq("id", userId).single()
-      if (error || !user) {
-        localStorage.removeItem("mmk_mining_user_id")
-        navigateToView("auth-section")
-        return false
-      }
-      currentUser = user
-      return true
-    } catch (error) {
-      console.error("Session check error:", error)
-      localStorage.removeItem("mmk_mining_user_id")
-      navigateToView("auth-section")
-      return false
-    }
-  }
-  navigateToView("auth-section")
-  return false
-}
-
-async function fetchAdminSettings() {
-  try {
-    const { data, error } = await supabase
-      .from("admin_settings")
-      .select("value")
-      .eq("key", "payment_phone_number")
-      .maybeSingle()
-    if (error && error.code !== "PGRST116") throw error
-    if (data && data.value) {
-      paymentPhoneNumber = data.value
-      if (paymentPhoneNumberModal) paymentPhoneNumberModal.textContent = paymentPhoneNumber
-    } else {
-      if (paymentPhoneNumberModal) paymentPhoneNumberModal.textContent = "N/A (Admin setup needed)"
-    }
-  } catch (error) {
-    console.error("Error fetching admin settings:", error)
-    if (paymentPhoneNumberModal) paymentPhoneNumberModal.textContent = "Error loading"
-  }
-}
-
-async function fetchUserBalance() {
-  if (!currentUser) return
-  try {
-    const { data, error } = await supabase.from("users").select("balance").eq("id", currentUser.id).single()
-    if (error) throw error
-    userBalance = Number.parseFloat(data.balance) || 0
-    if (userBalanceDisplay)
-      userBalanceDisplay.textContent = userBalance.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-  } catch (error) {
-    console.error("Error fetching balance:", error)
-    if (userBalanceDisplay) userBalanceDisplay.textContent = "Error"
-  }
-}
-
-function navigateToPage(pageId) {
-  if (pages) pages.forEach((page) => page.classList.remove("active-page"))
-  if (navButtons) navButtons.forEach((btn) => btn.classList.remove("active"))
-
-  const targetPage = document.getElementById(pageId)
-  const targetButton = document.querySelector(`.nav-button[data-page="${pageId}"]`)
-
-  if (targetPage) targetPage.classList.add("active-page")
-  if (targetButton) targetButton.classList.add("active")
-
-  if (pageId === "mining-page") loadMiningData()
-  if (pageId === "buy-mining-page") loadMiningPlans()
-  if (pageId === "history-page") {
-    const activeHistoryTab = document.querySelector(".history-tabs .tab-button.active")
-    if (activeHistoryTab) {
-      loadHistoryData(activeHistoryTab.dataset.tab)
-    } else {
-      const purchaseTab = document.querySelector(".history-tabs .tab-button[data-tab='purchase-history']")
-      const purchaseContent = document.getElementById("purchase-history-content")
-      if (purchaseTab) purchaseTab.classList.add("active")
-      if (purchaseContent) purchaseContent.classList.add("active")
-      loadHistoryData("purchase-history")
-    }
-  }
-  if (pageId === "profile-page") loadProfileData()
-
-  if (window.lucide) window.lucide.createIcons()
-}
-
-async function loadMiningData() {
+function loadHistoryData(activeTabKey) {
   if (!currentUser) return
   showLoadingScreen(true)
-  await fetchUserBalance()
-
-  try {
-    const { data: purchasedPlans, error } = await supabase
-      .from("user_purchased_plans")
-      .select(`
-                id, status, start_date, end_date,
-                mining_plans (name, power_output_per_second, duration_days)
-            `)
-      .eq("user_id", currentUser.id)
-      .in("status", ["active"])
-
-    if (error) throw error
-
-    if (activePlansList) activePlansList.innerHTML = ""
-    let totalEffectivePower = 0
-
-    if (!purchasedPlans || purchasedPlans.length === 0) {
-      if (activePlansList) activePlansList.innerHTML = '<li>No active mining plans. Visit "Buy" to get started.</li>'
-      if (miningStatusText) miningStatusText.textContent = "Idle"
-    } else {
-      purchasedPlans.forEach((plan) => {
-        const planDetails = plan.mining_plans
-        if (!planDetails) {
-          console.warn(`Plan details missing for purchased plan ID: ${plan.id}`)
-          return
-        }
-        const now = new Date()
-        const endDate = new Date(plan.end_date)
-        const startDate = new Date(plan.start_date)
-
-        if (plan.status === "active" && now >= startDate && now <= endDate) {
-          totalEffectivePower += Number.parseFloat(planDetails.power_output_per_second)
-          if (activePlansList) {
-            const listItem = document.createElement("li")
-            listItem.innerHTML = `<strong>${planDetails.name}</strong> - Ends: ${endDate.toLocaleDateString()} ${endDate.toLocaleTimeString()} <br>Power: ${planDetails.power_output_per_second} P/s`
-            activePlansList.appendChild(listItem)
-          }
-        } else if (plan.status === "active" && now > endDate) {
-          console.warn(`Plan ${planDetails.name} (ID: ${plan.id}) is marked active but past end_date.`)
-        }
-      })
-      if (miningStatusText) miningStatusText.textContent = totalEffectivePower > 0 ? "Mining Active" : "No Active Plans"
-      if (activePlansList && activePlansList.children.length === 0 && purchasedPlans.length > 0) {
-        activePlansList.innerHTML =
-          "<li>You have plans, but none are currently active or within their mining period.</li>"
-      } else if (activePlansList && activePlansList.children.length === 0) {
-        activePlansList.innerHTML = '<li>No active mining plans. Visit "Buy" to get started.</li>'
-      }
-    }
-
-    if (miningPowerDisplay) miningPowerDisplay.textContent = `Total Power: ${totalEffectivePower.toFixed(5)} P/s`
-    if (miningRateDisplay) miningRateDisplay.textContent = `Est. Rate: ${totalEffectivePower.toFixed(5)} MMK/s`
-
-    if (activeMiningInterval) clearInterval(activeMiningInterval)
-
-    if (totalEffectivePower > 0) {
-      activeMiningInterval = setInterval(async () => {
-        const earningsThisSecond = totalEffectivePower
-        userBalance += earningsThisSecond
-        if (userBalanceDisplay)
-          userBalanceDisplay.textContent = userBalance.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-
-        try {
-          const { error: rpcError } = await supabase.rpc("increment_balance_and_log_earning", {
-            p_user_id: currentUser.id,
-            p_amount: earningsThisSecond,
-            p_description: `Mining earning for 1 sec at ${totalEffectivePower.toFixed(5)} P/s`,
-          })
-          if (rpcError) {
-            console.warn("Failed to update balance and log earning in DB via RPC:", rpcError.message)
-          }
-        } catch (dbError) {
-          console.warn("DB Error during earning RPC call:", dbError.message)
-        }
-      }, 1000)
-    }
-  } catch (error) {
-    console.error("Error loading mining data:", error)
-    if (activePlansList) activePlansList.innerHTML = "<li>Error loading mining data.</li>"
-  } finally {
-    showLoadingScreen(false)
-  }
-}
-
-async function loadMiningPlans() {
-  showLoadingScreen(true)
-  if (miningPlansContainer) miningPlansContainer.innerHTML = "<p>Loading available plans...</p>"
-  try {
-    const { data, error } = await supabase
-      .from("mining_plans")
-      .select("*")
-      .eq("is_active", true)
-      .order("price", { ascending: true })
-
-    if (error) throw error
-    miningPlansCache = data
-
-    if (miningPlansContainer) miningPlansContainer.innerHTML = ""
-    if (!data || data.length === 0) {
-      if (miningPlansContainer)
-        miningPlansContainer.innerHTML = "<p>No mining plans available at the moment. Please check back later.</p>"
-      showLoadingScreen(false)
-      return
-    }
-
-    data.forEach((plan) => {
-      const planCard = document.createElement("div")
-      planCard.className = "plan-card"
-      const dailyReturn = (plan.price * plan.total_return_multiplier - plan.price) / plan.duration_days
-      const totalProfit = plan.price * plan.total_return_multiplier - plan.price
-
-      planCard.innerHTML = `
-                <h4>${plan.name}</h4>
-                <p class="price">${Number.parseFloat(plan.price).toLocaleString()} MMK</p>
-                <p class="details"><strong>Duration:</strong> <span>${plan.duration_days} days</span></p>
-                <p class="details"><strong>Power:</strong> <span>${plan.power_output_per_second} P/s</span></p>
-                <p class="details"><strong>Est. Daily Profit:</strong> <span style="color:var(--success-color)">${dailyReturn.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MMK</span></p>
-                <p class="details"><strong>Total Est. Profit:</strong> <span style="color:var(--success-color)">${totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MMK</span></p>
-                <p class="details"><strong>Total Return (incl. capital):</strong> <span>${(plan.price * plan.total_return_multiplier).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MMK</span></p>
-                ${plan.description ? `<p style="font-size:0.85em; margin-top:10px;">${plan.description}</p>` : ""}
-                <button class="button-primary buy-plan-button" data-plan-id="${plan.id}">Buy This Plan</button>
-            `
-      if (miningPlansContainer) miningPlansContainer.appendChild(planCard)
-    })
-
-    document.querySelectorAll(".buy-plan-button").forEach((button) => {
-      button.addEventListener("click", (e) => {
-        const planId = e.target.getAttribute("data-plan-id")
-        openPaymentModal(planId)
-      })
-    })
-  } catch (error) {
-    console.error("Error loading mining plans:", error)
-    if (miningPlansContainer) miningPlansContainer.innerHTML = "<p>Error loading plans. Please try again.</p>"
-  } finally {
-    showLoadingScreen(false)
-  }
-}
-
-function openPaymentModal(planId) {
-  const plan = miningPlansCache.find((p) => p.id === planId)
-  if (!plan) {
-    alert("Plan not found. Please refresh.")
-    return
-  }
-  if (selectedPlanIdInputModal) selectedPlanIdInputModal.value = planId
-  if (paymentPlanDetailsModal)
-    paymentPlanDetailsModal.innerHTML = `
-        <strong>Plan:</strong> ${plan.name}<br>
-        <strong>Price:</strong> ${Number.parseFloat(plan.price).toLocaleString()} MMK
-    `
-  if (paymentModal) paymentModal.style.display = "flex"
-  hidePaymentMessage()
-}
-
-async function loadHistoryData(activeTabKey) {
-  if (!currentUser) return
-  showLoadingScreen(true)
-
-  const renderListItem = (content, listElement, itemClass = "") => {
-    if (!listElement) return
-    const li = document.createElement("li")
-    if (itemClass) li.className = itemClass
-    li.innerHTML = content
-    listElement.appendChild(li)
-  }
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A"
-    const date = new Date(dateString)
-    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`
-  }
+  const formatDate = (ds) => (ds ? new Date(ds).toLocaleString() : "N/A")
 
   if (activeTabKey === "purchase-history") {
-    if (purchaseHistoryList) purchaseHistoryList.innerHTML = "<li>Loading purchase history...</li>"
-    try {
-      const { data, error } = await supabase
-        .from("user_purchased_plans")
-        .select(`*, mining_plans (name)`)
-        .eq("user_id", currentUser.id)
-        .order("created_at", { ascending: false })
-
-      if (error) throw error
-      if (purchaseHistoryList) purchaseHistoryList.innerHTML = ""
-      if (!data || data.length === 0) {
-        if (purchaseHistoryList) purchaseHistoryList.innerHTML = "<li>No purchase history found.</li>"
-      } else {
-        data.forEach((item) => {
-          renderListItem(
-            `
-                        <strong class="history-item-title">${item.mining_plans ? item.mining_plans.name : "Unknown Plan"}</strong>
-                        <span class="history-item-meta">Price: <strong>${Number.parseFloat(item.purchase_price).toLocaleString()} MMK</strong> | Status: <span class="status-badge status-${item.status.replace("_", "-")}">${item.status.replace("_", " ")}</span></span>
-                        <span class="history-item-meta">Date: ${formatDate(item.created_at)}</span>
-                        ${item.payment_receipt_url ? `<a href="${item.payment_receipt_url}" target="_blank" rel="noopener noreferrer" style="font-size:0.85em; color:var(--accent-color);">View Receipt</a>` : ""}
-                        ${item.admin_notes ? `<p style="font-size:0.8em; color:var(--text-muted-color); margin-top:5px;">Admin Note: ${item.admin_notes}</p>` : ""}
-                    `,
-            purchaseHistoryList,
-            `history-item status-item-${item.status.replace("_", "-")}`,
-          )
-        })
-      }
-    } catch (error) {
-      console.error("Error loading purchase history:", error)
-      if (purchaseHistoryList) purchaseHistoryList.innerHTML = "<li>Error loading purchase history.</li>"
-    }
+    purchaseHistoryList.innerHTML = "<li>Loading...</li>"
+    const purchases = localDbData.user_purchased_plans
+      .filter((p) => p.user_id === currentUser.id)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    purchaseHistoryList.innerHTML =
+      purchases.length === 0
+        ? "<li>No purchase history.</li>"
+        : purchases
+            .map((item) => {
+              const plan = localDbData.mining_plans.find((p) => p.id === item.plan_id)
+              return `<li><strong>${plan ? plan.name : "Unknown Plan"}</strong> - ${Number.parseFloat(item.purchase_price).toLocaleString()} MMK <br>Status: ${item.status} | Date: ${formatDate(item.created_at)} <br><small>${item.admin_notes || ""}</small></li>`
+            })
+            .join("")
   } else if (activeTabKey === "withdrawal-history") {
-    if (withdrawalHistoryList) withdrawalHistoryList.innerHTML = "<li>Loading withdrawal history...</li>"
-    try {
-      const { data, error } = await supabase
-        .from("withdrawal_requests")
-        .select("*")
-        .eq("user_id", currentUser.id)
-        .order("requested_at", { ascending: false })
-
-      if (error) throw error
-      if (withdrawalHistoryList) withdrawalHistoryList.innerHTML = ""
-      if (!data || data.length === 0) {
-        if (withdrawalHistoryList) withdrawalHistoryList.innerHTML = "<li>No withdrawal history found.</li>"
-      } else {
-        data.forEach((item) => {
-          renderListItem(
-            `
-                        <strong class="history-item-title">Withdrawal Request</strong>
-                        <span class="history-item-meta">Amount: <strong class="history-item-amount debit">${Number.parseFloat(item.amount).toLocaleString()} MMK</strong> | To: ${item.recipient_phone} (${item.payment_method})</span>
-                        <span class="history-item-meta">Status: <span class="status-badge status-${item.status.replace("_", "-")}">${item.status.replace("_", " ")}</span> | Date: ${formatDate(item.requested_at)}</span>
-                        ${item.admin_notes ? `<p style="font-size:0.8em; color:var(--text-muted-color); margin-top:5px;">Admin Note: ${item.admin_notes}</p>` : ""}
-                    `,
-            withdrawalHistoryList,
-            `history-item status-item-${item.status.replace("_", "-")}`,
-          )
-        })
-      }
-    } catch (error) {
-      console.error("Error loading withdrawal history:", error)
-      if (withdrawalHistoryList) withdrawalHistoryList.innerHTML = "<li>Error loading withdrawal history.</li>"
-    }
+    withdrawalHistoryList.innerHTML = "<li>Loading...</li>"
+    const withdrawals = localDbData.withdrawal_requests
+      .filter((w) => w.user_id === currentUser.id)
+      .sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at))
+    withdrawalHistoryList.innerHTML =
+      withdrawals.length === 0
+        ? "<li>No withdrawal history.</li>"
+        : withdrawals
+            .map(
+              (item) =>
+                `<li><strong>${Number.parseFloat(item.amount).toLocaleString()} MMK</strong> to ${item.recipient_phone} (${item.payment_method}) <br>Status: ${item.status} | Date: ${formatDate(item.requested_at)} <br><small>${item.admin_notes || ""}</small></li>`,
+            )
+            .join("")
   } else if (activeTabKey === "earning-history") {
-    if (earningHistoryList) earningHistoryList.innerHTML = "<li>Loading earning history...</li>"
-    try {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", currentUser.id)
-        .eq("type", "mining_earning")
-        .order("created_at", { ascending: false })
-        .limit(100)
-
-      if (error) throw error
-      if (earningHistoryList) earningHistoryList.innerHTML = ""
-      if (!data || data.length === 0) {
-        if (earningHistoryList) earningHistoryList.innerHTML = "<li>No earning records found yet.</li>"
-      } else {
-        data.forEach((item) => {
-          renderListItem(
-            `
-                        <strong class="history-item-title">Mining Earning</strong>
-                        <span class="history-item-meta">Amount: <strong class="history-item-amount credit">+${Number.parseFloat(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 })} MMK</strong></span>
-                        <span class="history-item-meta">Description: ${item.description || "Mining activity"}</span>
-                        <span class="history-item-meta">Date: ${formatDate(item.created_at)}</span>
-                    `,
-            earningHistoryList,
-            "history-item earning-item",
-          )
-        })
-      }
-    } catch (error) {
-      console.error("Error loading earning history:", error)
-      if (earningHistoryList) earningHistoryList.innerHTML = "<li>Error loading earning history.</li>"
-    }
+    earningHistoryList.innerHTML = "<li>Loading...</li>"
+    // Assuming localDbData.transactions exists and is populated by mining interval
+    const earnings = (localDbData.transactions || [])
+      .filter((t) => t.user_id === currentUser.id && t.type === "mining_earning")
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 100) // Limit to 100 recent
+    earningHistoryList.innerHTML =
+      earnings.length === 0
+        ? "<li>No earning records.</li>"
+        : earnings
+            .map(
+              (item) =>
+                `<li><strong>+${Number.parseFloat(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 })} MMK</strong> <br> ${item.description || "Mining"} | Date: ${formatDate(item.created_at)}</li>`,
+            )
+            .join("")
   }
   showLoadingScreen(false)
 }
 
 function loadProfileData() {
   if (!currentUser) return
-  if (profileNameDisplay) profileNameDisplay.textContent = currentUser.name
-  if (profileEmailDisplay) profileEmailDisplay.textContent = currentUser.email
-  if (withdrawalForm) withdrawalForm.reset()
-  if (withdrawalMessageEl) {
-    withdrawalMessageEl.textContent = ""
-    withdrawalMessageEl.style.display = "none"
-  }
+  profileNameDisplay.textContent = currentUser.name
+  profileEmailDisplay.textContent = currentUser.email
+  withdrawalForm.reset()
+  if (withdrawalMessageEl) withdrawalMessageEl.style.display = "none"
 }
