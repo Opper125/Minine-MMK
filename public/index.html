@@ -298,17 +298,20 @@
     window.onload = () => {
       document.getElementById('auth-section').classList.remove('hidden');
       gsap.from('.auth-container', { y: 50, opacity: 0, duration: 0.5 });
+      console.log('Page loaded successfully');
     };
 
     // Loading Overlay Functions
     function showLoading() {
       const loadingOverlay = document.getElementById('loading-overlay');
       loadingOverlay.classList.add('active');
+      console.log('Loading overlay shown');
     }
 
     function hideLoading() {
       const loadingOverlay = document.getElementById('loading-overlay');
       loadingOverlay.classList.remove('active');
+      console.log('Loading overlay hidden');
     }
 
     // Animation
@@ -318,6 +321,7 @@
     document.getElementById('toggle-login').addEventListener('click', (e) => {
       e.preventDefault();
       toggleAuthForm();
+      console.log('Toggled auth form');
     });
 
     function toggleAuthForm() {
@@ -346,40 +350,45 @@
       e.preventDefault();
       showLoading();
       const isSignUp = document.getElementById('auth-title').textContent === 'Sign Up';
-      const name = document.getElementById('name').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-      const paymentPin = document.getElementById('payment-pin').value;
+      const name = document.getElementById('name').value || null;
+      const paymentPin = document.getElementById('payment-pin').value || null;
 
       try {
         if (isSignUp) {
-          const { data: existingUser } = await supabase.from('users').select('email').eq('email', email);
-          if (existingUser.length > 0) throw new Error('Email already registered!');
-          const { data, error } = await supabase.from('users').insert({
-            name,
+          if (!name || !paymentPin) throw new Error('Name and Payment PIN are required for sign-up!');
+          const { data, error } = await supabase.auth.signUp({
             email,
-            password, // Note: For production, use password hashing (e.g., bcrypt)
-            payment_pin: paymentPin,
-            balance: 0
+            password,
+            options: {
+              data: { name, payment_pin: paymentPin, balance: 0 }
+            }
           });
           if (error) throw error;
           hideLoading();
-          alert('Sign Up Successful!');
-          toggleAuthForm();
+          alert('Sign-up successful! Please check your email for verification.');
+          console.log('Sign-up successful:', data);
         } else {
-          const { data: user } = await supabase.from('users').select('*').eq('email', email).eq('password', password).single();
-          if (!user) throw new Error('Invalid credentials!');
-          localStorage.setItem('user', JSON.stringify(user));
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+          if (error) throw error;
+          const { data: userData } = await supabase.from('users').select('*').eq('id', data.user.id).single();
+          localStorage.setItem('user', JSON.stringify(userData));
           hideLoading();
           document.getElementById('auth-section').classList.add('hidden');
           document.getElementById('dashboard').classList.remove('hidden');
           loadProfile();
           startMining();
           gsap.from('#dashboard', { y: 50, opacity: 0, duration: 0.5 });
+          console.log('Login successful:', userData);
         }
       } catch (error) {
         hideLoading();
-        alert(error.message || 'An error occurred!');
+        alert(`Error: ${error.message}`);
+        console.error('Auth Error:', error);
       }
     });
 
@@ -390,6 +399,7 @@
         const pageId = btn.dataset.page;
         document.getElementById(pageId).classList.remove('hidden');
         gsap.from(`#${pageId}`, { x: 50, opacity: 0, duration: 0.5 });
+        console.log(`Navigated to ${pageId}`);
       });
     });
 
@@ -399,6 +409,7 @@
       if (user) {
         document.getElementById('profile-name').textContent = user.name;
         document.getElementById('profile-email').textContent = user.email;
+        console.log('Profile loaded:', user);
       }
     }
 
@@ -414,9 +425,10 @@
       async function updateMiningStats() {
         const { data: plans } = await supabase.from('mining_plans').select('*').eq('user_id', user.id).eq('status', 'approved');
         totalPower = plans.reduce((sum, plan) => sum + (new Date(plan.end_date) > new Date() ? plan.power : 0), 0);
-        rate = totalPower / (7 * 24 * 3600); // Rate per second
+        rate = totalPower / (7 * 24 * 3600);
         document.getElementById('mining-power').textContent = `Mining Power: ${totalPower} MMK`;
         document.getElementById('mining-rate').textContent = `Rate: ${rate.toFixed(2)} MMK/sec`;
+        console.log('Mining stats updated:', { totalPower, rate });
       }
 
       await updateMiningStats();
@@ -435,6 +447,7 @@
         await supabase.from('users').update({ balance: newBalance }).eq('id', user.id);
         document.getElementById('balance').textContent = `Balance: ${newBalance.toFixed(2)} MMK`;
         gsap.to('#balance', { color: '#ff8c00', duration: 0.3, yoyo: true, repeat: 1 });
+        console.log('Balance updated:', newBalance);
       }, 1000);
     }
 
@@ -445,6 +458,7 @@
         document.getElementById('payment-section').classList.remove('hidden');
         localStorage.setItem('selectedPlan', btn.dataset.plan);
         gsap.from('#payment-section', { y: 50, opacity: 0, duration: 0.5 });
+        console.log('Selected plan:', btn.dataset.plan);
       });
     });
 
@@ -456,7 +470,7 @@
       const method = document.getElementById('payment-method').value;
 
       try {
-        if (file) {
+        if (file && user) {
           const { data, error: uploadError } = await supabase.storage.from('receipts').upload(`receipts/${Date.now()}_${user.id}.png`, file);
           if (uploadError) throw uploadError;
           const endDate = new Date();
@@ -475,10 +489,14 @@
           alert('Payment submitted! Waiting for admin approval.');
           document.getElementById('payment-section').classList.add('hidden');
           document.getElementById('buy-mining-page').classList.remove('hidden');
+          console.log('Payment submitted:', { plan, method });
+        } else {
+          throw new Error('Please select a file and ensure you are logged in!');
         }
       } catch (error) {
         hideLoading();
-        alert(error.message || 'Payment submission failed!');
+        alert(`Error: ${error.message}`);
+        console.error('Payment Error:', error);
       }
     });
 
@@ -486,6 +504,7 @@
     document.getElementById('withdraw-btn').addEventListener('click', () => {
       document.getElementById('withdraw-section').classList.toggle('hidden');
       gsap.from('#withdraw-section', { y: 50, opacity: 0, duration: 0.5 });
+      console.log('Withdraw section toggled');
     });
 
     document.getElementById('submit-withdraw').addEventListener('click', async () => {
@@ -497,6 +516,7 @@
       const pin = document.getElementById('withdraw-pin').value;
 
       try {
+        if (!user) throw new Error('Please log in to withdraw!');
         if (pin !== user.payment_pin) throw new Error('Invalid Payment PIN!');
         if (amount < 100000) throw new Error('Minimum withdrawal amount is 100,000 MMK!');
         const { data: balance } = await supabase.from('users').select('balance').eq('id', user.id).single();
@@ -516,9 +536,11 @@
         hideLoading();
         alert('Withdrawal request submitted!');
         document.getElementById('withdraw-section').classList.add('hidden');
+        console.log('Withdrawal submitted:', { amount, method, phone });
       } catch (error) {
         hideLoading();
-        alert(error.message || 'Withdrawal failed!');
+        alert(`Error: ${error.message}`);
+        console.error('Withdrawal Error:', error);
       }
     });
 
@@ -543,6 +565,7 @@
         historyList.appendChild(div);
         gsap.from(div, { x: 50, opacity: 0, duration: 0.5 });
       });
+      console.log('History loaded:', { transactions, withdrawals });
     }
 
     // Realtime Subscriptions
@@ -550,15 +573,17 @@
       if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
         loadHistory();
         if (payload.new.user_id === JSON.parse(localStorage.getItem('user'))?.id) {
-          startMining(); // Update mining stats on new/updated plans
+          startMining();
         }
       }
+      console.log('Mining Plans Realtime Update:', payload);
     }).subscribe();
 
     supabase.channel('public:withdrawals').on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals' }, (payload) => {
       if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
         loadHistory();
       }
+      console.log('Withdrawals Realtime Update:', payload);
     }).subscribe();
 
     supabase.channel('public:users').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, (payload) => {
@@ -567,6 +592,7 @@
         loadProfile();
         document.getElementById('balance').textContent = `Balance: ${payload.new.balance.toFixed(2)} MMK`;
       }
+      console.log('Users Realtime Update:', payload);
     }).subscribe();
 
     // Initial Load
@@ -576,6 +602,7 @@
       loadHistory();
       document.getElementById('auth-section').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
+      console.log('Initial load with existing user:', localStorage.getItem('user'));
     }
   </script>
 </body>
