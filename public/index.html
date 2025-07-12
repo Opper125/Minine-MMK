@@ -197,7 +197,7 @@
 </head>
 <body>
   <div id="loading-overlay">
-    <img src="https://github.com/Opper125/Minine-MMK/raw/main/loading.png" alt="Loading" id="loading-image">
+    <img src="https://github.com/username/repository/raw/main/loading.png" alt="Loading" id="loading-image">
   </div>
 
   <div id="auth-section">
@@ -222,7 +222,7 @@
     <main>
       <section id="mining-page" class="page">
         <div id="mining-animation">
-          <img src="https://github.com/Opper125/Minine-MMK/raw/main/mmk-coin.png" alt="MMK Coin" class="coin">
+          <img src="https://github.com/username/repository/raw/main/mmk-coin.png" alt="MMK Coin" class="coin">
           <div id="mining-timer">00:00:00</div>
         </div>
         <div id="mining-power">Mining Power: 0</div>
@@ -294,13 +294,13 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdnd3dzdWhuaG5rc3BocnloaGpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2MzM3ODQsImV4cCI6MjA2NjIwOTc4NH0.nZRj7cnC9jSo6CnilIlgz9193D-Vjf094H5XzPJBUxY';
     const supabase = new SupabaseClient(supabaseUrl, supabaseKey);
 
-    // Remove initial loading screen on page load
+    // Initial Load
     window.onload = () => {
       document.getElementById('auth-section').classList.remove('hidden');
       gsap.from('.auth-container', { y: 50, opacity: 0, duration: 0.5 });
     };
 
-    // Dynamic Loading Overlay for Actions
+    // Loading Overlay Functions
     function showLoading() {
       const loadingOverlay = document.getElementById('loading-overlay');
       loadingOverlay.classList.add('active');
@@ -311,8 +311,37 @@
       loadingOverlay.classList.remove('active');
     }
 
+    // Animation
     gsap.to('.coin', { rotation: 360, repeat: -1, duration: 5, ease: 'linear' });
 
+    // Auth Toggle
+    document.getElementById('toggle-login').addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleAuthForm();
+    });
+
+    function toggleAuthForm() {
+      const title = document.getElementById('auth-title');
+      const submitBtn = document.getElementById('auth-submit');
+      const toggleText = document.getElementById('auth-toggle');
+      const nameInput = document.getElementById('name');
+      const paymentPinInput = document.getElementById('payment-pin');
+      if (title.textContent === 'Sign Up') {
+        title.textContent = 'Login';
+        submitBtn.textContent = 'Login';
+        toggleText.innerHTML = 'Don’t have an account? <a href="#" id="toggle-login">Sign Up</a>';
+        nameInput.classList.add('hidden');
+        paymentPinInput.classList.add('hidden');
+      } else {
+        title.textContent = 'Sign Up';
+        submitBtn.textContent = 'Sign Up';
+        toggleText.innerHTML = 'Already have an account? <a href="#" id="toggle-login">Login</a>';
+        nameInput.classList.remove('hidden');
+        paymentPinInput.classList.remove('hidden');
+      }
+    }
+
+    // Auth Form Submission
     document.getElementById('auth-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       showLoading();
@@ -322,67 +351,76 @@
       const password = document.getElementById('password').value;
       const paymentPin = document.getElementById('payment-pin').value;
 
-      if (isSignUp) {
-        const { data: existingUser } = await supabase.from('users').select('email').eq('email', email);
-        if (existingUser.length > 0) { hideLoading(); alert('Email already registered!'); return; }
-        await supabase.from('users').insert([{ name, email, password, payment_pin: paymentPin, balance: 0 }]);
-        hideLoading(); alert('Sign Up Successful!'); toggleAuthForm();
-      } else {
-        const { data: user } = await supabase.from('users').select('*').eq('email', email).eq('password', password);
-        if (user.length > 0) {
-          localStorage.setItem('user', JSON.stringify(user[0]));
+      try {
+        if (isSignUp) {
+          const { data: existingUser } = await supabase.from('users').select('email').eq('email', email);
+          if (existingUser.length > 0) throw new Error('Email already registered!');
+          const { data, error } = await supabase.from('users').insert({
+            name,
+            email,
+            password, // Note: For production, use password hashing (e.g., bcrypt)
+            payment_pin: paymentPin,
+            balance: 0
+          });
+          if (error) throw error;
+          hideLoading();
+          alert('Sign Up Successful!');
+          toggleAuthForm();
+        } else {
+          const { data: user } = await supabase.from('users').select('*').eq('email', email).eq('password', password).single();
+          if (!user) throw new Error('Invalid credentials!');
+          localStorage.setItem('user', JSON.stringify(user));
           hideLoading();
           document.getElementById('auth-section').classList.add('hidden');
           document.getElementById('dashboard').classList.remove('hidden');
           loadProfile();
           startMining();
           gsap.from('#dashboard', { y: 50, opacity: 0, duration: 0.5 });
-        } else { hideLoading(); alert('Invalid credentials!'); }
+        }
+      } catch (error) {
+        hideLoading();
+        alert(error.message || 'An error occurred!');
       }
     });
 
-    document.getElementById('toggle-login').addEventListener('click', () => toggleAuthForm());
-
-    function toggleAuthForm() {
-      const title = document.getElementById('auth-title');
-      const submitBtn = document.getElementById('auth-submit');
-      const toggleText = document.getElementById('auth-toggle');
-      const nameInput = document.getElementById('name');
-      const paymentPinInput = document.getElementById('payment-pin');
-      if (title.textContent === 'Sign Up') {
-        title.textContent = 'Login'; submitBtn.textContent = 'Login';
-        toggleText.innerHTML = 'Don’t have an account? <a href="#" id="toggle-login">Sign Up</a>';
-        nameInput.classList.add('hidden'); paymentPinInput.classList.add('hidden');
-      } else {
-        title.textContent = 'Sign Up'; submitBtn.textContent = 'Sign Up';
-        toggleText.innerHTML = 'Already have an account? <a href="#" id="toggle-login">Login</a>';
-        nameInput.classList.remove('hidden'); paymentPinInput.classList.remove('hidden');
-      }
-    }
-
+    // Navigation
     document.querySelectorAll('.menu-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
-        document.getElementById(btn.dataset.page).classList.remove('hidden');
-        gsap.from(`#${btn.dataset.page}`, { x: 50, opacity: 0, duration: 0.5 });
+        const pageId = btn.dataset.page;
+        document.getElementById(pageId).classList.remove('hidden');
+        gsap.from(`#${pageId}`, { x: 50, opacity: 0, duration: 0.5 });
       });
     });
 
+    // Load Profile
     function loadProfile() {
       const user = JSON.parse(localStorage.getItem('user'));
-      document.getElementById('profile-name').textContent = user.name;
-      document.getElementById('profile-email').textContent = user.email;
+      if (user) {
+        document.getElementById('profile-name').textContent = user.name;
+        document.getElementById('profile-email').textContent = user.email;
+      }
     }
 
+    // Start Mining
     async function startMining() {
       const user = JSON.parse(localStorage.getItem('user'));
-      const { data: plans } = await supabase.from('mining_plans').select('*').eq('user_id', user.id).eq('status', 'approved');
+      if (!user) return;
+
       let totalPower = 0;
-      plans.forEach(plan => { if (new Date(plan.end_date) > new Date()) totalPower += plan.power; });
-      const rate = totalPower / 7 / 24 / 3600;
-      document.getElementById('mining-power').textContent = `Mining Power: ${totalPower} MMK`;
-      document.getElementById('mining-rate').textContent = `Rate: ${rate.toFixed(2)} MMK/sec`;
+      let rate = 0;
       let startTime = Date.now();
+
+      async function updateMiningStats() {
+        const { data: plans } = await supabase.from('mining_plans').select('*').eq('user_id', user.id).eq('status', 'approved');
+        totalPower = plans.reduce((sum, plan) => sum + (new Date(plan.end_date) > new Date() ? plan.power : 0), 0);
+        rate = totalPower / (7 * 24 * 3600); // Rate per second
+        document.getElementById('mining-power').textContent = `Mining Power: ${totalPower} MMK`;
+        document.getElementById('mining-rate').textContent = `Rate: ${rate.toFixed(2)} MMK/sec`;
+      }
+
+      await updateMiningStats();
+
       setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const hours = String(Math.floor(elapsed / 3600)).padStart(2, '0');
@@ -390,15 +428,17 @@
         const seconds = String(elapsed % 60).padStart(2, '0');
         document.getElementById('mining-timer').textContent = `${hours}:${minutes}:${seconds}`;
       }, 1000);
+
       setInterval(async () => {
-        const { data: balance } = await supabase.from('users').select('balance').eq('id', user.id).single();
-        const newBalance = balance.balance + rate;
+        const { data: balanceData } = await supabase.from('users').select('balance').eq('id', user.id).single();
+        const newBalance = balanceData.balance + rate;
         await supabase.from('users').update({ balance: newBalance }).eq('id', user.id);
         document.getElementById('balance').textContent = `Balance: ${newBalance.toFixed(2)} MMK`;
         gsap.to('#balance', { color: '#ff8c00', duration: 0.3, yoyo: true, repeat: 1 });
       }, 1000);
     }
 
+    // Buy Mining Plan
     document.querySelectorAll('.buy-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.getElementById('buy-mining-page').classList.add('hidden');
@@ -414,20 +454,35 @@
       const user = JSON.parse(localStorage.getItem('user'));
       const plan = localStorage.getItem('selectedPlan');
       const method = document.getElementById('payment-method').value;
-      if (file) {
-        const { data, error } = await supabase.storage.from('receipts').upload(`receipts/${Date.now()}_${user.id}.png`, file);
-        if (error) { hideLoading(); alert('Upload failed!'); return; }
-        const endDate = new Date(); endDate.setDate(endDate.getDate() + 7);
-        await supabase.from('mining_plans').insert({
-          user_id: user.id, plan_amount: plan, payment_method: method, receipt_url: data.path, status: 'pending', end_date: endDate.toISOString(),
-          power: plan === '100000' ? 180000 : 570000
-        });
-        hideLoading(); alert('Payment submitted! Waiting for admin approval.');
-        document.getElementById('payment-section').classList.add('hidden');
-        document.getElementById('buy-mining-page').classList.remove('hidden');
-      } else { hideLoading(); }
+
+      try {
+        if (file) {
+          const { data, error: uploadError } = await supabase.storage.from('receipts').upload(`receipts/${Date.now()}_${user.id}.png`, file);
+          if (uploadError) throw uploadError;
+          const endDate = new Date();
+          endDate.setDate(endDate.getDate() + 7);
+          const { error: insertError } = await supabase.from('mining_plans').insert({
+            user_id: user.id,
+            plan_amount: plan,
+            power: plan === '100000' ? 180000 : 570000,
+            payment_method: method,
+            receipt_url: data.path,
+            status: 'pending',
+            end_date: endDate.toISOString()
+          });
+          if (insertError) throw insertError;
+          hideLoading();
+          alert('Payment submitted! Waiting for admin approval.');
+          document.getElementById('payment-section').classList.add('hidden');
+          document.getElementById('buy-mining-page').classList.remove('hidden');
+        }
+      } catch (error) {
+        hideLoading();
+        alert(error.message || 'Payment submission failed!');
+      }
     });
 
+    // Withdraw Funds
     document.getElementById('withdraw-btn').addEventListener('click', () => {
       document.getElementById('withdraw-section').classList.toggle('hidden');
       gsap.from('#withdraw-section', { y: 50, opacity: 0, duration: 0.5 });
@@ -440,22 +495,38 @@
       const method = document.getElementById('withdraw-method').value;
       const phone = document.getElementById('withdraw-phone').value;
       const pin = document.getElementById('withdraw-pin').value;
-      if (pin !== user.payment_pin) { hideLoading(); alert('Invalid Payment PIN!'); return; }
-      if (amount < 100000) { hideLoading(); alert('Minimum withdrawal amount is 100,000 MMK!'); return; }
-      const { data: balance } = await supabase.from('users').select('balance').eq('id', user.id).single();
-      if (balance.balance < amount) { hideLoading(); alert('Insufficient balance!'); return; }
-      const today = new Date().toISOString().split('T')[0];
-      const { data: withdrawals } = await supabase.from('withdrawals').select('*').eq('user_id', user.id)
-        .gte('created_at', today + 'T00:00:00Z').lte('created_at', today + 'T23:59:59Z');
-      if (withdrawals.length > 0) { hideLoading(); alert('Daily withdrawal limit reached!'); return; }
-      await supabase.from('withdrawals').insert({ user_id: user.id, amount, payment_method: method, phone_number: phone, status: 'pending' });
-      await supabase.from('users').update({ balance: balance.balance - amount }).eq('id', user.id);
-      hideLoading(); alert('Withdrawal request submitted!');
-      document.getElementById('withdraw-section').classList.add('hidden');
+
+      try {
+        if (pin !== user.payment_pin) throw new Error('Invalid Payment PIN!');
+        if (amount < 100000) throw new Error('Minimum withdrawal amount is 100,000 MMK!');
+        const { data: balance } = await supabase.from('users').select('balance').eq('id', user.id).single();
+        if (balance.balance < amount) throw new Error('Insufficient balance!');
+        const today = new Date().toISOString().split('T')[0];
+        const { data: withdrawals } = await supabase.from('withdrawals').select('*').eq('user_id', user.id)
+          .gte('created_at', `${today}T00:00:00Z`).lte(`${today}T23:59:59Z`);
+        if (withdrawals.length > 0) throw new Error('Daily withdrawal limit reached!');
+        await supabase.from('withdrawals').insert({
+          user_id: user.id,
+          amount,
+          payment_method: method,
+          phone_number: phone,
+          status: 'pending'
+        });
+        await supabase.from('users').update({ balance: balance.balance - amount }).eq('id', user.id);
+        hideLoading();
+        alert('Withdrawal request submitted!');
+        document.getElementById('withdraw-section').classList.add('hidden');
+      } catch (error) {
+        hideLoading();
+        alert(error.message || 'Withdrawal failed!');
+      }
     });
 
+    // Load History
     async function loadHistory() {
       const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) return;
+
       const { data: transactions } = await supabase.from('mining_plans').select('*').eq('user_id', user.id);
       const { data: withdrawals } = await supabase.from('withdrawals').select('*').eq('user_id', user.id);
       const historyList = document.getElementById('history-list');
@@ -463,19 +534,49 @@
       transactions.forEach(tx => {
         const div = document.createElement('div');
         div.textContent = `Mining Plan: ${tx.plan_amount} MMK, Status: ${tx.status}, End: ${tx.end_date}`;
-        historyList.appendChild(div); gsap.from(div, { x: 50, opacity: 0, duration: 0.5 });
+        historyList.appendChild(div);
+        gsap.from(div, { x: 50, opacity: 0, duration: 0.5 });
       });
       withdrawals.forEach(w => {
         const div = document.createElement('div');
         div.textContent = `Withdrawal: ${w.amount} MMK, Method: ${w.payment_method}, Status: ${w.status}`;
-        historyList.appendChild(div); gsap.from(div, { x: 50, opacity: 0, duration: 0.5 });
+        historyList.appendChild(div);
+        gsap.from(div, { x: 50, opacity: 0, duration: 0.5 });
       });
     }
 
-    supabase.channel('mining_plans').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mining_plans' }, loadHistory)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'mining_plans' }, loadHistory).subscribe();
-    supabase.channel('withdrawals').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'withdrawals' }, loadHistory)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'withdrawals' }, loadHistory).subscribe();
+    // Realtime Subscriptions
+    supabase.channel('public:mining_plans').on('postgres_changes', { event: '*', schema: 'public', table: 'mining_plans' }, (payload) => {
+      if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+        loadHistory();
+        if (payload.new.user_id === JSON.parse(localStorage.getItem('user'))?.id) {
+          startMining(); // Update mining stats on new/updated plans
+        }
+      }
+    }).subscribe();
+
+    supabase.channel('public:withdrawals').on('postgres_changes', { event: '*', schema: 'public', table: 'withdrawals' }, (payload) => {
+      if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+        loadHistory();
+      }
+    }).subscribe();
+
+    supabase.channel('public:users').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, (payload) => {
+      if (payload.new.id === JSON.parse(localStorage.getItem('user'))?.id) {
+        localStorage.setItem('user', JSON.stringify(payload.new));
+        loadProfile();
+        document.getElementById('balance').textContent = `Balance: ${payload.new.balance.toFixed(2)} MMK`;
+      }
+    }).subscribe();
+
+    // Initial Load
+    if (localStorage.getItem('user')) {
+      loadProfile();
+      startMining();
+      loadHistory();
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+    }
   </script>
 </body>
 </html>
