@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMK Mining</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="/dist/output.css">
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="min-h-screen">
@@ -42,11 +42,11 @@
                     <p id="user-level" class="text-gradient">Level 1</p>
                 </div>
             </div>
-            <input type="text" id="profile-name" placeholder="Update Name" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-            <input type="text" id="profile-username" placeholder="Update Username" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-            <input type="text" id="profile-email" placeholder="Update Email" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <input type="text" id="profile-name" placeholder="အမည်ပြင်ဆင်ရန်" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <input type="text" id="profile-username" placeholder="အသုံးပြုသူအမည်ပြင်ဆင်ရန်" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <input type="text" id="profile-email" placeholder="အီးမေးလ်ပြင်ဆင်ရန်" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
             <input type="file" id="profile-icon" accept="image/*" class="mb-4">
-            <button id="update-profile" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Update Profile</button>
+            <button id="update-profile" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">ပရိုဖိုင်အပ်ဒိတ်လုပ်ရန်</button>
         </div>
 
         <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
@@ -58,7 +58,7 @@
             <h2 class="text-xl font-bold mb-4 text-gradient">Purchase Plan</h2>
             <form id="purchase-plan">
                 <select id="plan-select" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                    <option value="">Select a Plan</option>
+                    <option value="">အစီအစဉ်ရွေးပါ</option>
                 </select>
                 <select id="payment-method" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
                     <option value="kpay">KPay</option>
@@ -66,23 +66,23 @@
                     <option value="cb">CB</option>
                 </select>
                 <input type="file" id="payment-proof" accept="image/*" class="mb-4">
-                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Purchase</button>
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">ဝယ်ယူရန်</button>
             </form>
         </div>
 
         <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Withdraw</h2>
             <form id="withdraw-form">
-                <input type="number" id="withdraw-amount" placeholder="Amount (MMK)" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <input type="text" id="withdraw-pin" placeholder="Withdraw PIN" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="number" id="withdraw-amount" placeholder="ပမာဏ (MMK)" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="text" id="withdraw-pin" placeholder="ထုတ်ယူမှု PIN" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
                 <select id="withdraw-method" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
                     <option value="kpay">KPay</option>
                     <option value="wave">Wave</option>
                     <option value="cb">CB</option>
                 </select>
-                <input type="text" id="withdraw-phone" placeholder="Phone Number" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <input type="text" id="withdraw-account" placeholder="Account Name" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Withdraw</button>
+                <input type="text" id="withdraw-phone" placeholder="ဖုန်းနံပါတ်" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="text" id="withdraw-account" placeholder="အကောင့်အမည်" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">ထုတ်ယူရန်</button>
             </form>
         </div>
 
@@ -94,15 +94,15 @@
         <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Global Chat</h2>
             <div id="global-chat" class="h-64 overflow-y-auto mb-4 p-2 bg-gray-800/50 rounded-lg"></div>
-            <input type="text" id="chat-input" placeholder="Type a message..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-            <button id="send-chat" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Send</button>
+            <input type="text" id="chat-input" placeholder="မက်ဆေ့ချ်ရိုက်ထည့်ပါ..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <button id="send-chat" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">ပို့ရန်</button>
         </div>
 
         <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Support Chat</h2>
             <div id="support-chat" class="h-64 overflow-y-auto mb-4 p-2 bg-gray-800/50 rounded-lg"></div>
-            <input type="text" id="support-input" placeholder="Type a message..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-            <button id="send-support" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Send</button>
+            <input type="text" id="support-input" placeholder="မက်ဆေ့ချ်ရိုက်ထည့်ပါ..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <button id="send-support" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">ပို့ရန်</button>
         </div>
 
         <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
@@ -113,9 +113,9 @@
         <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Feed</h2>
             <form id="add-feed">
-                <textarea id="feed-content" placeholder="What's new?" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all"></textarea>
+                <textarea id="feed-content" placeholder="ဘာအသစ်ရှိလဲ?" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all"></textarea>
                 <input type="file" id="feed-video" accept="video/*" class="mb-4">
-                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Post</button>
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">တင်ရန်</button>
             </form>
             <div id="feed" class="grid grid-cols-1 gap-4 mt-4"></div>
         </div>
@@ -139,7 +139,7 @@
     <script>
         const supabaseUrl = 'https://aurrpqjyjmvfcldouozv.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1cnJwcWp5am12ZmNsZG91b3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyOTk2ODMsImV4cCI6MjA2ODg3NTY4M30.gQN6MxQEPImIF_mcFNT22LBgN9xwtXl3ePCJCqU3YEE';
-        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         let currentUser = null;
         let miningInterval = null;
@@ -148,8 +148,8 @@
             try {
                 const { data: { user }, error } = await supabase.auth.getUser();
                 if (error || !user) {
-                    alert('Please log in to access the dashboard.');
-                    window.location.href = '/login.html'; // Redirect to login page if not authenticated
+                    alert('အကောင့်ဝင်ရန် လိုအပ်ပါသည်။');
+                    window.location.href = '/login.html';
                     return;
                 }
                 currentUser = user;
@@ -165,15 +165,14 @@
                     loadLevels(),
                     loadAbout()
                 ]).catch(err => {
-                    console.error('Error loading data:', err);
-                    alert('Failed to load some data. Please try again.');
+                    console.error('ဒေတာဖတ်ယူမှု အမှား:', err);
+                    alert('ဒေတာအချို့ ဖတ်ယူ၍မရပါ။ ထပ်မံကြိုးစားပါ။');
                 });
                 startMiningPowerUpdate();
             } catch (err) {
-                console.error('Initialization error:', err);
-                alert('An error occurred while loading the app.');
+                console.error('စတင်မှု အမှား:', err);
+                alert('အက်ပ်ဖွင့်ရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
             } finally {
-                // Ensure loading overlay is hidden
                 gsap.to('#loading-overlay', {
                     opacity: 0,
                     duration: 0.5,
@@ -185,521 +184,554 @@
         }
 
         async function loadUserProfile() {
-            const { data: user, error } = await supabase.from('users').select('*').eq('id', currentUser.id).single();
-            if (error) {
-                console.error('Error loading profile:', error);
-                return;
+            try {
+                const { data: user, error } = await supabase.from('users').select('*').eq('id', currentUser.id).single();
+                if (error) throw new Error('ပရိုဖိုင်ဖတ်ယူမှု အမှား: ' + error.message);
+                document.getElementById('user-name').textContent = user.name || 'အမည်မရှိ';
+                document.getElementById('user-level').textContent = `Level ${user.level || 1}`;
+                document.getElementById('user-icon').src = user.icon || 'https://api.dicebear.com/9.x/pixel-art/svg';
+                document.getElementById('user-balance').textContent = `${(user.balance || 0).toLocaleString()} MMK`;
+                document.getElementById('profile-name').value = user.name || '';
+                document.getElementById('profile-username').value = user.username || '';
+                document.getElementById('profile-email').value = user.email || '';
+            } catch (err) {
+                console.error(err);
+                alert('ပရိုဖိုင်ဒေတာ ဖတ်ယူ၍မရပါ။');
             }
-            document.getElementById('user-name').textContent = user.name;
-            document.getElementById('user-level').textContent = `Level ${user.level}`;
-            document.getElementById('user-icon').src = user.icon;
-            document.getElementById('user-balance').textContent = `${user.balance.toLocaleString()} MMK`;
-            document.getElementById('profile-name').value = user.name;
-            document.getElementById('profile-username').value = user.username;
-            document.getElementById('profile-email').value = user.email;
         }
 
         async function loadPlans() {
-            const { data: plans, error } = await supabase.from('plans').select('*');
-            if (error) {
-                console.error('Error loading plans:', error);
-                return;
+            try {
+                const { data: plans, error } = await supabase.from('plans').select('*');
+                if (error) throw new Error('အစီအစဉ်များ ဖတ်ယူမှု အမှား: ' + error.message);
+                const plansDiv = document.getElementById('plans');
+                const planSelect = document.getElementById('plan-select');
+                plansDiv.innerHTML = '';
+                planSelect.innerHTML = '<option value="">အစီအစဉ်ရွေးပါ</option>';
+                plans.forEach(plan => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <img src="${plan.icon || 'https://api.dicebear.com/9.x/pixel-art/svg'}" class="w-16 h-16 mb-2 rounded" onerror="this.src='https://api.dicebear.com/9.x/pixel-art/svg'">
+                        <p class="font-bold text-white">${plan.name}</p>
+                        <p>ကုန်ကျစရိတ်: ${plan.cost.toLocaleString()} MMK</p>
+                        <p>ပြန်အမ်းငွေ: ${plan.return_amount.toLocaleString()} MMK</p>
+                        <p>ကြာချိန်: ${plan.duration} ရက်</p>
+                        <p>Mining Power: ${plan.mining_power}</p>
+                    `;
+                    plansDiv.appendChild(div);
+                    const option = document.createElement('option');
+                    option.value = plan.id;
+                    option.textContent = `${plan.name} - ${plan.cost.toLocaleString()} MMK`;
+                    planSelect.appendChild(option);
+                });
+            } catch (err) {
+                console.error(err);
+                alert('အစီအစဉ်များ ဖတ်ယူ၍မရပါ။');
             }
-            const plansDiv = document.getElementById('plans');
-            const planSelect = document.getElementById('plan-select');
-            plansDiv.innerHTML = '';
-            planSelect.innerHTML = '<option value="">Select a Plan</option>';
-            plans.forEach(plan => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <img src="${plan.icon}" class="w-16 h-16 mb-2 rounded">
-                    <p class="font-bold text-white">${plan.name}</p>
-                    <p>Cost: ${plan.cost.toLocaleString()} MMK</p>
-                    <p>Return: ${plan.return_amount.toLocaleString()} MMK</p>
-                    <p>Duration: ${plan.duration} days</p>
-                    <p>Mining Power: ${plan.mining_power}</p>
-                `;
-                plansDiv.appendChild(div);
-                const option = document.createElement('option');
-                option.value = plan.id;
-                option.textContent = `${plan.name} - ${plan.cost.toLocaleString()} MMK`;
-                planSelect.appendChild(option);
-            });
         }
 
         async function loadTasks() {
-            const { data: tasks, error } = await supabase.from('tasks').select('*');
-            if (error) {
-                console.error('Error loading tasks:', error);
-                return;
-            }
-            const tasksDiv = document.getElementById('tasks');
-            tasksDiv.innerHTML = '';
-            tasks.forEach(task => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <p class="font-bold text-white">${task.title}</p>
-                    <p>Reward: ${task.reward_type === 'cash' ? `${task.reward_amount.toLocaleString()} MMK` : `${task.reward_amount} MMK/sec for ${task.reward_duration} days`}</p>
-                    <p>Claim Limit: ${task.claim_limit}</p>
-                    <a href="${task.social_link}" target="_blank" class="text-indigo-400 hover:text-indigo-300">Visit Link</a>
-                    <button class="claim-task w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-task-id="${task.id}">Claim</button>
-                `;
-                tasksDiv.appendChild(div);
-            });
-
-            document.querySelectorAll('.claim-task').forEach(button => {
-                button.addEventListener('click', async () => {
-                    const taskId = button.dataset.taskId;
-                    const { data: task } = await supabase.from('tasks').select('*').eq('id', taskId).single();
-                    const { data: claims } = await supabase.from('task_claims').select('id').eq('task_id', taskId).eq('user_id', currentUser.id);
-                    if (claims.length >= task.claim_limit) {
-                        alert('Claim limit reached for this task.');
-                        return;
-                    }
-                    const { error } = await supabase.from('task_claims').insert({
-                        user_id: currentUser.id,
-                        task_id: taskId,
-                        reward_type: task.reward_type,
-                        reward_amount: task.reward_amount,
-                        reward_duration: task.reward_duration
-                    });
-                    if (error) {
-                        alert('Error claiming task.');
-                        return;
-                    }
-                    alert('Task claimed successfully!');
-                    if (task.reward_type === 'cash') {
-                        await supabase.from('users').update({ balance: currentUser.balance + task.reward_amount }).eq('id', currentUser.id);
-                        loadUserProfile();
-                    }
+            try {
+                const { data: tasks, error } = await supabase.from('tasks').select('*');
+                if (error) throw new Error('အလုပ်များ ဖတ်ယူမှု အမှား: ' + error.message);
+                const tasksDiv = document.getElementById('tasks');
+                tasksDiv.innerHTML = '';
+                tasks.forEach(task => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <p class="font-bold text-white">${task.title}</p>
+                        <p>ဆုလာဘ်: ${task.reward_type === 'cash' ? `${task.reward_amount.toLocaleString()} MMK` : `${task.reward_amount} MMK/sec for ${task.reward_duration} days`}</p>
+                        <p>အကန့်အသတ်: ${task.claim_limit}</p>
+                        <a href="${task.social_link}" target="_blank" class="text-indigo-400 hover:text-indigo-300">လင့်ခ်သို့သွားရောက်ပါ</a>
+                        <button class="claim-task w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-task-id="${task.id}">တောင်းဆိုပါ</button>
+                    `;
+                    tasksDiv.appendChild(div);
                 });
-            });
+
+                document.querySelectorAll('.claim-task').forEach(button => {
+                    button.addEventListener('click', async () => {
+                        try {
+                            const taskId = button.dataset.taskId;
+                            const { data: task } = await supabase.from('tasks').select('*').eq('id', taskId).single();
+                            const { data: claims } = await supabase.from('task_claims').select('id').eq('task_id', taskId).eq('user_id', currentUser.id);
+                            if (claims.length >= task.claim_limit) {
+                                alert('ဤအလုပ်အတွက် တောင်းဆိုမှု အကန့်အသတ်ပြည့်သွားပါပြီ။');
+                                return;
+                            }
+                            const { error } = await supabase.from('task_claims').insert({
+                                user_id: currentUser.id,
+                                task_id: taskId,
+                                reward_type: task.reward_type,
+                                reward_amount: task.reward_amount,
+                                reward_duration: task.reward_duration
+                            });
+                            if (error) throw new Error('အလုပ်တောင်းဆိုမှု အမှား: ' + error.message);
+                            alert('အလုပ်ကို အောင်မြင်စွာ တောင်းဆိုပြီးပါပြီ။');
+                            if (task.reward_type === 'cash') {
+                                const { data: user } = await supabase.from('users').select('balance').eq('id', currentUser.id).single();
+                                await supabase.from('users').update({ balance: user.balance + task.reward_amount }).eq('id', currentUser.id);
+                                loadUserProfile();
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            alert('အလုပ်တောင်းဆိုရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error(err);
+                alert('အလုပ်များ ဖတ်ယူ၍မရပါ။');
+            }
         }
 
         async function loadGlobalChat() {
-            const { data: messages, error } = await supabase.from('global_chat').select('*').order('created_at', { ascending: true });
-            if (error) {
-                console.error('Error loading global chat:', error);
-                return;
-            }
-            const chatDiv = document.getElementById('global-chat');
-            chatDiv.innerHTML = '';
-            messages.forEach(msg => {
-                const div = document.createElement('div');
-                div.className = 'p-2 rounded-lg mb-2 bg-gray-800/50 border border-gray-700';
-                div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <img src="${msg.user_icon}" class="w-8 h-8 rounded">
-                        <p class="font-bold">${msg.username} (Level ${msg.user_level})</p>
-                    </div>
-                    <p>${msg.message}</p>
-                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(msg.created_at))}</p>
-                `;
-                chatDiv.appendChild(div);
-            });
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-
-            supabase.channel('global_chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
-                const div = document.createElement('div');
-                div.className = 'p-2 rounded-lg mb-2 bg-gray-800/50 border border-gray-700';
-                div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <img src="${payload.new.user_icon}" class="w-8 h-8 rounded">
-                        <p class="font-bold">${payload.new.username} (Level ${payload.new.user_level})</p>
-                    </div>
-                    <p>${payload.new.message}</p>
-                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(payload.new.created_at))}</p>
-                `;
-                chatDiv.appendChild(div);
+            try {
+                const { data: messages, error } = await supabase.from('global_chat').select('*').order('created_at', { ascending: true });
+                if (error) throw new Error('ဂလိုဘယ်ချက်တင် ဖတ်ယူမှု အမှား: ' + error.message);
+                const chatDiv = document.getElementById('global-chat');
+                chatDiv.innerHTML = '';
+                messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'p-2 rounded-lg mb-2 bg-gray-800/50 border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <img src="${msg.user_icon || 'https://api.dicebear.com/9.x/pixel-art/svg'}" class="w-8 h-8 rounded" onerror="this.src='https://api.dicebear.com/9.x/pixel-art/svg'">
+                            <p class="font-bold">${msg.username} (Level ${msg.user_level})</p>
+                        </div>
+                        <p>${msg.message}</p>
+                        <p class="text-sm text-gray-400">${formatTimeAgo(new Date(msg.created_at))}</p>
+                    `;
+                    chatDiv.appendChild(div);
+                });
                 chatDiv.scrollTop = chatDiv.scrollHeight;
-            }).subscribe();
+
+                supabase.channel('global_chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
+                    const div = document.createElement('div');
+                    div.className = 'p-2 rounded-lg mb-2 bg-gray-800/50 border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <img src="${payload.new.user_icon || 'https://api.dicebear.com/9.x/pixel-art/svg'}" class="w-8 h-8 rounded" onerror="this.src='https://api.dicebear.com/9.x/pixel-art/svg'">
+                            <p class="font-bold">${payload.new.username} (Level ${payload.new.user_level})</p>
+                        </div>
+                        <p>${payload.new.message}</p>
+                        <p class="text-sm text-gray-400">${formatTimeAgo(new Date(payload.new.created_at))}</p>
+                    `;
+                    chatDiv.appendChild(div);
+                    chatDiv.scrollTop = chatDiv.scrollHeight;
+                }).subscribe();
+            } catch (err) {
+                console.error(err);
+                alert('ဂလိုဘယ်ချက်တင် ဖတ်ယူ၍မရပါ။');
+            }
         }
 
         async function loadSupportChat() {
-            const { data: messages, error } = await supabase.from('support_chat').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true });
-            if (error) {
-                console.error('Error loading support chat:', error);
-                return;
-            }
-            const supportChat = document.getElementById('support-chat');
-            supportChat.innerHTML = '';
-            messages.forEach(msg => {
-                const div = document.createElement('div');
-                div.className = `p-2 rounded-lg mb-2 ${msg.is_admin ? 'bg-indigo-600/50 text-right' : 'bg-gray-800/50'} border border-gray-700`;
-                div.innerHTML = `
-                    <p>${msg.is_admin ? 'Admin' : msg.username}: ${msg.message}</p>
-                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(msg.created_at))}</p>
-                `;
-                supportChat.appendChild(div);
-            });
-            supportChat.scrollTop = supportChat.scrollHeight;
-
-            supabase.channel(`support_chat_${currentUser.id}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_chat', filter: `user_id=eq.${currentUser.id}` }, payload => {
-                const div = document.createElement('div');
-                div.className = `p-2 rounded-lg mb-2 ${payload.new.is_admin ? 'bg-indigo-600/50 text-right' : 'bg-gray-800/50'} border border-gray-700`;
-                div.innerHTML = `
-                    <p>${payload.new.is_admin ? 'Admin' : payload.new.username}: ${payload.new.message}</p>
-                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(payload.new.created_at))}</p>
-                `;
-                supportChat.appendChild(div);
+            try {
+                const { data: messages, error } = await supabase.from('support_chat').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true });
+                if (error) throw new Error('ပံ့ပိုးမှုချက်တင် ဖတ်ယူမှု အမှား: ' + error.message);
+                const supportChat = document.getElementById('support-chat');
+                supportChat.innerHTML = '';
+                messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = `p-2 rounded-lg mb-2 ${msg.is_admin ? 'bg-indigo-600/50 text-right' : 'bg-gray-800/50'} border border-gray-700 fade-in`;
+                    div.innerHTML = `
+                        <p>${msg.is_admin ? 'အက်မင်' : msg.username}: ${msg.message}</p>
+                        <p class="text-sm text-gray-400">${formatTimeAgo(new Date(msg.created_at))}</p>
+                    `;
+                    supportChat.appendChild(div);
+                });
                 supportChat.scrollTop = supportChat.scrollHeight;
-            }).subscribe();
+
+                supabase.channel(`support_chat_${currentUser.id}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_chat', filter: `user_id=eq.${currentUser.id}` }, payload => {
+                    const div = document.createElement('div');
+                    div.className = `p-2 rounded-lg mb-2 ${payload.new.is_admin ? 'bg-indigo-600/50 text-right' : 'bg-gray-800/50'} border border-gray-700 fade-in`;
+                    div.innerHTML = `
+                        <p>${payload.new.is_admin ? 'အက်မင်' : payload.new.username}: ${payload.new.message}</p>
+                        <p class="text-sm text-gray-400">${formatTimeAgo(new Date(payload.new.created_at))}</p>
+                    `;
+                    supportChat.appendChild(div);
+                    supportChat.scrollTop = supportChat.scrollHeight;
+                }).subscribe();
+            } catch (err) {
+                console.error(err);
+                alert('ပံ့ပိုးမှုချက်တင် ဖတ်ယူ၍မရပါ။');
+            }
         }
 
         async function loadNews() {
-            const { data: news, error } = await supabase.from('news').select('*').order('created_at', { ascending: false });
-            if (error) {
-                console.error('Error loading news:', error);
-                return;
+            try {
+                const { data: news, error } = await supabase.from('news').select('*').order('created_at', { ascending: false });
+                if (error) throw new Error('သတင်းများ ဖတ်ယူမှု အမှား: ' + error.message);
+                const newsDiv = document.getElementById('news');
+                newsDiv.innerHTML = '';
+                news.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <h3 class="font-bold text-white">${item.title}</h3>
+                        <p>${item.content}</p>
+                        ${item.image ? `<img src="${item.image}" class="w-full h-48 object-cover mt-2 rounded-lg" onerror="this.style.display='none'">` : ''}
+                        <p class="text-sm text-gray-400">${formatTimeAgo(new Date(item.created_at))}</p>
+                    `;
+                    newsDiv.appendChild(div);
+                });
+            } catch (err) {
+                console.error(err);
+                alert('သတင်းများ ဖတ်ယူ၍မရပါ။');
             }
-            const newsDiv = document.getElementById('news');
-            newsDiv.innerHTML = '';
-            news.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <h3 class="font-bold text-white">${item.title}</h3>
-                    <p>${item.content}</p>
-                    ${item.image ? `<img src="${item.image}" class="w-full h-48 object-cover mt-2 rounded-lg">` : ''}
-                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(item.created_at))}</p>
-                `;
-                newsDiv.appendChild(div);
-            });
         }
 
         async function loadFeed() {
-            const { data: feed, error } = await supabase.from('feed').select('*').order('created_at', { ascending: false });
-            if (error) {
-                console.error('Error loading feed:', error);
-                return;
-            }
-            const feedDiv = document.getElementById('feed');
-            feedDiv.innerHTML = '';
-            feed.forEach(post => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <img src="${post.user_icon}" class="w-8 h-8 rounded">
-                        <p class="font-bold">${post.username}</p>
-                    </div>
-                    <p>${post.content}</p>
-                    ${post.video ? `<video src="${post.video}" class="w-full h-48 object-cover mt-2 rounded-lg" controls></video>` : ''}
-                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(post.created_at))}</p>
-                    <button class="like-post bg-indigo-600 p-2 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-post-id="${post.id}">Like (${post.likes})</button>
-                `;
-                feedDiv.appendChild(div);
-            });
-
-            document.querySelectorAll('.like-post').forEach(button => {
-                button.addEventListener('click', async () => {
-                    const postId = button.dataset.postId;
-                    const { data: post } = await supabase.from('feed').select('likes').eq('id', postId).single();
-                    await supabase.from('feed').update({ likes: post.likes + 1 }).eq('id', postId);
-                    loadFeed();
+            try {
+                const { data: feed, error } = await supabase.from('feed').select('*').order('created_at', { ascending: false });
+                if (error) throw new Error('ဖိဒ်ဒေတာ ဖတ်ယူမှု အမှား: ' + error.message);
+                const feedDiv = document.getElementById('feed');
+                feedDiv.innerHTML = '';
+                feed.forEach(post => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <img src="${post.user_icon || 'https://api.dicebear.com/9.x/pixel-art/svg'}" class="w-8 h-8 rounded" onerror="this.src='https://api.dicebear.com/9.x/pixel-art/svg'">
+                            <p class="font-bold">${post.username}</p>
+                        </div>
+                        <p>${post.content}</p>
+                        ${post.video ? `<video src="${post.video}" class="w-full h-48 object-cover mt-2 rounded-lg" controls onerror="this.style.display='none'"></video>` : ''}
+                        <p class="text-sm text-gray-400">${formatTimeAgo(new Date(post.created_at))}</p>
+                        <button class="like-post bg-indigo-600 p-2 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-post-id="${post.id}">Like (${post.likes})</button>
+                    `;
+                    feedDiv.appendChild(div);
                 });
-            });
+
+                document.querySelectorAll('.like-post').forEach(button => {
+                    button.addEventListener('click', async () => {
+                        try {
+                            const postId = button.dataset.postId;
+                            const { data: post } = await supabase.from('feed').select('likes').eq('id', postId).single();
+                            await supabase.from('feed').update({ likes: post.likes + 1 }).eq('id', postId);
+                            loadFeed();
+                        } catch (err) {
+                            console.error(err);
+                            alert('ဖိဒ်ပို့စ်ကို လိုက်ခ်လုပ်ရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error(err);
+                alert('ဖိဒ်ဒေတာ ဖတ်ယူ၍မရပါ။');
+            }
         }
 
         async function loadSocialVideos() {
-            const { data: videos, error } = await supabase.from('social_videos').select('*').order('created_at', { ascending: false });
-            if (error) {
-                console.error('Error loading social videos:', error);
-                return;
+            try {
+                const { data: videos, error } = await supabase.from('social_videos').select('*').order('created_at', { ascending: false });
+                if (error) throw new Error('ဆိုရှယ်ဗီဒီယိုများ ဖတ်ယူမှု အမှား: ' + error.message);
+                const videosDiv = document.getElementById('social-videos');
+                videosDiv.innerHTML = '';
+                videos.forEach(video => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <iframe src="${video.url}" class="w-full h-48 rounded-lg" onerror="this.style.display='none'"></iframe>
+                        <p class="text-sm text-gray-400">${formatTimeAgo(new Date(video.created_at))}</p>
+                    `;
+                    videosDiv.appendChild(div);
+                });
+            } catch (err) {
+                console.error(err);
+                alert('ဆိုရှယ်ဗီဒီယိုများ ဖတ်ယူ၍မရပါ။');
             }
-            const videosDiv = document.getElementById('social-videos');
-            videosDiv.innerHTML = '';
-            videos.forEach(video => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <iframe src="${video.url}" class="w-full h-48 rounded-lg"></iframe>
-                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(video.created_at))}</p>
-                `;
-                videosDiv.appendChild(div);
-            });
         }
 
         async function loadLevels() {
-            const { data: levels, error } = await supabase.from('levels').select('*').order('level', { ascending: true });
-            if (error) {
-                console.error('Error loading levels:', error);
-                return;
+            try {
+                const { data: levels, error } = await supabase.from('levels').select('*').order('level', { ascending: true });
+                if (error) throw new Error('အဆင့်များ ဖတ်ယူမှု အမှား: ' + error.message);
+                const levelsDiv = document.getElementById('levels');
+                levelsDiv.innerHTML = '';
+                levels.forEach(level => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <img src="${level.icon || 'https://api.dicebear.com/9.x/pixel-art/svg'}" class="w-16 h-16 mb-2 rounded" onerror="this.src='https://api.dicebear.com/9.x/pixel-art/svg'">
+                        <p>အဆင့်: ${level.level}</p>
+                        <p>ပမာဏ: ${level.amount.toLocaleString()} MMK</p>
+                        <p>အိုင်ကွန် စတိုင်: ${level.icon_style}</p>
+                    `;
+                    levelsDiv.appendChild(div);
+                });
+            } catch (err) {
+                console.error(err);
+                alert('အဆင့်များ ဖတ်ယူ၍မရပါ။');
             }
-            const levelsDiv = document.getElementById('levels');
-            levelsDiv.innerHTML = '';
-            levels.forEach(level => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <img src="${level.icon}" class="w-16 h-16 mb-2 rounded">
-                    <p>Level: ${level.level}</p>
-                    <p>Amount: ${level.amount.toLocaleString()} MMK</p>
-                    <p>Icon Style: ${level.icon_style}</p>
-                `;
-                levelsDiv.appendChild(div);
-            });
         }
 
         async function loadAbout() {
-            const { data: about, error } = await supabase.from('about').select('*');
-            if (error) {
-                console.error('Error loading about:', error);
-                return;
+            try {
+                const { data: about, error } = await supabase.from('about').select('*');
+                if (error) throw new Error('အကြောင်းအရာ ဖတ်ယူမှု အမှား: ' + error.message);
+                const aboutDiv = document.getElementById('about');
+                aboutDiv.innerHTML = '';
+                about.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700 fade-in';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            ${item.icon ? `<img src="${item.icon}" class="w-8 h-8 rounded" onerror="this.src='https://api.dicebear.com/9.x/pixel-art/svg'">` : ''}
+                            <p class="font-bold">${item.name}</p>
+                        </div>
+                        ${item.link ? `<a href="${item.link}" class="text-indigo-400 hover:text-indigo-300">${item.link}</a>` : ''}
+                        ${item.phone ? `<p>ဖုန်း: ${item.phone}</p>` : ''}
+                        ${item.content ? `<p>${item.content}</p>` : ''}
+                    `;
+                    aboutDiv.appendChild(div);
+                });
+            } catch (err) {
+                console.error(err);
+                alert('အကြောင်းအရာ ဖတ်ယူ၍မရပါ။');
             }
-            const aboutDiv = document.getElementById('about');
-            aboutDiv.innerHTML = '';
-            about.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        ${item.icon ? `<img src="${item.icon}" class="w-8 h-8 rounded">` : ''}
-                        <p class="font-bold">${item.name}</p>
-                    </div>
-                    ${item.link ? `<a href="${item.link}" class="text-indigo-400 hover:text-indigo-300">${item.link}</a>` : ''}
-                    ${item.phone ? `<p>Phone: ${item.phone}</p>` : ''}
-                    ${item.content ? `<p>${item.content}</p>` : ''}
-                `;
-                aboutDiv.appendChild(div);
-            });
         }
 
         function formatTimeAgo(date) {
             const now = new Date();
             const diff = now - date;
             const seconds = Math.floor(diff / 1000);
-            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 60) return `${seconds}စက္ကန့်`;
             const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes}m`;
+            if (minutes < 60) return `${minutes}မိနစ်`;
             const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours}h`;
+            if (hours < 24) return `${hours}နာရီ`;
             const days = Math.floor(hours / 24);
-            return `${days}d`;
+            return `${days}ရက်`;
         }
 
         async function startMiningPowerUpdate() {
-            const { data: plans, error } = await supabase.from('purchased_plans').select('mining_power, duration, start_time').eq('user_id', currentUser.id).eq('status', 'approved');
-            if (error) {
-                console.error('Error loading mining plans:', error);
-                return;
-            }
-            let totalMiningPower = 0;
-            const now = new Date();
-            plans.forEach(plan => {
-                const endTime = new Date(plan.start_time);
-                endTime.setDate(endTime.getDate() + plan.duration);
-                if (now < endTime) {
-                    totalMiningPower += plan.mining_power;
-                } else {
-                    supabase.from('purchased_plans').update({ status: 'completed' }).eq('id', plan.id);
-                }
-            });
-            document.getElementById('mining-rate').textContent = `Mining Rate: ${totalMiningPower.toLocaleString()} MMK/sec`;
-
-            if (miningInterval) clearInterval(miningInterval);
-            if (totalMiningPower > 0) {
-                miningInterval = setInterval(async () => {
-                    const { data: user, error } = await supabase.from('users').select('balance').eq('id', currentUser.id).single();
-                    if (error) {
-                        console.error('Error updating balance:', error);
-                        return;
+            try {
+                const { data: plans, error } = await supabase.from('purchased_plans').select('mining_power, duration, start_time, id').eq('user_id', currentUser.id).eq('status', 'approved');
+                if (error) throw new Error('Mining အစီအစဉ်များ ဖတ်ယူမှု အမှား: ' + error.message);
+                let totalMiningPower = 0;
+                const now = new Date();
+                plans.forEach(plan => {
+                    const endTime = new Date(plan.start_time);
+                    endTime.setDate(endTime.getDate() + plan.duration);
+                    if (now < endTime) {
+                        totalMiningPower += plan.mining_power;
+                    } else {
+                        supabase.from('purchased_plans').update({ status: 'completed' }).eq('id', plan.id);
                     }
-                    const newBalance = user.balance + totalMiningPower;
-                    await supabase.from('users').update({ balance: newBalance }).eq('id', currentUser.id);
-                    document.getElementById('user-balance').textContent = `${newBalance.toLocaleString()} MMK`;
-                }, 1000);
+                });
+                document.getElementById('mining-rate').textContent = `Mining Rate: ${totalMiningPower.toLocaleString()} MMK/sec`;
+
+                if (miningInterval) clearInterval(miningInterval);
+                if (totalMiningPower > 0) {
+                    miningInterval = setInterval(async () => {
+                        try {
+                            const { data: user, error } = await supabase.from('users').select('balance').eq('id', currentUser.id).single();
+                            if (error) throw new Error('လက်ကျန်ငွေ ဖတ်ယူမှု အမှား: ' + error.message);
+                            const newBalance = user.balance + totalMiningPower;
+                            await supabase.from('users').update({ balance: newBalance }).eq('id', currentUser.id);
+                            document.getElementById('user-balance').textContent = `${newBalance.toLocaleString()} MMK`;
+                        } catch (err) {
+                            console.error(err);
+                            alert('လက်ကျန်ငွေ အပ်ဒိတ်လုပ်ရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
+                        }
+                    }, 1000);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Mining အစီအစဉ်များ ဖတ်ယူ၍မရပါ။');
             }
         }
 
         document.getElementById('start-mining').addEventListener('click', () => {
             startMiningPowerUpdate();
-            alert('Mining started!');
+            alert('Mining စတင်လိုက်ပါပြီ။');
         });
 
         document.getElementById('update-profile').addEventListener('click', async () => {
-            const name = document.getElementById('profile-name').value;
-            const username = document.getElementById('profile-username').value;
-            const email = document.getElementById('profile-email').value;
-            const icon = document.getElementById('profile-icon').files[0];
-            let iconUrl = currentUser.icon;
+            try {
+                const name = document.getElementById('profile-name').value;
+                const username = document.getElementById('profile-username').value;
+                const email = document.getElementById('profile-email').value;
+                const icon = document.getElementById('profile-icon').files[0];
+                let iconUrl = currentUser.icon || 'https://api.dicebear.com/9.x/pixel-art/svg';
 
-            if (icon) {
-                const { data, error } = await supabase.storage.from('level-icons').upload(`icons/${Date.now()}_${icon.name}`, icon);
-                if (error) {
-                    alert('Error uploading icon.');
-                    return;
+                if (icon) {
+                    const { data, error } = await supabase.storage.from('level-icons').upload(`icons/${Date.now()}_${icon.name}`, icon);
+                    if (error) throw new Error('အိုင်ကွန်တင်သွင်းမှု အမှား: ' + error.message);
+                    iconUrl = supabase.storage.from('level-icons').getPublicUrl(data.path).data.publicUrl;
                 }
-                iconUrl = supabase.storage.from('level-icons').getPublicUrl(data.path).data.publicUrl;
-            }
 
-            const { error } = await supabase.from('users').update({ name, username, email, icon: iconUrl }).eq('id', currentUser.id);
-            if (error) {
-                alert('Error updating profile.');
-                return;
+                const { error } = await supabase.from('users').update({ name, username, email, icon: iconUrl }).eq('id', currentUser.id);
+                if (error) throw new Error('ပရိုဖိုင်အပ်ဒိတ်လုပ်မှု အမှား: ' + error.message);
+                alert('ပရိုဖိုင်ကို အောင်မြင်စွာ အပ်ဒိတ်လုပ်ပြီးပါပြီ။');
+                loadUserProfile();
+            } catch (err) {
+                console.error(err);
+                alert('ပရိုဖိုင်အပ်ဒိတ်လုပ်ရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
             }
-            alert('Profile updated successfully!');
-            loadUserProfile();
         });
 
         document.getElementById('purchase-plan').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const planId = document.getElementById('plan-select').value;
-            const paymentMethod = document.getElementById('payment-method').value;
-            const paymentProof = document.getElementById('payment-proof').files[0];
+            try {
+                const planId = document.getElementById('plan-select').value;
+                const paymentMethod = document.getElementById('payment-method').value;
+                const paymentProof = document.getElementById('payment-proof').files[0];
 
-            if (!planId || !paymentProof) {
-                alert('Please select a plan and upload payment proof.');
-                return;
-            }
+                if (!planId || !paymentProof) {
+                    alert('အစီအစဉ်တစ်ခုရွေးပါ သို့မဟုတ် ငွေပေးချေမှုသက်သေတင်ပါ။');
+                    return;
+                }
 
-            const { data: plan, error: planError } = await supabase.from('plans').select('*').eq('id', planId).single();
-            if (planError) {
-                alert('Error fetching plan details.');
-                return;
-            }
+                const { data: plan, error: planError } = await supabase.from('plans').select('*').eq('id', planId).single();
+                if (planError) throw new Error('အစီအစဉ်ဒေတာ ဖတ်ယူမှု အမှား: ' + planError.message);
 
-            const { data, error } = await supabase.storage.from('payment-proofs').upload(`proofs/${Date.now()}_${paymentProof.name}`, paymentProof);
-            if (error) {
-                alert('Error uploading payment proof.');
-                return;
-            }
+                const { data, error } = await supabase.storage.from('payment-proofs').upload(`proofs/${Date.now()}_${paymentProof.name}`, paymentProof);
+                if (error) throw new Error('ငွေပေးချေမှုသက်သေ တင်သွင်းမှု အမှား: ' + error.message);
 
-            const { error: insertError } = await supabase.from('purchased_plans').insert({
-                user_id: currentUser.id,
-                plan_id: planId,
-                plan_name: plan.name,
-                amount: plan.cost,
-                return_amount: plan.return_amount,
-                duration: plan.duration,
-                mining_power: plan.mining_power,
-                payment_method: paymentMethod,
-                payment_proof: supabase.storage.from('payment-proofs').getPublicUrl(data.path).data.publicUrl
-            });
-            if (insertError) {
-                alert('Error purchasing plan.');
-                return;
+                const { error: insertError } = await supabase.from('purchased_plans').insert({
+                    user_id: currentUser.id,
+                    plan_id: planId,
+                    plan_name: plan.name,
+                    amount: plan.cost,
+                    return_amount: plan.return_amount,
+                    duration: plan.duration,
+                    mining_power: plan.mining_power,
+                    payment_method: paymentMethod,
+                    payment_proof: supabase.storage.from('payment-proofs').getPublicUrl(data.path).data.publicUrl
+                });
+                if (insertError) throw new Error('အစီအစဉ်ဝယ်ယူမှု အမှား: ' + insertError.message);
+                alert('အစီအစဉ်ကို အောင်မြင်စွာ ဝယ်ယူပြီးပါပြီ။ အက်မင်ခွင့်ပြုချက်ကို စောင့်ဆိုင်းပါ။');
+                document.getElementById('purchase-plan').reset();
+            } catch (err) {
+                console.error(err);
+                alert('အစီအစဉ်ဝယ်ယူရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
             }
-            alert('Plan purchased successfully! Awaiting admin approval.');
-            document.getElementById('purchase-plan').reset();
         });
 
         document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const amount = parseFloat(document.getElementById('withdraw-amount').value);
-            const pin = document.getElementById('withdraw-pin').value;
-            const paymentMethod = document.getElementById('withdraw-method').value;
-            const phone = document.getElementById('withdraw-phone').value;
-            const accountName = document.getElementById('withdraw-account').value;
+            try {
+                const amount = parseFloat(document.getElementById('withdraw-amount').value);
+                const pin = document.getElementById('withdraw-pin').value;
+                const paymentMethod = document.getElementById('withdraw-method').value;
+                const phone = document.getElementById('withdraw-phone').value;
+                const accountName = document.getElementById('withdraw-account').value;
 
-            const { data: user, error: userError } = await supabase.from('users').select('balance, withdraw_pin').eq('id', currentUser.id).single();
-            if (userError) {
-                alert('Error fetching user data.');
-                return;
-            }
+                const { data: user, error: userError } = await supabase.from('users').select('balance, withdraw_pin').eq('id', currentUser.id).single();
+                if (userError) throw new Error('အသုံးပြုသူဒေတာ ဖတ်ယူမှု အမှား: ' + userError.message);
 
-            if (pin !== user.withdraw_pin) {
-                alert('Invalid withdrawal PIN.');
-                return;
-            }
-            if (amount > user.balance) {
-                alert('Insufficient balance.');
-                return;
-            }
+                if (pin !== user.withdraw_pin) {
+                    alert('ထုတ်ယူမှု PIN မမှန်ကန်ပါ။');
+                    return;
+                }
+                if (amount > user.balance) {
+                    alert('လက်ကျန်ငွေ မလုံလောက်ပါ။');
+                    return;
+                }
 
-            const { error } = await supabase.from('withdrawals').insert({
-                user_id: currentUser.id,
-                username: currentUser.user_metadata.username,
-                amount,
-                payment_method: paymentMethod,
-                phone_number: phone,
-                account_name: accountName
-            });
-            if (error) {
-                alert('Error submitting withdrawal.');
-                return;
+                const { error } = await supabase.from('withdrawals').insert({
+                    user_id: currentUser.id,
+                    username: currentUser.user_metadata.username || user.username,
+                    amount,
+                    payment_method: paymentMethod,
+                    phone_number: phone,
+                    account_name: accountName
+                });
+                if (error) throw new Error('ထုတ်ယူမှု တင်သွင်းမှု အမှား: ' + error.message);
+                await supabase.from('users').update({ balance: user.balance - amount }).eq('id', currentUser.id);
+                alert('ထုတ်ယူမှု တောင်းဆိုမှု အောင်မြင်ပါသည်။');
+                document.getElementById('withdraw-form').reset();
+                loadUserProfile();
+            } catch (err) {
+                console.error(err);
+                alert('ထုတ်ယူမှု တင်သွင်းရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
             }
-            await supabase.from('users').update({ balance: user.balance - amount }).eq('id', currentUser.id);
-            alert('Withdrawal request submitted!');
-            document.getElementById('withdraw-form').reset();
-            loadUserProfile();
         });
 
         document.getElementById('send-chat').addEventListener('click', async () => {
-            const message = document.getElementById('chat-input').value;
-            if (!message) return;
-            const { data: user } = await supabase.from('users').select('username, level, icon').eq('id', currentUser.id).single();
-            const { error } = await supabase.from('global_chat').insert({
-                user_id: currentUser.id,
-                username: user.username,
-                user_level: user.level,
-                user_icon: user.icon,
-                message
-            });
-            if (error) {
-                alert('Error sending message.');
-                return;
+            try {
+                const message = document.getElementById('chat-input').value;
+                if (!message) return;
+                const { data: user } = await supabase.from('users').select('username, level, icon').eq('id', currentUser.id).single();
+                const { error } = await supabase.from('global_chat').insert({
+                    user_id: currentUser.id,
+                    username: user.username,
+                    user_level: user.level,
+                    user_icon: user.icon,
+                    message
+                });
+                if (error) throw new Error('ချက်တင်ပို့စ် ပို့ဆောင်မှု အမှား: ' + error.message);
+                document.getElementById('chat-input').value = '';
+            } catch (err) {
+                console.error(err);
+                alert('ချက်တင်ပို့စ် ပို့ဆောင်ရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
             }
-            document.getElementById('chat-input').value = '';
         });
 
         document.getElementById('send-support').addEventListener('click', async () => {
-            const message = document.getElementById('support-input').value;
-            if (!message) return;
-            const { data: user } = await supabase.from('users').select('username').eq('id', currentUser.id).single();
-            const { error } = await supabase.from('support_chat').insert({
-                user_id: currentUser.id,
-                username: user.username,
-                message,
-                is_admin: false
-            });
-            if (error) {
-                alert('Error sending support message.');
-                return;
+            try {
+                const message = document.getElementById('support-input').value;
+                if (!message) return;
+                const { data: user } = await supabase.from('users').select('username').eq('id', currentUser.id).single();
+                const { error } = await supabase.from('support_chat').insert({
+                    user_id: currentUser.id,
+                    username: user.username,
+                    message,
+                    is_admin: false
+                });
+                if (error) throw new Error('ပံ့ပိုးမှုချက်တင် ပို့ဆောင်မှု အမှား: ' + error.message);
+                document.getElementById('support-input').value = '';
+            } catch (err) {
+                console.error(err);
+                alert('ပံ့ပိုးမှုချက်တင် ပို့ဆောင်ရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
             }
-            document.getElementById('support-input').value = '';
         });
 
         document.getElementById('add-feed').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const content = document.getElementById('feed-content').value;
-            const video = document.getElementById('feed-video').files[0];
-            let videoUrl = null;
+            try {
+                const content = document.getElementById('feed-content').value;
+                const video = document.getElementById('feed-video').files[0];
+                let videoUrl = null;
 
-            if (video) {
-                const { data, error } = await supabase.storage.from('feed-videos').upload(`videos/${Date.now()}_${video.name}`, video);
-                if (error) {
-                    alert('Error uploading video.');
-                    return;
+                if (video) {
+                    const { data, error } = await supabase.storage.from('feed-videos').upload(`videos/${Date.now()}_${video.name}`, video);
+                    if (error) throw new Error('ဗီဒီယိုတင်သွင်းမှု အမှား: ' + error.message);
+                    videoUrl = supabase.storage.from('feed-videos').getPublicUrl(data.path).data.publicUrl;
                 }
-                videoUrl = supabase.storage.from('feed-videos').getPublicUrl(data.path).data.publicUrl;
-            }
 
-            const { data: user } = await supabase.from('users').select('username, icon').eq('id', currentUser.id).single();
-            const { error } = await supabase.from('feed').insert({
-                user_id: currentUser.id,
-                username: user.username,
-                user_icon: user.icon,
-                content,
-                video: videoUrl
-            });
-            if (error) {
-                alert('Error posting to feed.');
-                return;
+                const { data: user } = await supabase.from('users').select('username, icon').eq('id', currentUser.id).single();
+                const { error } = await supabase.from('feed').insert({
+                    user_id: currentUser.id,
+                    username: user.username,
+                    user_icon: user.icon,
+                    content,
+                    video: videoUrl
+                });
+                if (error) throw new Error('ဖိဒ်ပို့စ် တင်သွင်းမှု အမှား: ' + error.message);
+                alert('ဖိဒ်သို့ အောင်မြင်စွာ တင်ပြီးပါပြီ။');
+                document.getElementById('add-feed').reset();
+                loadFeed();
+            } catch (err) {
+                console.error(err);
+                alert('ဖိဒ်ပို့စ် တင်သွင်းရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
             }
-            alert('Posted to feed successfully!');
-            document.getElementById('add-feed').reset();
-            loadFeed();
         });
 
         document.getElementById('logout').addEventListener('click', async () => {
-            await supabase.auth.signOut();
-            window.location.href = '/login.html';
+            try {
+                await supabase.auth.signOut();
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error(err);
+                alert('အကောင့်ထွက်ရာတွင် အမှားဖြစ်ပေါ်ခဲ့သည်။');
+            }
         });
 
-        // Initialize app
         window.addEventListener('load', initializeApp);
     </script>
 </body>
