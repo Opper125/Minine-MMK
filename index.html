@@ -3,231 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMK Mining - User Dashboard</title>
+    <title>MMK Mining</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="min-h-screen">
     <div id="loading-overlay" class="loading-overlay">
         <div class="loading-spinner"></div>
     </div>
-    <div id="auth-section" class="container mx-auto p-4 hidden">
-        <div id="login-form" class="max-w-md mx-auto bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl fade-in">
-            <h2 class="text-2xl font-bold mb-4 text-center text-gradient">Login</h2>
-            <form id="login">
-                <input type="text" id="login-username" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <input type="password" id="login-password" placeholder="Password" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Login</button>
-                <p class="mt-4 text-center">Don't have an account? <a href="#" id="show-signup" class="text-indigo-400 hover:text-indigo-300">Sign Up</a></p>
-            </form>
-        </div>
-        <div id="signup-form" class="max-w-md mx-auto bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl fade-in hidden">
-            <h2 class="text-2xl font-bold mb-4 text-center text-gradient">Sign Up</h2>
-            <form id="signup">
-                <input type="text" id="signup-name" placeholder="Name" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <input type="text" id="signup-username" placeholder="Username" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <input type="password" id="signup-password" placeholder="Password" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <input type="text" id="signup-pin" placeholder="6-digit Withdrawal PIN" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Sign Up</button>
-                <p class="mt-4 text-center">Already have an account? <a href="#" id="show-login" class="text-indigo-400 hover:text-indigo-300">Login</a></p>
-            </form>
-        </div>
-    </div>
-
-    <div id="dashboard" class="container mx-auto p-4 hidden">
-        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
-            <h1 class="text-3xl font-bold mb-4 text-gradient">MMK Mining Program</h1>
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <p id="user-name" class="text-lg text-white"></p>
-                    <p id="user-level" class="text-sm text-indigo-400"></p>
-                </div>
-                <p id="user-balance" class="text-2xl font-bold text-gradient">Balance: 0 MMK</p>
+    <div class="container mx-auto p-4">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gradient">MMK Mining</h1>
+            <div class="flex items-center gap-4">
+                <span id="user-balance" class="text-lg text-gradient">0 MMK</span>
+                <button id="logout" class="bg-red-600 p-2 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105">Logout</button>
             </div>
         </div>
 
-        <div id="mining-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
-            <h2 class="text-xl font-bold mb-4 text-gradient">Mining</h2>
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Mining Dashboard</h2>
             <div class="mining-container">
                 <div class="mining-circle">
                     <div class="mining-particles"></div>
-                    <div class="text-center">
-                        <p id="mining-rate" class="text-lg font-bold text-white">0 MMK/sec</p>
-                        <p id="mining-timer" class="text-sm text-gray-400">00:00:00</p>
-                    </div>
                 </div>
             </div>
-            <p id="mining-power" class="text-center mt-4 text-white">Mining Power: 0</p>
+            <p id="mining-rate" class="text-center text-lg mt-4">Mining Rate: 0 MMK/sec</p>
+            <button id="start-mining" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-4">Start Mining</button>
         </div>
 
-        <div id="history-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
-            <h2 class="text-xl font-bold mb-4 text-gradient">Transaction History</h2>
-            <div id="history-list"></div>
-        </div>
-
-        <div id="buy-plan-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
-            <h2 class="text-xl font-bold mb-4 text-gradient">Buy Mining Power</h2>
-            <div id="plan-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-            <div class="mt-6">
-                <h3 class="text-lg font-bold mb-2 text-gradient">Payment Method</h3>
-                <select id="payment-method" class="w-full p-3 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                    <option value="kpay">Kpay</option>
-                    <option value="wave">Wave</option>
-                </select>
-                <p class="mt-2 text-white">Send to: <span id="payment-number">09786284670</span></p>
-                <input type="file" id="payment-proof" class="mt-2" accept="image/*">
-                <button id="submit-payment" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-4">Submit Payment</button>
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">User Profile</h2>
+            <div class="flex items-center gap-4 mb-4">
+                <img id="user-icon" src="https://api.dicebear.com/9.x/pixel-art/svg" class="w-16 h-16 rounded">
+                <div>
+                    <p id="user-name" class="font-bold"></p>
+                    <p id="user-level" class="text-gradient">Level 1</p>
+                </div>
             </div>
+            <input type="text" id="profile-name" placeholder="Update Name" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <input type="text" id="profile-username" placeholder="Update Username" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <input type="text" id="profile-email" placeholder="Update Email" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <input type="file" id="profile-icon" accept="image/*" class="mb-4">
+            <button id="update-profile" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Update Profile</button>
         </div>
 
-        <div id="tasks-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Mining Plans</h2>
+            <div id="plans" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Purchase Plan</h2>
+            <form id="purchase-plan">
+                <select id="plan-select" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                    <option value="">Select a Plan</option>
+                </select>
+                <select id="payment-method" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                    <option value="kpay">KPay</option>
+                    <option value="wave">Wave</option>
+                    <option value="cb">CB</option>
+                </select>
+                <input type="file" id="payment-proof" accept="image/*" class="mb-4">
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Purchase</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Withdraw</h2>
+            <form id="withdraw-form">
+                <input type="number" id="withdraw-amount" placeholder="Amount (MMK)" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="text" id="withdraw-pin" placeholder="Withdraw PIN" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <select id="withdraw-method" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                    <option value="kpay">KPay</option>
+                    <option value="wave">Wave</option>
+                    <option value="cb">CB</option>
+                </select>
+                <input type="text" id="withdraw-phone" placeholder="Phone Number" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="text" id="withdraw-account" placeholder="Account Name" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Withdraw</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Tasks</h2>
-            <div id="task-list" class="grid grid-cols-1 gap-4"></div>
+            <div id="tasks" class="grid grid-cols-1 gap-4"></div>
         </div>
 
-        <div id="profile-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
-            <h2 class="text-xl font-bold mb-4 text-gradient">Profile</h2>
-            <p id="profile-name" class="mb-2 text-white"></p>
-            <p id="profile-username" class="mb-2 text-white"></p>
-            <p id="profile-level" class="mb-2 text-white"></p>
-            <p id="profile-balance" class="mb-4 text-white"></p>
-            <div class="mt-4">
-                <h3 class="text-lg font-bold mb-2 text-gradient">Withdraw Funds</h3>
-                <input type="number" id="withdraw-amount" placeholder="Min 100,000 MMK" class="w-full p-3 mb-2 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <select id="withdraw-method" class="w-full p-3 mb-2 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                    <option value="kpay">Kpay</option>
-                    <option value="wave">Wave</option>
-                </select>
-                <input type="text" id="withdraw-number" placeholder="Phone Number" class="w-full p-3 mb-2 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <input type="text" id="withdraw-account" placeholder="Account Name" class="w-full p-3 mb-2 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <input type="text" id="withdraw-pin" placeholder="Withdrawal PIN" class="w-full p-3 mb-2 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-                <button id="submit-withdrawal" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Submit Withdrawal</button>
-            </div>
-        </div>
-
-        <div id="global-chat-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Global Chat</h2>
-            <div id="chat-messages" class="h-64 overflow-y-auto mb-4 p-2 bg-gray-800/50 rounded-lg"></div>
-            <input type="text" id="chat-input" placeholder="Type a message..." class="w-full p-3 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-            <button id="send-chat" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2">Send</button>
+            <div id="global-chat" class="h-64 overflow-y-auto mb-4 p-2 bg-gray-800/50 rounded-lg"></div>
+            <input type="text" id="chat-input" placeholder="Type a message..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <button id="send-chat" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Send</button>
         </div>
 
-        <div id="support-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Support Chat</h2>
-            <div id="support-messages" class="h-64 overflow-y-auto mb-4 p-2 bg-gray-800/50 rounded-lg"></div>
-            <input type="text" id="support-input" placeholder="Type a message..." class="w-full p-3 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
-            <button id="send-support" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2">Send</button>
+            <div id="support-chat" class="h-64 overflow-y-auto mb-4 p-2 bg-gray-800/50 rounded-lg"></div>
+            <input type="text" id="support-input" placeholder="Type a message..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <button id="send-support" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Send</button>
         </div>
 
-        <div id="news-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">News</h2>
-            <div id="news-list" class="grid grid-cols-1 gap-4"></div>
+            <div id="news" class="grid grid-cols-1 gap-4"></div>
         </div>
 
-        <div id="feed-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Feed</h2>
-            <div class="mb-4">
-                <textarea id="post-content" placeholder="What's on your mind?" class="w-full p-3 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all"></textarea>
-                <input type="file" id="post-video" accept="video/*" class="mt-2">
-                <button id="submit-post" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2">Post</button>
-            </div>
-            <div id="feed-list" class="grid grid-cols-1 gap-4"></div>
+            <form id="add-feed">
+                <textarea id="feed-content" placeholder="What's new?" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all"></textarea>
+                <input type="file" id="feed-video" accept="video/*" class="mb-4">
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Post</button>
+            </form>
+            <div id="feed" class="grid grid-cols-1 gap-4 mt-4"></div>
         </div>
 
-        <div id="social-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">Social Videos</h2>
-            <div id="social-list" class="grid grid-cols-1 gap-4"></div>
+            <div id="social-videos" class="grid grid-cols-1 gap-4"></div>
         </div>
 
-        <div id="about-page" class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6 hidden">
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Levels</h2>
+            <div id="levels" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
             <h2 class="text-xl font-bold mb-4 text-gradient">About</h2>
-            <div id="about-content"></div>
-        </div>
-
-        <div id="live-withdrawals" class="bg-gray-900/80 backdrop-blur-md p-4 rounded-lg shadow-2xl mb-6">
-            <h2 class="text-xl font-bold mb-4 text-gradient">Live Withdrawals</h2>
-            <div id="live-withdrawal-list" class="grid grid-cols-1 gap-2"></div>
-            <h3 class="text-lg font-bold mt-4 text-gradient">Top Withdrawers</h3>
-            <div id="top-withdrawers" class="grid grid-cols-1 gap-2"></div>
-        </div>
-
-        <div class="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md p-4 menu-container">
-            <div class="menu-item">
-                <button data-page="mining-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
-                    Mining
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="history-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h3l-4 4-4-4h3V7z"/></svg>
-                    History
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="buy-plan-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-7h2v2h2v-2h2v-2h-2V9h-2v2h-2v2z"/></svg>
-                    Buy Plan
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="tasks-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-7h2v2h2v-2h2v-2h-2V9h-2v2h-2v2z"/></svg>
-                    Tasks
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="profile-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-                    Profile
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="global-chat-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
-                    Global Chat
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="support-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H8v2h2v2h2v-2h2v-2h-2V6z"/></svg>
-                    Support
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="news-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H8v2h2v2h2v-2h2v-2h-2V6z"/></svg>
-                    News
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="feed-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H8v2h2v2h2v-2h2v-2h-2V6z"/></svg>
-                    Feed
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="social-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H8v2h2v2h2v-2h2v-2h-2V6z"/></svg>
-                    Social
-                </button>
-            </div>
-            <div class="menu-item">
-                <button data-page="about-page" class="w-full p-3 text-center bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">
-                    <svg class="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H8v2h2v2h2v-2h2v-2h-2V6z"/></svg>
-                    About
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="banned-section" class="container mx-auto p-4 hidden">
-        <div class="bg-red-600/80 backdrop-blur-md p-6 rounded-lg shadow-2xl text-center">
-            <h2 class="text-2xl font-bold mb-4 text-gradient">Account Banned</h2>
-            <p class="text-white">Your account has been banned. Please contact support for more information.</p>
-            <button id="logout-banned" class="mt-4 bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Logout</button>
+            <div id="about" class="grid grid-cols-1 gap-4"></div>
         </div>
     </div>
 
@@ -237,359 +142,220 @@
         const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
         let currentUser = null;
+        let miningInterval = null;
 
-        // Auth Functions
-        async function handleSignup(e) {
-            e.preventDefault();
-            const name = document.getElementById('signup-name').value;
-            const username = document.getElementById('signup-username').value;
-            const password = document.getElementById('signup-password').value;
-            const pin = document.getElementById('signup-pin').value;
-
-            if (pin.length !== 6 || isNaN(pin)) {
-                alert('Withdrawal PIN must be 6 digits');
-                return;
-            }
-
-            const { data, error } = await supabase.auth.signUp({
-                email: `${username}@mmkmining.com`,
-                password,
-                options: { data: { name, username, withdraw_pin: pin, level: 1, balance: 0 } }
-            });
-
-            if (error) {
-                alert('Error signing up: ' + error.message);
-                return;
-            }
-
-            const successCheck = document.createElement('div');
-            successCheck.className = 'success-check mx-auto';
-            successCheck.innerHTML = '<svg class="w-6 h-6" fill="white" viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l8.6-8.6 1.4 1.4L9 16.2z"/></svg>';
-            document.getElementById('signup-form').prepend(successCheck);
-            alert('Account created successfully!');
-            gsap.to('#signup-form', { opacity: 0, y: 20, duration: 0.5, onComplete: () => {
-                document.getElementById('signup-form').classList.add('hidden');
-                document.getElementById('login-form').classList.remove('hidden');
-                gsap.to('#login-form', { opacity: 1, y: 0, duration: 0.5 });
-            }});
-        }
-
-        async function handleLogin(e) {
-            e.preventDefault();
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: `${username}@mmkmining.com`,
-                password
-            });
-
-            if (error) {
-                alert('Error logging in: ' + error.message);
-                return;
-            }
-
-            currentUser = data.user;
-            if (currentUser.user_metadata.banned) {
-                showBannedSection();
-                return;
-            }
-
-            const successCheck = document.createElement('div');
-            successCheck.className = 'success-check mx-auto';
-            successCheck.innerHTML = '<svg class="w-6 h-6" fill="white" viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l8.6-8.6 1.4 1.4L9 16.2z"/></svg>';
-            document.getElementById('login-form').prepend(successCheck);
-            alert('Login successful!');
-            gsap.to('#auth-section', { opacity: 0, y: 20, duration: 0.5, onComplete: () => {
-                document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                gsap.to('#dashboard', { opacity: 1, y: 0, duration: 0.5 });
-                loadUserData();
-                loadMiningData();
-                loadHistory();
-                loadPlans();
-                loadTasks();
-                loadGlobalChat();
-                loadSupportChat();
-                loadNews();
-                loadFeed();
-                loadSocial();
-                loadAbout();
-                loadLiveWithdrawals();
-            }});
-        }
-
-        function showBannedSection() {
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('banned-section').classList.remove('hidden');
-            gsap.to('#banned-section', { opacity: 1, y: 0, duration: 0.5 });
-        }
-
-        async function loadUserData() {
-            const { data: userData } = await supabase.from('users').select('*').eq('id', currentUser.id).single();
-            document.getElementById('user-name').textContent = userData.name;
-            document.getElementById('user-level').textContent = `Level ${userData.level}`;
-            document.getElementById('user-balance').textContent = `Balance: ${userData.balance.toLocaleString()} MMK`;
-            document.getElementById('profile-name').textContent = `Name: ${userData.name}`;
-            document.getElementById('profile-username').textContent = `Username: ${userData.username}`;
-            document.getElementById('profile-level').textContent = `Level: ${userData.level}`;
-            document.getElementById('profile-balance').textContent = `Balance: ${userData.balance.toLocaleString()} MMK`;
-        }
-
-        async function loadMiningData() {
-            const { data: plans } = await supabase.from('purchased_plans').select('*').eq('user_id', currentUser.id).eq('status', 'approved');
-            if (plans.length > 0) {
-                const plan = plans[0];
-                const duration = plan.duration * 24 * 60 * 60 * 1000;
-                const startTime = new Date(plan.start_time).getTime();
-                const endTime = startTime + duration;
-                const now = Date.now();
-                if (now < endTime) {
-                    const mmkPerSec = plan.return_amount / (plan.duration * 24 * 60 * 60);
-                    document.getElementById('mining-rate').textContent = `${mmkPerSec.toFixed(2)} MMK/sec`;
-                    document.getElementById('mining-power').textContent = `Mining Power: ${plan.mining_power}`;
-                    const interval = setInterval(async () => {
-                        const elapsed = now - startTime;
-                        const remaining = endTime - now;
-                        if (remaining <= 0) {
-                            clearInterval(interval);
-                            await supabase.from('purchased_plans').update({ status: 'completed' }).eq('id', plan.id);
-                            return;
-                        }
-                        const seconds = Math.floor((remaining / 1000) % 60);
-                        const minutes = Math.floor((remaining / (1000 * 60)) % 60);
-                        const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
-                        const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-                        document.getElementById('mining-timer').textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-                        const earned = mmkPerSec * (elapsed / 1000);
-                        await supabase.from('users').update({ balance: currentUser.user_metadata.balance + mmkPerSec }).eq('id', currentUser.id);
-                        currentUser.user_metadata.balance += mmkPerSec;
-                        document.getElementById('user-balance').textContent = `Balance: ${currentUser.user_metadata.balance.toLocaleString()} MMK`;
-                        document.getElementById('profile-balance').textContent = `Balance: ${currentUser.user_metadata.balance.toLocaleString()} MMK`;
-                    }, 1000);
+        async function initializeApp() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error || !user) {
+                    alert('Please log in to access the dashboard.');
+                    window.location.href = '/login.html'; // Redirect to login page if not authenticated
+                    return;
                 }
+                currentUser = user;
+                await Promise.all([
+                    loadUserProfile(),
+                    loadPlans(),
+                    loadTasks(),
+                    loadGlobalChat(),
+                    loadSupportChat(),
+                    loadNews(),
+                    loadFeed(),
+                    loadSocialVideos(),
+                    loadLevels(),
+                    loadAbout()
+                ]).catch(err => {
+                    console.error('Error loading data:', err);
+                    alert('Failed to load some data. Please try again.');
+                });
+                startMiningPowerUpdate();
+            } catch (err) {
+                console.error('Initialization error:', err);
+                alert('An error occurred while loading the app.');
+            } finally {
+                // Ensure loading overlay is hidden
+                gsap.to('#loading-overlay', {
+                    opacity: 0,
+                    duration: 0.5,
+                    onComplete: () => {
+                        document.getElementById('loading-overlay').style.display = 'none';
+                    }
+                });
             }
         }
 
-        async function loadHistory() {
-            const { data: history } = await supabase.from('purchased_plans').select('*').eq('user_id', currentUser.id);
-            const historyList = document.getElementById('history-list');
-            historyList.innerHTML = '';
-            history.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg mb-2 border border-gray-700';
-                div.innerHTML = `
-                    <p>Plan: ${item.plan_name}</p>
-                    <p>Amount: ${item.amount.toLocaleString()} MMK</p>
-                    <p>Return: ${item.return_amount.toLocaleString()} MMK</p>
-                    <p>Status: ${item.status}</p>
-                    ${item.status === 'pending' ? '<p class="text-yellow-400">Checking...</p>' : item.status === 'approved' ? '<div class="success-check"><svg class="w-6 h-6" fill="white" viewBox="0 0 24 24"><path d="M9 16.2l-3.5-3.5 1.4-1.4L9 13.4l8.6-8.6 1.4 1.4L9 16.2z"/></svg></div>' : ''}
-                `;
-                historyList.appendChild(div);
-            });
+        async function loadUserProfile() {
+            const { data: user, error } = await supabase.from('users').select('*').eq('id', currentUser.id).single();
+            if (error) {
+                console.error('Error loading profile:', error);
+                return;
+            }
+            document.getElementById('user-name').textContent = user.name;
+            document.getElementById('user-level').textContent = `Level ${user.level}`;
+            document.getElementById('user-icon').src = user.icon;
+            document.getElementById('user-balance').textContent = `${user.balance.toLocaleString()} MMK`;
+            document.getElementById('profile-name').value = user.name;
+            document.getElementById('profile-username').value = user.username;
+            document.getElementById('profile-email').value = user.email;
         }
 
         async function loadPlans() {
-            const { data: plans } = await supabase.from('plans').select('*');
-            const planList = document.getElementById('plan-list');
-            planList.innerHTML = '';
+            const { data: plans, error } = await supabase.from('plans').select('*');
+            if (error) {
+                console.error('Error loading plans:', error);
+                return;
+            }
+            const plansDiv = document.getElementById('plans');
+            const planSelect = document.getElementById('plan-select');
+            plansDiv.innerHTML = '';
+            planSelect.innerHTML = '<option value="">Select a Plan</option>';
             plans.forEach(plan => {
-                const mmkPerSec = plan.return_amount / (plan.duration * 24 * 60 * 60);
                 const div = document.createElement('div');
                 div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
                 div.innerHTML = `
-                    <img src="${plan.icon}" alt="${plan.name}" class="w-16 h-16 mb-2 rounded">
+                    <img src="${plan.icon}" class="w-16 h-16 mb-2 rounded">
                     <p class="font-bold text-white">${plan.name}</p>
                     <p>Cost: ${plan.cost.toLocaleString()} MMK</p>
-                    <p>Duration: ${plan.duration} days</p>
                     <p>Return: ${plan.return_amount.toLocaleString()} MMK</p>
-                    <p>Rate: ${mmkPerSec.toFixed(2)} MMK/sec</p>
-                    <button class="buy-plan w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-plan-id="${plan.id}">Buy Now</button>
+                    <p>Duration: ${plan.duration} days</p>
+                    <p>Mining Power: ${plan.mining_power}</p>
                 `;
-                planList.appendChild(div);
-            });
-
-            document.querySelectorAll('.buy-plan').forEach(button => {
-                button.addEventListener('click', async () => {
-                    const planId = button.dataset.planId;
-                    const { data: plan } = await supabase.from('plans').select('*').eq('id', planId).single();
-                    const paymentMethod = document.getElementById('payment-method').value;
-                    const paymentProof = document.getElementById('payment-proof').files[0];
-                    if (!paymentProof) {
-                        alert('Please upload payment proof');
-                        return;
-                    }
-                    const { data: uploadData, error: uploadError } = await supabase.storage.from('payment-proofs').upload(`proofs/${Date.now()}_${paymentProof.name}`, paymentProof);
-                    if (uploadError) {
-                        alert('Error uploading payment proof');
-                        return;
-                    }
-                    const { error } = await supabase.from('purchased_plans').insert({
-                        user_id: currentUser.id,
-                        plan_id: planId,
-                        plan_name: plan.name,
-                        amount: plan.cost,
-                        return_amount: plan.return_amount,
-                        duration: plan.duration,
-                        mining_power: plan.mining_power,
-                        payment_method: paymentMethod,
-                        payment_proof: uploadData.path,
-                        status: 'pending',
-                        start_time: new Date().toISOString()
-                    });
-                    if (error) {
-                        alert('Error purchasing plan');
-                        return;
-                    }
-                    alert('Plan purchase submitted. Waiting for approval.');
-                    loadHistory();
-                });
+                plansDiv.appendChild(div);
+                const option = document.createElement('option');
+                option.value = plan.id;
+                option.textContent = `${plan.name} - ${plan.cost.toLocaleString()} MMK`;
+                planSelect.appendChild(option);
             });
         }
 
         async function loadTasks() {
-            const { data: tasks } = await supabase.from('tasks').select('*');
-            const taskList = document.getElementById('task-list');
-            taskList.innerHTML = '';
+            const { data: tasks, error } = await supabase.from('tasks').select('*');
+            if (error) {
+                console.error('Error loading tasks:', error);
+                return;
+            }
+            const tasksDiv = document.getElementById('tasks');
+            tasksDiv.innerHTML = '';
             tasks.forEach(task => {
                 const div = document.createElement('div');
                 div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
                 div.innerHTML = `
                     <p class="font-bold text-white">${task.title}</p>
                     <p>Reward: ${task.reward_type === 'cash' ? `${task.reward_amount.toLocaleString()} MMK` : `${task.reward_amount} MMK/sec for ${task.reward_duration} days`}</p>
+                    <p>Claim Limit: ${task.claim_limit}</p>
                     <a href="${task.social_link}" target="_blank" class="text-indigo-400 hover:text-indigo-300">Visit Link</a>
-                    <button class="claim-task w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-task-id="${task.id}" disabled>Claim</button>
+                    <button class="claim-task w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-task-id="${task.id}">Claim</button>
                 `;
-                taskList.appendChild(div);
+                tasksDiv.appendChild(div);
+            });
 
-                const link = div.querySelector('a');
-                link.addEventListener('click', async () => {
-                    setTimeout(async () => {
-                        const { data: claimCheck } = await supabase.from('task_claims').select('*').eq('user_id', currentUser.id).eq('task_id', task.id);
-                        if (claimCheck.length === 0 && task.claim_limit > 0) {
-                            div.querySelector('.claim-task').disabled = false;
-                        }
-                    }, 5000);
-                });
-
-                div.querySelector('.claim-task').addEventListener('click', async () => {
+            document.querySelectorAll('.claim-task').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const taskId = button.dataset.taskId;
+                    const { data: task } = await supabase.from('tasks').select('*').eq('id', taskId).single();
+                    const { data: claims } = await supabase.from('task_claims').select('id').eq('task_id', taskId).eq('user_id', currentUser.id);
+                    if (claims.length >= task.claim_limit) {
+                        alert('Claim limit reached for this task.');
+                        return;
+                    }
                     const { error } = await supabase.from('task_claims').insert({
                         user_id: currentUser.id,
-                        task_id: task.id,
+                        task_id: taskId,
                         reward_type: task.reward_type,
                         reward_amount: task.reward_amount,
                         reward_duration: task.reward_duration
                     });
                     if (error) {
-                        alert('Error claiming task');
+                        alert('Error claiming task.');
                         return;
                     }
-                    if (task.reward_type === 'cash') {
-                        await supabase.from('users').update({ balance: currentUser.user_metadata.balance + task.reward_amount }).eq('id', currentUser.id);
-                        currentUser.user_metadata.balance += task.reward_amount;
-                    } else {
-                        await supabase.from('purchased_plans').insert({
-                            user_id: currentUser.id,
-                            plan_name: task.title,
-                            amount: 0,
-                            return_amount: task.reward_amount * task.reward_duration * 24 * 60 * 60,
-                            duration: task.reward_duration,
-                            mining_power: task.reward_amount,
-                            status: 'approved',
-                            start_time: new Date().toISOString()
-                        });
-                    }
-                    await supabase.from('tasks').update({ claim_limit: task.claim_limit - 1 }).eq('id', task.id);
                     alert('Task claimed successfully!');
-                    loadTasks();
-                    loadUserData();
-                    loadMiningData();
+                    if (task.reward_type === 'cash') {
+                        await supabase.from('users').update({ balance: currentUser.balance + task.reward_amount }).eq('id', currentUser.id);
+                        loadUserProfile();
+                    }
                 });
             });
         }
 
         async function loadGlobalChat() {
-            const { data: messages } = await supabase.from('global_chat').select('*').order('created_at', { ascending: true });
-            const chatMessages = document.getElementById('chat-messages');
-            chatMessages.innerHTML = '';
+            const { data: messages, error } = await supabase.from('global_chat').select('*').order('created_at', { ascending: true });
+            if (error) {
+                console.error('Error loading global chat:', error);
+                return;
+            }
+            const chatDiv = document.getElementById('global-chat');
+            chatDiv.innerHTML = '';
             messages.forEach(msg => {
                 const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-2 rounded-lg mb-2 border border-gray-700';
+                div.className = 'p-2 rounded-lg mb-2 bg-gray-800/50 border border-gray-700';
                 div.innerHTML = `
-                    <p><img src="${msg.user_icon}" class="w-6 h-6 inline-block mr-2 rounded-full">${msg.username} (Level ${msg.user_level}): ${msg.message}</p>
-                    <p class="text-sm text-gray-400">${new Date(msg.created_at).toLocaleString()}</p>
+                    <div class="flex items-center gap-2">
+                        <img src="${msg.user_icon}" class="w-8 h-8 rounded">
+                        <p class="font-bold">${msg.username} (Level ${msg.user_level})</p>
+                    </div>
+                    <p>${msg.message}</p>
+                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(msg.created_at))}</p>
                 `;
-                chatMessages.appendChild(div);
+                chatDiv.appendChild(div);
             });
+            chatDiv.scrollTop = chatDiv.scrollHeight;
 
             supabase.channel('global_chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
                 const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-2 rounded-lg mb-2 border border-gray-700';
+                div.className = 'p-2 rounded-lg mb-2 bg-gray-800/50 border border-gray-700';
                 div.innerHTML = `
-                    <p><img src="${payload.new.user_icon}" class="w-6 h-6 inline-block mr-2 rounded-full">${payload.new.username} (Level ${payload.new.user_level}): ${payload.new.message}</p>
-                    <p class="text-sm text-gray-400">${new Date(payload.new.created_at).toLocaleString()}</p>
+                    <div class="flex items-center gap-2">
+                        <img src="${payload.new.user_icon}" class="w-8 h-8 rounded">
+                        <p class="font-bold">${payload.new.username} (Level ${payload.new.user_level})</p>
+                    </div>
+                    <p>${payload.new.message}</p>
+                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(payload.new.created_at))}</p>
                 `;
-                chatMessages.appendChild(div);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                chatDiv.appendChild(div);
+                chatDiv.scrollTop = chatDiv.scrollHeight;
             }).subscribe();
-
-            document.getElementById('send-chat').addEventListener('click', async () => {
-                const message = document.getElementById('chat-input').value;
-                if (!message) return;
-                await supabase.from('global_chat').insert({
-                    user_id: currentUser.id,
-                    username: currentUser.user_metadata.username,
-                    user_level: currentUser.user_metadata.level,
-                    user_icon: currentUser.user_metadata.icon || 'https://api.dicebear.com/9.x/pixel-art/svg?seed=' + currentUser.user_metadata.username,
-                    message
-                });
-                document.getElementById('chat-input').value = '';
-            });
         }
 
         async function loadSupportChat() {
-            const { data: messages } = await supabase.from('support_chat').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true });
-            const supportMessages = document.getElementById('support-messages');
-            supportMessages.innerHTML = '';
+            const { data: messages, error } = await supabase.from('support_chat').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: true });
+            if (error) {
+                console.error('Error loading support chat:', error);
+                return;
+            }
+            const supportChat = document.getElementById('support-chat');
+            supportChat.innerHTML = '';
             messages.forEach(msg => {
                 const div = document.createElement('div');
                 div.className = `p-2 rounded-lg mb-2 ${msg.is_admin ? 'bg-indigo-600/50 text-right' : 'bg-gray-800/50'} border border-gray-700`;
                 div.innerHTML = `
-                    <p>${msg.is_admin ? 'Admin' : currentUser.user_metadata.username}: ${msg.message}</p>
-                    <p class="text-sm text-gray-400">${new Date(msg.created_at).toLocaleString()}</p>
+                    <p>${msg.is_admin ? 'Admin' : msg.username}: ${msg.message}</p>
+                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(msg.created_at))}</p>
                 `;
-                supportMessages.appendChild(div);
+                supportChat.appendChild(div);
             });
+            supportChat.scrollTop = supportChat.scrollHeight;
 
             supabase.channel(`support_chat_${currentUser.id}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_chat', filter: `user_id=eq.${currentUser.id}` }, payload => {
                 const div = document.createElement('div');
                 div.className = `p-2 rounded-lg mb-2 ${payload.new.is_admin ? 'bg-indigo-600/50 text-right' : 'bg-gray-800/50'} border border-gray-700`;
                 div.innerHTML = `
-                    <p>${payload.new.is_admin ? 'Admin' : currentUser.user_metadata.username}: ${payload.new.message}</p>
-                    <p class="text-sm text-gray-400">${new Date(payload.new.created_at).toLocaleString()}</p>
+                    <p>${payload.new.is_admin ? 'Admin' : payload.new.username}: ${payload.new.message}</p>
+                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(payload.new.created_at))}</p>
                 `;
-                supportMessages.appendChild(div);
-                supportMessages.scrollTop = supportMessages.scrollHeight;
+                supportChat.appendChild(div);
+                supportChat.scrollTop = supportChat.scrollHeight;
             }).subscribe();
-
-            document.getElementById('send-support').addEventListener('click', async () => {
-                const message = document.getElementById('support-input').value;
-                if (!message) return;
-                await supabase.from('support_chat').insert({
-                    user_id: currentUser.id,
-                    username: currentUser.user_metadata.username,
-                    message,
-                    is_admin: false
-                });
-                document.getElementById('support-input').value = '';
-            });
         }
 
         async function loadNews() {
-            const { data: news } = await supabase.from('news').select('*').order('created_at', { ascending: false });
-            const newsList = document.getElementById('news-list');
-            newsList.innerHTML = '';
+            const { data: news, error } = await supabase.from('news').select('*').order('created_at', { ascending: false });
+            if (error) {
+                console.error('Error loading news:', error);
+                return;
+            }
+            const newsDiv = document.getElementById('news');
+            newsDiv.innerHTML = '';
             news.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
@@ -599,27 +365,32 @@
                     ${item.image ? `<img src="${item.image}" class="w-full h-48 object-cover mt-2 rounded-lg">` : ''}
                     <p class="text-sm text-gray-400">${formatTimeAgo(new Date(item.created_at))}</p>
                 `;
-                newsList.appendChild(div);
+                newsDiv.appendChild(div);
             });
-
-            supabase.channel('news').on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, () => loadNews()).subscribe();
         }
 
         async function loadFeed() {
-            const { data: posts } = await supabase.from('feed').select('*').order('created_at', { ascending: false });
-            const feedList = document.getElementById('feed-list');
-            feedList.innerHTML = '';
-            posts.forEach(post => {
+            const { data: feed, error } = await supabase.from('feed').select('*').order('created_at', { ascending: false });
+            if (error) {
+                console.error('Error loading feed:', error);
+                return;
+            }
+            const feedDiv = document.getElementById('feed');
+            feedDiv.innerHTML = '';
+            feed.forEach(post => {
                 const div = document.createElement('div');
                 div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
                 div.innerHTML = `
-                    <p><img src="${post.user_icon}" class="w-6 h-6 inline-block mr-2 rounded-full">${post.username}: ${post.content}</p>
-                    ${post.video ? `<video src="${post.video}" controls class="w-full h-48 mt-2 rounded-lg"></video>` : ''}
+                    <div class="flex items-center gap-2">
+                        <img src="${post.user_icon}" class="w-8 h-8 rounded">
+                        <p class="font-bold">${post.username}</p>
+                    </div>
+                    <p>${post.content}</p>
+                    ${post.video ? `<video src="${post.video}" class="w-full h-48 object-cover mt-2 rounded-lg" controls></video>` : ''}
                     <p class="text-sm text-gray-400">${formatTimeAgo(new Date(post.created_at))}</p>
-                    <button class="like-post bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105" data-post-id="${post.id}">Like (${post.likes})</button>
-                    ${post.user_id === currentUser.id ? `<button class="delete-post bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 ml-2" data-post-id="${post.id}">Delete</button>` : ''}
+                    <button class="like-post bg-indigo-600 p-2 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-post-id="${post.id}">Like (${post.likes})</button>
                 `;
-                feedList.appendChild(div);
+                feedDiv.appendChild(div);
             });
 
             document.querySelectorAll('.like-post').forEach(button => {
@@ -630,114 +401,70 @@
                     loadFeed();
                 });
             });
-
-            document.querySelectorAll('.delete-post').forEach(button => {
-                button.addEventListener('click', async () => {
-                    const postId = button.dataset.postId;
-                    await supabase.from('feed').delete().eq('id', postId);
-                    loadFeed();
-                });
-            });
-
-            document.getElementById('submit-post').addEventListener('click', async () => {
-                const content = document.getElementById('post-content').value;
-                const video = document.getElementById('post-video').files[0];
-                let videoUrl = null;
-                if (video) {
-                    if (video.size > 10 * 1024 * 1024) {
-                        alert('Video size must be less than 10MB');
-                        return;
-                    }
-                    if (video.duration > 60) {
-                        alert('Video duration must be less than 1 minute');
-                        return;
-                    }
-                    const { data: uploadData, error } = await supabase.storage.from('feed-videos').upload(`videos/${Date.now()}_${video.name}`, video);
-                    if (error) {
-                        alert('Error uploading video');
-                        return;
-                    }
-                    videoUrl = uploadData.path;
-                }
-                await supabase.from('feed').insert({
-                    user_id: currentUser.id,
-                    username: currentUser.user_metadata.username,
-                    user_icon: currentUser.user_metadata.icon || 'https://api.dicebear.com/9.x/pixel-art/svg?seed=' + currentUser.user_metadata.username,
-                    content,
-                    video: videoUrl,
-                    likes: 0
-                });
-                document.getElementById('post-content').value = '';
-                document.getElementById('post-video').value = '';
-                loadFeed();
-            });
-
-            supabase.channel('feed').on('postgres_changes', { event: '*', schema: 'public', table: 'feed' }, () => loadFeed()).subscribe();
         }
 
-        async function loadSocial() {
-            const { data: social } = await supabase.from('social_videos').select('*').order('created_at', { ascending: false });
-            const socialList = document.getElementById('social-list');
-            socialList.innerHTML = '';
-            social.forEach(video => {
+        async function loadSocialVideos() {
+            const { data: videos, error } = await supabase.from('social_videos').select('*').order('created_at', { ascending: false });
+            if (error) {
+                console.error('Error loading social videos:', error);
+                return;
+            }
+            const videosDiv = document.getElementById('social-videos');
+            videosDiv.innerHTML = '';
+            videos.forEach(video => {
                 const div = document.createElement('div');
                 div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
                 div.innerHTML = `
                     <iframe src="${video.url}" class="w-full h-48 rounded-lg"></iframe>
                     <p class="text-sm text-gray-400">${formatTimeAgo(new Date(video.created_at))}</p>
                 `;
-                socialList.appendChild(div);
+                videosDiv.appendChild(div);
             });
+        }
 
-            supabase.channel('social_videos').on('postgres_changes', { event: '*', schema: 'public', table: 'social_videos' }, () => loadSocial()).subscribe();
+        async function loadLevels() {
+            const { data: levels, error } = await supabase.from('levels').select('*').order('level', { ascending: true });
+            if (error) {
+                console.error('Error loading levels:', error);
+                return;
+            }
+            const levelsDiv = document.getElementById('levels');
+            levelsDiv.innerHTML = '';
+            levels.forEach(level => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <img src="${level.icon}" class="w-16 h-16 mb-2 rounded">
+                    <p>Level: ${level.level}</p>
+                    <p>Amount: ${level.amount.toLocaleString()} MMK</p>
+                    <p>Icon Style: ${level.icon_style}</p>
+                `;
+                levelsDiv.appendChild(div);
+            });
         }
 
         async function loadAbout() {
-            const { data: about } = await supabase.from('about').select('*');
-            const aboutContent = document.getElementById('about-content');
-            aboutContent.innerHTML = '';
+            const { data: about, error } = await supabase.from('about').select('*');
+            if (error) {
+                console.error('Error loading about:', error);
+                return;
+            }
+            const aboutDiv = document.getElementById('about');
+            aboutDiv.innerHTML = '';
             about.forEach(item => {
                 const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-4 rounded-lg mb-2 border border-gray-700';
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
                 div.innerHTML = `
-                    <p><img src="${item.icon}" class="w-6 h-6 inline-block mr-2 rounded-full">${item.name}</p>
-                    ${item.link ? `<a href="${item.link}" target="_blank" class="text-indigo-400 hover:text-indigo-300">${item.link}</a>` : ''}
-                    ${item.phone ? `<a href="tel:${item.phone}" class="text-indigo-400 hover:text-indigo-300">${item.phone}</a>` : ''}
+                    <div class="flex items-center gap-2">
+                        ${item.icon ? `<img src="${item.icon}" class="w-8 h-8 rounded">` : ''}
+                        <p class="font-bold">${item.name}</p>
+                    </div>
+                    ${item.link ? `<a href="${item.link}" class="text-indigo-400 hover:text-indigo-300">${item.link}</a>` : ''}
+                    ${item.phone ? `<p>Phone: ${item.phone}</p>` : ''}
                     ${item.content ? `<p>${item.content}</p>` : ''}
                 `;
-                aboutContent.appendChild(div);
+                aboutDiv.appendChild(div);
             });
-
-            supabase.channel('about').on('postgres_changes', { event: '*', schema: 'public', table: 'about' }, () => loadAbout()).subscribe();
-        }
-
-        async function loadLiveWithdrawals() {
-            const { data: withdrawals } = await supabase.from('withdrawals').select('*').order('created_at', { ascending: false }).limit(10);
-            const withdrawalList = document.getElementById('live-withdrawal-list');
-            withdrawalList.innerHTML = '';
-            withdrawals.forEach(withdrawal => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-2 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <p>${withdrawal.username} withdrew ${withdrawal.amount.toLocaleString()} MMK via ${withdrawal.payment_method}</p>
-                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(withdrawal.created_at))}</p>
-                `;
-                withdrawalList.appendChild(div);
-            });
-
-            const { data: topWithdrawers } = await supabase.from('users').select('username, total_withdrawn').order('total_withdrawn', { ascending: false }).limit(5);
-            const topWithdrawersList = document.getElementById('top-withdrawers');
-            topWithdrawersList.innerHTML = '';
-            topWithdrawers.forEach((user, index) => {
-                const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 p-2 rounded-lg border border-gray-700';
-                div.innerHTML = `
-                    <p>${index + 1}. ${user.username}: ${user.total_withdrawn.toLocaleString()} MMK</p>
-                `;
-                topWithdrawersList.appendChild(div);
-            });
-
-            supabase.channel('withdrawals').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'withdrawals' }, () => loadLiveWithdrawals()).subscribe();
         }
 
         function formatTimeAgo(date) {
@@ -753,35 +480,132 @@
             return `${days}d`;
         }
 
-        document.getElementById('signup').addEventListener('submit', handleSignup);
-        document.getElementById('login').addEventListener('submit', handleLogin);
-        document.getElementById('show-signup').addEventListener('click', () => {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('signup-form').classList.remove('hidden');
-            gsap.to('#signup-form', { opacity: 1, y: 0, duration: 0.5 });
-        });
-        document.getElementById('show-login').addEventListener('click', () => {
-            document.getElementById('signup-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-            gsap.to('#login-form', { opacity: 1, y: 0, duration: 0.5 });
-        });
-        document.getElementById('submit-withdrawal').addEventListener('click', async () => {
-            const amount = parseInt(document.getElementById('withdraw-amount').value);
-            const method = document.getElementById('withdraw-method').value;
-            const number = document.getElementById('withdraw-number').value;
-            const accountName = document.getElementById('withdraw-account').value;
-            const pin = document.getElementById('withdraw-pin').value;
+        async function startMiningPowerUpdate() {
+            const { data: plans, error } = await supabase.from('purchased_plans').select('mining_power, duration, start_time').eq('user_id', currentUser.id).eq('status', 'approved');
+            if (error) {
+                console.error('Error loading mining plans:', error);
+                return;
+            }
+            let totalMiningPower = 0;
+            const now = new Date();
+            plans.forEach(plan => {
+                const endTime = new Date(plan.start_time);
+                endTime.setDate(endTime.getDate() + plan.duration);
+                if (now < endTime) {
+                    totalMiningPower += plan.mining_power;
+                } else {
+                    supabase.from('purchased_plans').update({ status: 'completed' }).eq('id', plan.id);
+                }
+            });
+            document.getElementById('mining-rate').textContent = `Mining Rate: ${totalMiningPower.toLocaleString()} MMK/sec`;
 
-            if (amount < 100000) {
-                alert('Minimum withdrawal is 100,000 MMK');
+            if (miningInterval) clearInterval(miningInterval);
+            if (totalMiningPower > 0) {
+                miningInterval = setInterval(async () => {
+                    const { data: user, error } = await supabase.from('users').select('balance').eq('id', currentUser.id).single();
+                    if (error) {
+                        console.error('Error updating balance:', error);
+                        return;
+                    }
+                    const newBalance = user.balance + totalMiningPower;
+                    await supabase.from('users').update({ balance: newBalance }).eq('id', currentUser.id);
+                    document.getElementById('user-balance').textContent = `${newBalance.toLocaleString()} MMK`;
+                }, 1000);
+            }
+        }
+
+        document.getElementById('start-mining').addEventListener('click', () => {
+            startMiningPowerUpdate();
+            alert('Mining started!');
+        });
+
+        document.getElementById('update-profile').addEventListener('click', async () => {
+            const name = document.getElementById('profile-name').value;
+            const username = document.getElementById('profile-username').value;
+            const email = document.getElementById('profile-email').value;
+            const icon = document.getElementById('profile-icon').files[0];
+            let iconUrl = currentUser.icon;
+
+            if (icon) {
+                const { data, error } = await supabase.storage.from('level-icons').upload(`icons/${Date.now()}_${icon.name}`, icon);
+                if (error) {
+                    alert('Error uploading icon.');
+                    return;
+                }
+                iconUrl = supabase.storage.from('level-icons').getPublicUrl(data.path).data.publicUrl;
+            }
+
+            const { error } = await supabase.from('users').update({ name, username, email, icon: iconUrl }).eq('id', currentUser.id);
+            if (error) {
+                alert('Error updating profile.');
                 return;
             }
-            if (pin !== currentUser.user_metadata.withdraw_pin) {
-                alert('Invalid withdrawal PIN');
+            alert('Profile updated successfully!');
+            loadUserProfile();
+        });
+
+        document.getElementById('purchase-plan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const planId = document.getElementById('plan-select').value;
+            const paymentMethod = document.getElementById('payment-method').value;
+            const paymentProof = document.getElementById('payment-proof').files[0];
+
+            if (!planId || !paymentProof) {
+                alert('Please select a plan and upload payment proof.');
                 return;
             }
-            if (currentUser.user_metadata.balance < amount) {
-                alert('Insufficient balance');
+
+            const { data: plan, error: planError } = await supabase.from('plans').select('*').eq('id', planId).single();
+            if (planError) {
+                alert('Error fetching plan details.');
+                return;
+            }
+
+            const { data, error } = await supabase.storage.from('payment-proofs').upload(`proofs/${Date.now()}_${paymentProof.name}`, paymentProof);
+            if (error) {
+                alert('Error uploading payment proof.');
+                return;
+            }
+
+            const { error: insertError } = await supabase.from('purchased_plans').insert({
+                user_id: currentUser.id,
+                plan_id: planId,
+                plan_name: plan.name,
+                amount: plan.cost,
+                return_amount: plan.return_amount,
+                duration: plan.duration,
+                mining_power: plan.mining_power,
+                payment_method: paymentMethod,
+                payment_proof: supabase.storage.from('payment-proofs').getPublicUrl(data.path).data.publicUrl
+            });
+            if (insertError) {
+                alert('Error purchasing plan.');
+                return;
+            }
+            alert('Plan purchased successfully! Awaiting admin approval.');
+            document.getElementById('purchase-plan').reset();
+        });
+
+        document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const pin = document.getElementById('withdraw-pin').value;
+            const paymentMethod = document.getElementById('withdraw-method').value;
+            const phone = document.getElementById('withdraw-phone').value;
+            const accountName = document.getElementById('withdraw-account').value;
+
+            const { data: user, error: userError } = await supabase.from('users').select('balance, withdraw_pin').eq('id', currentUser.id).single();
+            if (userError) {
+                alert('Error fetching user data.');
+                return;
+            }
+
+            if (pin !== user.withdraw_pin) {
+                alert('Invalid withdrawal PIN.');
+                return;
+            }
+            if (amount > user.balance) {
+                alert('Insufficient balance.');
                 return;
             }
 
@@ -789,73 +613,94 @@
                 user_id: currentUser.id,
                 username: currentUser.user_metadata.username,
                 amount,
-                payment_method: method,
-                phone_number: number,
-                account_name: accountName,
-                status: 'pending'
+                payment_method: paymentMethod,
+                phone_number: phone,
+                account_name: accountName
             });
             if (error) {
-                alert('Error submitting withdrawal');
+                alert('Error submitting withdrawal.');
                 return;
             }
-            await supabase.from('users').update({ balance: currentUser.user_metadata.balance - amount }).eq('id', currentUser.id);
-            currentUser.user_metadata.balance -= amount;
-            alert('Withdrawal submitted. Waiting for approval.');
-            loadUserData();
-            loadHistory();
+            await supabase.from('users').update({ balance: user.balance - amount }).eq('id', currentUser.id);
+            alert('Withdrawal request submitted!');
+            document.getElementById('withdraw-form').reset();
+            loadUserProfile();
         });
 
-        document.getElementById('logout-banned').addEventListener('click', async () => {
-            await supabase.auth.signOut();
-            window.location.reload();
-        });
-
-        document.querySelectorAll('.menu-item button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.menu-item button').forEach(btn => btn.classList.remove('bg-indigo-700'));
-                button.classList.add('bg-indigo-700');
-                document.querySelectorAll('#dashboard > div:not(.fixed)').forEach(div => div.classList.add('hidden'));
-                document.getElementById(button.dataset.page).classList.remove('hidden');
-                gsap.to('#' + button.dataset.page, { opacity: 1, y: 0, duration: 0.5 });
+        document.getElementById('send-chat').addEventListener('click', async () => {
+            const message = document.getElementById('chat-input').value;
+            if (!message) return;
+            const { data: user } = await supabase.from('users').select('username, level, icon').eq('id', currentUser.id).single();
+            const { error } = await supabase.from('global_chat').insert({
+                user_id: currentUser.id,
+                username: user.username,
+                user_level: user.level,
+                user_icon: user.icon,
+                message
             });
-        });
-
-        // Initialize
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                currentUser = session.user;
-                if (currentUser.user_metadata.banned) {
-                    showBannedSection();
-                } else {
-                    document.getElementById('auth-section').classList.add('hidden');
-                    document.getElementById('dashboard').classList.remove('hidden');
-                    gsap.to('#dashboard', { opacity: 1, y: 0, duration: 0.5 });
-                    loadUserData();
-                    loadMiningData();
-                    loadHistory();
-                    loadPlans();
-                    loadTasks();
-                    loadGlobalChat();
-                    loadSupportChat();
-                    loadNews();
-                    loadFeed();
-                    loadSocial();
-                    loadAbout();
-                    loadLiveWithdrawals();
-                }
-            } else {
-                document.getElementById('auth-section').classList.remove('hidden');
-                document.getElementById('login-form').classList.remove('hidden');
-                gsap.to('#login-form', { opacity: 1, y: 0, duration: 0.5 });
+            if (error) {
+                alert('Error sending message.');
+                return;
             }
+            document.getElementById('chat-input').value = '';
         });
 
-        // Loading Animation
-        window.addEventListener('load', () => {
-            gsap.to('#loading-overlay', { opacity: 0, duration: 0.5, delay: 1, onComplete: () => {
-                document.getElementById('loading-overlay').style.display = 'none';
-            }});
+        document.getElementById('send-support').addEventListener('click', async () => {
+            const message = document.getElementById('support-input').value;
+            if (!message) return;
+            const { data: user } = await supabase.from('users').select('username').eq('id', currentUser.id).single();
+            const { error } = await supabase.from('support_chat').insert({
+                user_id: currentUser.id,
+                username: user.username,
+                message,
+                is_admin: false
+            });
+            if (error) {
+                alert('Error sending support message.');
+                return;
+            }
+            document.getElementById('support-input').value = '';
         });
+
+        document.getElementById('add-feed').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const content = document.getElementById('feed-content').value;
+            const video = document.getElementById('feed-video').files[0];
+            let videoUrl = null;
+
+            if (video) {
+                const { data, error } = await supabase.storage.from('feed-videos').upload(`videos/${Date.now()}_${video.name}`, video);
+                if (error) {
+                    alert('Error uploading video.');
+                    return;
+                }
+                videoUrl = supabase.storage.from('feed-videos').getPublicUrl(data.path).data.publicUrl;
+            }
+
+            const { data: user } = await supabase.from('users').select('username, icon').eq('id', currentUser.id).single();
+            const { error } = await supabase.from('feed').insert({
+                user_id: currentUser.id,
+                username: user.username,
+                user_icon: user.icon,
+                content,
+                video: videoUrl
+            });
+            if (error) {
+                alert('Error posting to feed.');
+                return;
+            }
+            alert('Posted to feed successfully!');
+            document.getElementById('add-feed').reset();
+            loadFeed();
+        });
+
+        document.getElementById('logout').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = '/login.html';
+        });
+
+        // Initialize app
+        window.addEventListener('load', initializeApp);
     </script>
 </body>
 </html>
