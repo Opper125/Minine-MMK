@@ -47,100 +47,6 @@ body {
     to { transform: rotate(360deg); }
 }
 
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 1.5rem;
-}
-
-.bg-gray-900\/80 {
-    background: rgba(17, 24, 39, 0.8);
-}
-
-.backdrop-blur-md {
-    backdrop-filter: blur(10px);
-}
-
-.shadow-2xl {
-    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.6), 0 6px 8px -2px rgba(0, 0, 0, 0.4);
-}
-
-input, select, textarea {
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    background: rgba(31, 41, 55, 0.5);
-    border: 1px solid #374151;
-    color: #ffffff;
-    padding: 0.75rem;
-}
-
-input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
-}
-
-button {
-    transition: all 0.3s ease;
-    border-radius: 8px;
-}
-
-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-.bg-indigo-600 {
-    background: #4b6cb7;
-}
-
-.bg-indigo-600:hover {
-    background: #3b5794;
-}
-
-.bg-red-600 {
-    background: #dc2626;
-}
-
-.bg-red-600:hover {
-    background: #b91c1c;
-}
-
-.bg-gray-800\/50 {
-    background: rgba(31, 41, 55, 0.5);
-}
-
-.border-gray-700 {
-    border-color: #374151;
-}
-
-.fade-in {
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeIn 0.5s forwards;
-}
-
-@keyframes fadeIn {
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.grid {
-    display: grid;
-    gap: 1rem;
-}
-
-.grid-cols-1 {
-    grid-template-columns: 1fr;
-}
-
-.md\:grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.lg\:grid-cols-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
 .mining-container {
     display: flex;
     justify-content: center;
@@ -170,56 +76,17 @@ button:hover {
     100% { transform: translateY(-100%); }
 }
 
-#global-chat, #support-chat {
-    background: rgba(31, 41, 55, 0.5);
-    border: 1px solid #374151;
-    border-radius: 8px;
-    padding: 1rem;
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.5s forwards;
 }
 
-#global-chat > div, #support-chat > div {
-    transition: all 0.3s ease;
-}
-
-#global-chat > div:hover, #support-chat > div:hover {
-    background: rgba(55, 65, 81, 0.7);
-}
-
-img, video, iframe {
-    border-radius: 8px;
-    max-width: 100%;
-    height: auto;
-}
-
-@media (min-width: 768px) {
-    .md\:grid-cols-2 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .lg\:grid-cols-3 {
-        grid-template-columns: repeat(3, 1fr);
-    }
+@keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
-    .container {
-        padding: 1rem;
-    }
-
-    h1 {
-        font-size: 1.75rem;
-    }
-
-    h2 {
-        font-size: 1.25rem;
-    }
-
-    button, input, select, textarea {
-        font-size: 0.9rem;
-    }
-
     .mining-circle {
         width: 100px;
         height: 100px;
