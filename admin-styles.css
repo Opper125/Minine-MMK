@@ -1,0 +1,186 @@
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #ffffff;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.text-gradient {
+    background: linear-gradient(45deg, #4b6cb7, #182848);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 5s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #4b6cb7;
+    border-top-color: #182848;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.bg-gray-900\/80 {
+    background: rgba(17, 24, 39, 0.8);
+}
+
+.backdrop-blur-md {
+    backdrop-filter: blur(10px);
+}
+
+.shadow-2xl {
+    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.6), 0 6px 8px -2px rgba(0, 0, 0, 0.4);
+}
+
+input, select, textarea {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    background: rgba(31, 41, 55, 0.5);
+    border: 1px solid #374151;
+    color: #ffffff;
+    padding: 0.75rem;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}
+
+button {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.grid-cols-1 {
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.bg-gray-800\/50 {
+    background: rgba(31, 41, 55, 0.5);
+}
+
+.border-gray-700 {
+    border-color: #374151;
+}
+
+.approve-plan, .approve-withdrawal {
+    background: #4b6cb7;
+}
+
+.approve-plan:hover, .approve-withdrawal:hover {
+    background: #3b5794;
+}
+
+.reject-plan, .reject-withdrawal, .delete-plan, .delete-task, .delete-level, .delete-news, .delete-social, .ban-user {
+    background: #dc2626;
+}
+
+.reject-plan:hover, .reject-withdrawal:hover, .delete-plan:hover, .delete-task:hover, .delete-level:hover, .delete-news:hover, .delete-social:hover, .ban-user:hover {
+    background: #b91c1c;
+}
+
+#stats > div, #pending-plans > div, #pending-withdrawals > div, #plan-list > div, #task-list > div, #user-stats > div, #level-list > div, #news-list > div, #social-list > div {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#stats > div:hover, #pending-plans > div:hover, #pending-withdrawals > div:hover, #plan-list > div:hover, #task-list > div:hover, #user-stats > div:hover, #level-list > div:hover, #news-list > div:hover, #social-list > div:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+img, iframe {
+    border-radius: 8px;
+}
+
+#support-messages {
+    background: rgba(31, 41, 55, 0.5);
+    border: 1px solid #374151;
+    border-radius: 8px;
+}
+
+#support-messages > div {
+    transition: all 0.3s ease;
+}
+
+#support-messages > div:hover {
+    background: rgba(55, 65, 81, 0.7);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    button, input, select, textarea {
+        font-size: 0.9rem;
+    }
+}
