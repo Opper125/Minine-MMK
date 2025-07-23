@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMK Mining - Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body class="min-h-screen">
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-6 text-gradient">Admin Dashboard</h1>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Marketing Statistics</h2>
+            <div id="stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Pending Mining Plans</h2>
+            <input type="text" id="plan-search" placeholder="Search plans..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <div id="pending-plans" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Pending Withdrawals</h2>
+            <input type="text" id="withdrawal-search" placeholder="Search withdrawals..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <div id="pending-withdrawals" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Add Mining Plan</h2>
+            <form id="add-plan">
+                <input type="text" id="plan-name" placeholder="Plan Name" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="file" id="plan-icon" accept="image/*" class="mb-4">
+                <input type="number" id="plan-cost" placeholder="Cost (MMK)" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="number" id="plan-return" placeholder="Return (MMK)" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="number" id="plan-duration" placeholder="Duration (days)" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="number" id="plan-mining-power" placeholder="Mining Power" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Add Plan</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Manage Plans</h2>
+            <div id="plan-list" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Add Task</h2>
+            <form id="add-task">
+                <input type="text" id="task-title" placeholder="Task Title" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="text" id="task-link" placeholder="Social Link" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="number" id="task-limit" placeholder="Claim Limit" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <select id="task-reward-type" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                    <option value="cash">Cash Reward</option>
+                    <option value="mmk_per_sec">MMK/sec Power</option>
+                    <option value="plan">Plan Purchase</option>
+                </select>
+                <input type="number" id="task-reward-amount" placeholder="Reward Amount" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="number" id="task-reward-duration" placeholder="Reward Duration (days)" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all hidden">
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Add Task</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Manage Tasks</h2>
+            <div id="task-list" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">User Statistics</h2>
+            <input type="text" id="user-search" placeholder="Search users..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <div id="user-stats" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Add Level</h2>
+            <form id="add-level">
+                <input type="number" id="level-number" placeholder="Level Number" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="number" id="level-amount" placeholder="Required Amount (MMK)" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <input type="file" id="level-icon" accept="image/*" class="mb-4">
+                <select id="level-icon-style" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                    <option value="square">Square</option>
+                    <option value="circle">Circle</option>
+                    <option value="horizontal">Horizontal</option>
+                    <option value="vertical">Vertical</option>
+                </select>
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Add Level</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Manage Levels</h2>
+            <div id="level-list" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Add News</h2>
+            <form id="add-news">
+                <input type="text" id="news-title" placeholder="Title" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <textarea id="news-content" placeholder="Content" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all"></textarea>
+                <input type="file" id="news-image" accept="image/*" class="mb-4">
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Add News</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Manage News</h2>
+            <div id="news-list" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Add Social Video</h2>
+            <form id="add-social">
+                <input type="text" id="social-url" placeholder="Video URL" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <button type="submit" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Add Video</button>
+            </form>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Manage Social Videos</h2>
+            <div id="social-list" class="grid grid-cols-1 gap-4"></div>
+        </div>
+
+        <div class="bg-gray-900/80 backdrop-blur-md p-6 rounded-lg shadow-2xl mb-6">
+            <h2 class="text-xl font-bold mb-4 text-gradient">Support Chat</h2>
+            <select id="support-user" class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+                <option value="">Select User</option>
+            </select>
+            <div id="support-messages" class="h-64 overflow-y-auto mb-4 p-2 bg-gray-800/50 rounded-lg"></div>
+            <input type="text" id="support-input" placeholder="Type a message..." class="w-full p-3 mb-4 bg-gray-800/50 rounded-lg text-white border border-gray-700 focus:border-indigo-500 transition-all">
+            <button id="send-support" class="w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://aurrpqjyjmvfcldouozv.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1cnJwcWp5am12ZmNsZG91b3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyOTk2ODMsImV4cCI6MjA2ODg3NTY4M30.gQN6MxQEPImIF_mcFNT22LBgN9xwtXl3ePCJCqU3YEE';
+        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+
+        let currentUser = null;
+
+        async function checkAdmin() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user || !user.user_metadata.is_admin) {
+                alert('Access denied. Admins only.');
+                window.location.href = 'index.html';
+                return false;
+            }
+            currentUser = user;
+            return true;
+        }
+
+        async function loadStats() {
+            const { data: totalUsers } = await supabase.from('users').select('id', { count: 'exact' });
+            const { data: totalPlans } = await supabase.from('purchased_plans').select('amount').eq('status', 'approved');
+            const { data: totalWithdrawals } = await supabase.from('withdrawals').select('amount').eq('status', 'approved');
+            const totalPlanAmount = totalPlans.reduce((sum, plan) => sum + plan.amount, 0);
+            const totalWithdrawalAmount = totalWithdrawals.reduce((sum, withdrawal) => sum + withdrawal.amount, 0);
+
+            const stats = document.getElementById('stats');
+            stats.innerHTML = `
+                <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                    <p class="text-lg font-bold text-white">Total Users</p>
+                    <p class="text-2xl text-gradient">${totalUsers.length}</p>
+                </div>
+                <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                    <p class="text-lg font-bold text-white">Total Plan Amount</p>
+                    <p class="text-2xl text-gradient">${totalPlanAmount.toLocaleString()} MMK</p>
+                </div>
+                <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                    <p class="text-lg font-bold text-white">Total Withdrawals</p>
+                    <p class="text-2xl text-gradient">${totalWithdrawalAmount.toLocaleString()} MMK</p>
+                </div>
+            `;
+        }
+
+        async function loadPendingPlans() {
+            const { data: plans } = await supabase.from('purchased_plans').select('*, users(username)').eq('status', 'pending');
+            const pendingPlans = document.getElementById('pending-plans');
+            pendingPlans.innerHTML = '';
+            plans.forEach(plan => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <p>Username: ${plan.users.username}</p>
+                    <p>Plan: ${plan.plan_name}</p>
+                    <p>Amount: ${plan.amount.toLocaleString()} MMK</p>
+                    <p>Return: ${plan.return_amount.toLocaleString()} MMK</p>
+                    <p>Payment Method: ${plan.payment_method}</p>
+                    <img src="${supabase.storage.from('payment-proofs').getPublicUrl(plan.payment_proof).data.publicUrl}" class="w-full h-48 object-cover mt-2 rounded-lg">
+                    <button class="approve-plan w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-plan-id="${plan.id}">Approve</button>
+                    <button class="reject-plan w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-plan-id="${plan.id}">Reject</button>
+                `;
+                pendingPlans.appendChild(div);
+            });
+
+            document.querySelectorAll('.approve-plan').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const planId = button.dataset.planId;
+                    await supabase.from('purchased_plans').update({ status: 'approved' }).eq('id', planId);
+                    alert('Plan approved');
+                    loadPendingPlans();
+                    loadStats();
+                });
+            });
+
+            document.querySelectorAll('.reject-plan').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const planId = button.dataset.planId;
+                    await supabase.from('purchased_plans').update({ status: 'rejected' }).eq('id', planId);
+                    alert('Plan rejected');
+                    loadPendingPlans();
+                });
+            });
+
+            document.getElementById('plan-search').addEventListener('input', async (e) => {
+                const search = e.target.value.toLowerCase();
+                const { data: plans } = await supabase.from('purchased_plans').select('*, users(username)').eq('status', 'pending');
+                pendingPlans.innerHTML = '';
+                plans.filter(plan => plan.users.username.toLowerCase().includes(search) || plan.plan_name.toLowerCase().includes(search)).forEach(plan => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                    div.innerHTML = `
+                        <p>Username: ${plan.users.username}</p>
+                        <p>Plan: ${plan.plan_name}</p>
+                        <p>Amount: ${plan.amount.toLocaleString()} MMK</p>
+                        <p>Return: ${plan.return_amount.toLocaleString()} MMK</p>
+                        <p>Payment Method: ${plan.payment_method}</p>
+                        <img src="${supabase.storage.from('payment-proofs').getPublicUrl(plan.payment_proof).data.publicUrl}" class="w-full h-48 object-cover mt-2 rounded-lg">
+                        <button class="approve-plan w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-plan-id="${plan.id}">Approve</button>
+                        <button class="reject-plan w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-plan-id="${plan.id}">Reject</button>
+                    `;
+                    pendingPlans.appendChild(div);
+                });
+            });
+        }
+
+        async function loadPendingWithdrawals() {
+            const { data: withdrawals } = await supabase.from('withdrawals').select('*, users(username)').eq('status', 'pending');
+            const pendingWithdrawals = document.getElementById('pending-withdrawals');
+            pendingWithdrawals.innerHTML = '';
+            withdrawals.forEach(withdrawal => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <p>Username: ${withdrawal.users.username}</p>
+                    <p>Amount: ${withdrawal.amount.toLocaleString()} MMK</p>
+                    <p>Payment Method: ${withdrawal.payment_method}</p>
+                    <p>Phone: ${withdrawal.phone_number}</p>
+                    <p>Account Name: ${withdrawal.account_name}</p>
+                    <button class="approve-withdrawal w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-withdrawal-id="${withdrawal.id}">Approve</button>
+                    <button class="reject-withdrawal w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-withdrawal-id="${withdrawal.id}">Reject</button>
+                `;
+                pendingWithdrawals.appendChild(div);
+            });
+
+            document.querySelectorAll('.approve-withdrawal').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const withdrawalId = button.dataset.withdrawalId;
+                    const { data: withdrawal } = await supabase.from('withdrawals').select('*, users(username, total_withdrawn)').eq('id', withdrawalId).single();
+                    await supabase.from('withdrawals').update({ status: 'approved' }).eq('id', withdrawalId);
+                    await supabase.from('users').update({ total_withdrawn: withdrawal.users.total_withdrawn + withdrawal.amount }).eq('id', withdrawal.user_id);
+                    alert('Withdrawal approved');
+                    loadPendingWithdrawals();
+                    loadStats();
+                });
+            });
+
+            document.querySelectorAll('.reject-withdrawal').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const withdrawalId = button.dataset.withdrawalId;
+                    const { data: withdrawal } = await supabase.from('withdrawals').select('user_id').eq('id', withdrawalId).single();
+                    await supabase.from('withdrawals').update({ status: 'rejected' }).eq('id', withdrawalId);
+                    const { data: user } = await supabase.from('users').select('balance').eq('id', withdrawal.user_id).single();
+                    await supabase.from('users').update({ balance: user.balance + withdrawal.amount }).eq('id', withdrawal.user_id);
+                    alert('Withdrawal rejected');
+                    loadPendingWithdrawals();
+                });
+            });
+
+            document.getElementById('withdrawal-search').addEventListener('input', async (e) => {
+                const search = e.target.value.toLowerCase();
+                const { data: withdrawals } = await supabase.from('withdrawals').select('*, users(username)').eq('status', 'pending');
+                pendingWithdrawals.innerHTML = '';
+                withdrawals.filter(withdrawal => withdrawal.users.username.toLowerCase().includes(search)).forEach(withdrawal => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                    div.innerHTML = `
+                        <p>Username: ${withdrawal.users.username}</p>
+                        <p>Amount: ${withdrawal.amount.toLocaleString()} MMK</p>
+                        <p>Payment Method: ${withdrawal.payment_method}</p>
+                        <p>Phone: ${withdrawal.phone_number}</p>
+                        <p>Account Name: ${withdrawal.account_name}</p>
+                        <button class="approve-withdrawal w-full bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700 transition-all transform hover:scale-105 mt-2" data-withdrawal-id="${withdrawal.id}">Approve</button>
+                        <button class="reject-withdrawal w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-withdrawal-id="${withdrawal.id}">Reject</button>
+                    `;
+                    pendingWithdrawals.appendChild(div);
+                });
+            });
+        }
+
+        async function loadPlans() {
+            const { data: plans } = await supabase.from('plans').select('*');
+            const planList = document.getElementById('plan-list');
+            planList.innerHTML = '';
+            plans.forEach(plan => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <img src="${plan.icon}" class="w-16 h-16 mb-2 rounded">
+                    <p class="font-bold text-white">${plan.name}</p>
+                    <p>Cost: ${plan.cost.toLocaleString()} MMK</p>
+                    <p>Return: ${plan.return_amount.toLocaleString()} MMK</p>
+                    <p>Duration: ${plan.duration} days</p>
+                    <p>Mining Power: ${plan.mining_power}</p>
+                    <button class="delete-plan w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-plan-id="${plan.id}">Delete</button>
+                `;
+                planList.appendChild(div);
+            });
+
+            document.querySelectorAll('.delete-plan').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const planId = button.dataset.planId;
+                    await supabase.from('plans').delete().eq('id', planId);
+                    alert('Plan deleted');
+                    loadPlans();
+                });
+            });
+        }
+
+        async function loadTasks() {
+            const { data: tasks } = await supabase.from('tasks').select('*');
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <p class="font-bold text-white">${task.title}</p>
+                    <p>Reward: ${task.reward_type === 'cash' ? `${task.reward_amount.toLocaleString()} MMK` : `${task.reward_amount} MMK/sec for ${task.reward_duration} days`}</p>
+                    <p>Claim Limit: ${task.claim_limit}</p>
+                    <a href="${task.social_link}" target="_blank" class="text-indigo-400 hover:text-indigo-300">Visit Link</a>
+                    <button class="delete-task w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-task-id="${task.id}">Delete</button>
+                `;
+                taskList.appendChild(div);
+            });
+
+            document.querySelectorAll('.delete-task').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const taskId = button.dataset.taskId;
+                    await supabase.from('tasks').delete().eq('id', taskId);
+                    alert('Task deleted');
+                    loadTasks();
+                });
+            });
+        }
+
+        async function loadUserStats() {
+            const { data: users } = await supabase.from('users').select('*');
+            const userStats = document.getElementById('user-stats');
+            userStats.innerHTML = '';
+            users.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <p>Username: ${user.username}</p>
+                    <p>Name: ${user.name}</p>
+                    <p>Level: ${user.level}</p>
+                    <p>Balance: ${user.balance.toLocaleString()} MMK</p>
+                    <p>Total Withdrawn: ${user.total_withdrawn.toLocaleString()} MMK</p>
+                    <button class="ban-user w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-user-id="${user.id}" data-banned="${user.banned}">${user.banned ? 'Unban' : 'Ban'}</button>
+                `;
+                userStats.appendChild(div);
+            });
+
+            document.querySelectorAll('.ban-user').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const userId = button.dataset.userId;
+                    const banned = button.dataset.banned === 'true';
+                    await supabase.from('users').update({ banned: !banned }).eq('id', userId);
+                    alert(`User ${banned ? 'unbanned' : 'banned'}`);
+                    loadUserStats();
+                });
+            });
+
+            document.getElementById('user-search').addEventListener('input', async (e) => {
+                const search = e.target.value.toLowerCase();
+                const { data: users } = await supabase.from('users').select('*');
+                userStats.innerHTML = '';
+                users.filter(user => user.username.toLowerCase().includes(search) || user.name.toLowerCase().includes(search)).forEach(user => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                    div.innerHTML = `
+                        <p>Username: ${user.username}</p>
+                        <p>Name: ${user.name}</p>
+                        <p>Level: ${user.level}</p>
+                        <p>Balance: ${user.balance.toLocaleString()} MMK</p>
+                        <p>Total Withdrawn: ${user.total_withdrawn.toLocaleString()} MMK</p>
+                        <button class="ban-user w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-user-id="${user.id}" data-banned="${user.banned}">${user.banned ? 'Unban' : 'Ban'}</button>
+                    `;
+                    userStats.appendChild(div);
+                });
+            });
+        }
+
+        async function loadLevels() {
+            const { data: levels } = await supabase.from('levels').select('*');
+            const levelList = document.getElementById('level-list');
+            levelList.innerHTML = '';
+            levels.forEach(level => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <img src="${level.icon}" class="w-16 h-16 mb-2 rounded">
+                    <p>Level: ${level.level}</p>
+                    <p>Amount: ${level.amount.toLocaleString()} MMK</p>
+                    <p>Icon Style: ${level.icon_style}</p>
+                    <button class="delete-level w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-level-id="${level.id}">Delete</button>
+                `;
+                levelList.appendChild(div);
+            });
+
+            document.querySelectorAll('.delete-level').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const levelId = button.dataset.levelId;
+                    await supabase.from('levels').delete().eq('id', levelId);
+                    alert('Level deleted');
+                    loadLevels();
+                });
+            });
+        }
+
+        async function loadNews() {
+            const { data: news } = await supabase.from('news').select('*').order('created_at', { ascending: false });
+            const newsList = document.getElementById('news-list');
+            newsList.innerHTML = '';
+            news.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <h3 class="font-bold text-white">${item.title}</h3>
+                    <p>${item.content}</p>
+                    ${item.image ? `<img src="${item.image}" class="w-full h-48 object-cover mt-2 rounded-lg">` : ''}
+                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(item.created_at))}</p>
+                    <button class="delete-news w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-news-id="${item.id}">Delete</button>
+                `;
+                newsList.appendChild(div);
+            });
+
+            document.querySelectorAll('.delete-news').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const newsId = button.dataset.newsId;
+                    await supabase.from('news').delete().eq('id', newsId);
+                    alert('News deleted');
+                    loadNews();
+                });
+            });
+        }
+
+        async function loadSocial() {
+            const { data: social } = await supabase.from('social_videos').select('*').order('created_at', { ascending: false });
+            const socialList = document.getElementById('social-list');
+            socialList.innerHTML = '';
+            social.forEach(video => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 p-4 rounded-lg border border-gray-700';
+                div.innerHTML = `
+                    <iframe src="${video.url}" class="w-full h-48 rounded-lg"></iframe>
+                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(video.created_at))}</p>
+                    <button class="delete-social w-full bg-red-600 p-3 rounded-lg hover:bg-red-700 transition-all transform hover:scale-105 mt-2" data-social-id="${video.id}">Delete</button>
+                `;
+                socialList.appendChild(div);
+            });
+
+            document.querySelectorAll('.delete-social').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const socialId = button.dataset.socialId;
+                    await supabase.from('social_videos').delete().eq('id', socialId);
+                    alert('Social video deleted');
+                    loadSocial();
+                });
+            });
+        }
+
+        async function loadSupportUsers() {
+            const { data: users } = await supabase.from('users').select('id, username');
+            const supportUserSelect = document.getElementById('support-user');
+            supportUserSelect.innerHTML = '<option value="">Select User</option>';
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = user.username;
+                supportUserSelect.appendChild(option);
+            });
+        }
+
+        async function loadSupportChat(userId) {
+            if (!userId) return;
+            const { data: messages } = await supabase.from('support_chat').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+            const supportMessages = document.getElementById('support-messages');
+            supportMessages.innerHTML = '';
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `p-2 rounded-lg mb-2 ${msg.is_admin ? 'bg-indigo-600/50 text-right' : 'bg-gray-800/50'} border border-gray-700`;
+                div.innerHTML = `
+                    <p>${msg.is_admin ? 'Admin' : msg.username}: ${msg.message}</p>
+                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(msg.created_at))}</p>
+                `;
+                supportMessages.appendChild(div);
+            });
+
+            supabase.channel(`support_chat_${userId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_chat', filter: `user_id=eq.${userId}` }, payload => {
+                const div = document.createElement('div');
+                div.className = `p-2 rounded-lg mb-2 ${payload.new.is_admin ? 'bg-indigo-600/50 text-right' : 'bg-gray-800/50'} border border-gray-700`;
+                div.innerHTML = `
+                    <p>${payload.new.is_admin ? 'Admin' : payload.new.username}: ${payload.new.message}</p>
+                    <p class="text-sm text-gray-400">${formatTimeAgo(new Date(payload.new.created_at))}</p>
+                `;
+                supportMessages.appendChild(div);
+                supportMessages.scrollTop = supportMessages.scrollHeight;
+            }).subscribe();
+        }
+
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            if (seconds < 60) return `${seconds}s`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h`;
+            const days = Math.floor(hours / 24);
+            return `${days}d`;
+        }
+
+        document.getElementById('add-plan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('plan-name').value;
+            const cost = parseInt(document.getElementById('plan-cost').value);
+            const returnAmount = parseInt(document.getElementById('plan-return').value);
+            const duration = parseInt(document.getElementById('plan-duration').value);
+            const miningPower = parseInt(document.getElementById('plan-mining-power').value);
+            const icon = document.getElementById('plan-icon').files[0];
+
+            if (!icon) {
+                alert('Please upload an icon');
+                return;
+            }
+            const { data: uploadData, error: uploadError } = await supabase.storage.from('plan-icons').upload(`icons/${Date.now()}_${icon.name}`, icon);
+            if (uploadError) {
+                alert('Error uploading icon');
+                return;
+            }
+            const { error } = await supabase.from('plans').insert({
+                name,
+                cost,
+                return_amount: returnAmount,
+                duration,
+                mining_power: miningPower,
+                icon: supabase.storage.from('plan-icons').getPublicUrl(uploadData.path).data.publicUrl
+            });
+            if (error) {
+                alert('Error adding plan');
+                return;
+            }
+            alert('Plan added successfully');
+            document.getElementById('add-plan').reset();
+            loadPlans();
+        });
+
+        document.getElementById('add-task').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('task-title').value;
+            const socialLink = document.getElementById('task-link').value;
+            const claimLimit = parseInt(document.getElementById('task-limit').value);
+            const rewardType = document.getElementById('task-reward-type').value;
+            const rewardAmount = parseInt(document.getElementById('task-reward-amount').value);
+            const rewardDuration = parseInt(document.getElementById('task-reward-duration').value) || 0;
+
+            const { error } = await supabase.from('tasks').insert({
+                title,
+                social_link: socialLink,
+                claim_limit: claimLimit,
+                reward_type: rewardType,
+                reward_amount: rewardAmount,
+                reward_duration: rewardType === 'mmk_per_sec' ? rewardDuration : null
+            });
+            if (error) {
+                alert('Error adding task');
+                return;
+            }
+            alert('Task added successfully');
+            document.getElementById('add-task').reset();
+            loadTasks();
+        });
+
+        document.getElementById('task-reward-type').addEventListener('change', (e) => {
+            const rewardDurationInput = document.getElementById('task-reward-duration');
+            if (e.target.value === 'mmk_per_sec') {
+                rewardDurationInput.classList.remove('hidden');
+            } else {
+                rewardDurationInput.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('add-level').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const level = parseInt(document.getElementById('level-number').value);
+            const amount = parseInt(document.getElementById('level-amount').value);
+            const icon = document.getElementById('level-icon').files[0];
+            const iconStyle = document.getElementById('level-icon-style').value;
+
+            if (!icon) {
+                alert('Please upload an icon');
+                return;
+            }
+            const { data: uploadData, error: uploadError } = await supabase.storage.from('level-icons').upload(`icons/${Date.now()}_${icon.name}`, icon);
+            if (uploadError) {
+                alert('Error uploading icon');
+                return;
+            }
+            const { error } = await supabase.from('levels').insert({
+                level,
+                amount,
+                icon: supabase.storage.from('level-icons').getPublicUrl(uploadData.path).data.publicUrl,
+                icon_style: iconStyle
+            });
+            if (error) {
+                alert('Error adding level');
+                return;
+            }
+            alert('Level added successfully');
+            document.getElementById('add-level').reset();
+            loadLevels();
+        });
+
+        document.getElementById('add-news').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('news-title').value;
+            const content = document.getElementById('news-content').value;
+            const image = document.getElementById('news-image').files[0];
+            let imageUrl = null;
+
+            if (image) {
+                const { data: uploadData, error: uploadError } = await supabase.storage.from('news-images').upload(`images/${Date.now()}_${image.name}`, image);
+                if (uploadError) {
+                    alert('Error uploading image');
+                    return;
+                }
+                imageUrl = supabase.storage.from('news-images').getPublicUrl(uploadData.path).data.publicUrl;
+            }
+            const { error } = await supabase.from('news').insert({ title, content, image: imageUrl });
+            if (error) {
+                alert('Error adding news');
+                return;
+            }
+            alert('News added successfully');
+            document.getElementById('add-news').reset();
+            loadNews();
+        });
+
+        document.getElementById('add-social').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('social-url').value;
+            const { error } = await supabase.from('social_videos').insert({ url });
+            if (error) {
+                alert('Error adding social video');
+                return;
+            }
+            alert('Social video added successfully');
+            document.getElementById('add-social').reset();
+            loadSocial();
+        });
+
+        document.getElementById('send-support').addEventListener('click', async () => {
+            const userId = document.getElementById('support-user').value;
+            const message = document.getElementById('support-input').value;
+            if (!userId || !message) {
+                alert('Please select a user and enter a message');
+                return;
+            }
+            const { error } = await supabase.from('support_chat').insert({
+                user_id: userId,
+                username: currentUser.user_metadata.username,
+                message,
+                is_admin: true
+            });
+            if (error) {
+                alert('Error sending message');
+                return;
+            }
+            document.getElementById('support-input').value = '';
+        });
+
+        document.getElementById('support-user').addEventListener('change', (e) => {
+            loadSupportChat(e.target.value);
+        });
+
+        // Initialize
+        checkAdmin().then(isAdmin => {
+            if (isAdmin) {
+                loadStats();
+                loadPendingPlans();
+                loadPendingWithdrawals();
+                loadPlans();
+                loadTasks();
+                loadUserStats();
+                loadLevels();
+                loadNews();
+                loadSocial();
+                loadSupportUsers();
+            }
+        });
+
+        // Loading Animation
+        window.addEventListener('load', () => {
+            gsap.to('#loading-overlay', { opacity: 0, duration: 0.5, delay: 1, onComplete: () => {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }});
+        });
+    </script>
+</body>
+</html>
