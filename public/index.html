@@ -1,205 +1,191 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aura Mine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mining App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #0D1117;
-            --bg-med: #161B22;
-            --bg-light: #21262D;
-            --border-color: #30363D;
-            --text-primary: #C9D1D9;
-            --text-secondary: #8B949E;
-            --accent-blue: #58A6FF;
-            --accent-green: #3FB950;
-            --accent-red: #F85149;
-            --accent-purple: #BC8CFF;
-        }
-        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-primary);
-            overscroll-behavior-y: contain;
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark background */
+            color: #f9fafb;
         }
-        .glass-card {
-            background: rgba(33, 38, 45, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-        }
-        .btn-primary {
-            background-image: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover { box-shadow: 0 0 15px rgba(188, 140, 255, 0.5); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* Custom scrollbar for menu */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        
         /* Mining Animation */
-        .mining-container { perspective: 1000px; }
-        .mining-core {
-            width: 180px; height: 180px;
+        .mining-circle {
             position: relative;
-            transform-style: preserve-3d;
-            animation: spin-3d 20s linear infinite;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: conic-gradient(from 0deg, #84cc16, #22c55e, #10b981, #06b6d4, #3b82f6, #8b5cf6, #d946ef, #ec4899, #f43f5e, #84cc16);
+            animation: spin 10s linear infinite;
         }
-        .ring {
+        .mining-circle-inner {
             position: absolute;
-            width: 100%; height: 100%;
+            width: 180px;
+            height: 180px;
+            background-color: #1f2937;
             border-radius: 50%;
-            border: 2px solid;
-            transform-style: preserve-3d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
-        .ring-1 { border-color: var(--accent-blue); transform: rotateY(20deg) rotateX(70deg); animation: pulse 2s infinite ease-in-out; }
-        .ring-2 { border-color: var(--accent-green); transform: rotateY(-20deg) rotateX(70deg); animation: pulse 2s infinite 0.5s ease-in-out; }
-        .ring-3 { border-color: var(--accent-purple); transform: rotateY(180deg) rotateX(70deg); animation: pulse 2s infinite 1s ease-in-out; }
-        .mining-center {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 150px; height: 150px;
+        .mining-circle-outer {
+            position: absolute;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: radial-gradient(circle, var(--bg-light) 0%, var(--bg-med) 100%);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            border: 2px dashed #4b5563;
+            animation: spin-reverse 15s linear infinite;
         }
-        @keyframes spin-3d { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
-        .paused-animation { animation-play-state: paused !important; }
-
-        /* Modal */
-        .modal-backdrop {
-            position: fixed; inset: 0; z-index: 40;
-            background-color: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
-            display: none;
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        .modal-content {
-            position: fixed; top: 50%; left: 50%; z-index: 50;
-            transform: translate(-50%, -50%) scale(0.95);
-            opacity: 0;
-            transition: all 0.3s ease-out;
-            display: none;
+        @keyframes spin-reverse {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
         }
-        .modal-open .modal-backdrop { display: block; }
-        .modal-open .modal-content { display: block; transform: translate(-50%, -50%) scale(1); opacity: 1; }
-
-        /* Toast */
+        .paused-animation {
+            animation-play-state: paused;
+        }
         .toast {
-            position: fixed; top: 20px; right: 20px; z-index: 1000;
-            transform: translateX(120%);
-            transition: transform 0.5s ease-in-out;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        .toast.show { transform: translateX(0); }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast-success { background-color: #22c55e; }
+        .toast-error { background-color: #ef4444; }
+        .toast-info { background-color: #3b82f6; }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <!-- Global Loading Spinner -->
-    <div id="global-loader" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] hidden">
-        <div class="w-16 h-16 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
-    </div>
-
     <!-- Toast Notification -->
-    <div id="toast" class="toast glass-card p-4 rounded-lg shadow-lg flex items-center gap-3">
+    <div id="toast" class="toast">
         <span id="toast-icon"></span>
-        <span id="toast-message" class="font-medium"></span>
-    </div>
-
-    <!-- Banned User Overlay -->
-    <div id="banned-overlay" class="fixed inset-0 bg-red-900 bg-opacity-90 z-[5000] hidden flex-col items-center justify-center text-center p-4">
-        <i data-lucide="shield-ban" class="w-24 h-24 text-red-300 mb-4"></i>
-        <h1 class="text-3xl font-bold text-white">Account Banned</h1>
-        <p class="mt-2 text-red-200">Your account has been suspended. Please contact support.</p>
-        <button id="banned-logout-btn" class="mt-8 bg-white text-red-600 font-bold py-2 px-6 rounded-lg">Logout</button>
+        <span id="toast-message"></span>
     </div>
 
     <!-- Auth Section -->
     <div id="auth-section" class="flex-grow flex items-center justify-center p-4">
-        <div class="w-full max-w-md glass-card p-8 rounded-2xl">
+        <div class="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg">
             <!-- Login Form -->
             <div id="login-form">
-                <h2 class="text-3xl font-bold text-center mb-6">Welcome Back</h2>
-                <form id="login-form-element">
+                <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+                <form onsubmit="handleLogin(event)">
                     <div class="mb-4">
-                        <label for="login-username" class="block mb-2 text-sm font-medium text-text-secondary">Username</label>
-                        <input type="text" id="login-username" class="w-full bg-bg-light border border-border-color rounded-lg p-3 focus:ring-2 focus:ring-accent-blue focus:border-accent-blue outline-none" required>
+                        <label for="login-username" class="block mb-2 text-sm font-medium">Username</label>
+                        <input type="text" id="login-username" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" required>
                     </div>
                     <div class="mb-6">
-                        <label for="login-password" class="block mb-2 text-sm font-medium text-text-secondary">Password</label>
-                        <input type="password" id="login-password" class="w-full bg-bg-light border border-border-color rounded-lg p-3 focus:ring-2 focus:ring-accent-blue focus:border-accent-blue outline-none" required>
+                        <label for="login-password" class="block mb-2 text-sm font-medium">Password</label>
+                        <input type="password" id="login-password" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" required>
                     </div>
-                    <button type="submit" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg">Login</button>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Login</button>
                 </form>
-                <p class="text-center text-sm mt-4 text-text-secondary">Don't have an account? <a href="#" id="show-signup" class="text-accent-blue hover:underline font-medium">Sign Up</a></p>
+                <p class="text-center text-sm mt-4">Don't have an account? <a href="#" onclick="toggleAuthForms()" class="text-blue-500 hover:underline">Sign Up</a></p>
             </div>
             <!-- Sign Up Form -->
             <div id="signup-form" class="hidden">
-                <h2 class="text-3xl font-bold text-center mb-6">Create Account</h2>
-                <form id="signup-form-element">
+                <h2 class="text-2xl font-bold text-center mb-6">Sign Up</h2>
+                <form onsubmit="handleSignUp(event)">
                     <div class="mb-4">
-                        <label for="signup-name" class="block mb-2 text-sm font-medium text-text-secondary">Name</label>
-                        <input type="text" id="signup-name" class="w-full bg-bg-light border border-border-color rounded-lg p-3" required>
+                        <label for="signup-name" class="block mb-2 text-sm font-medium">Name</label>
+                        <input type="text" id="signup-name" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5" required>
                     </div>
                     <div class="mb-4">
-                        <label for="signup-username" class="block mb-2 text-sm font-medium text-text-secondary">Username</label>
-                        <input type="text" id="signup-username" class="w-full bg-bg-light border border-border-color rounded-lg p-3" required>
+                        <label for="signup-username" class="block mb-2 text-sm font-medium">Username</label>
+                        <input type="text" id="signup-username" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5" required>
                     </div>
                     <div class="mb-4">
-                        <label for="signup-password" class="block mb-2 text-sm font-medium text-text-secondary">Password</label>
-                        <input type="password" id="signup-password" class="w-full bg-bg-light border border-border-color rounded-lg p-3" minlength="6" required>
+                        <label for="signup-password" class="block mb-2 text-sm font-medium">Password</label>
+                        <input type="password" id="signup-password" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5" minlength="6" required>
                     </div>
                     <div class="mb-6">
-                        <label for="signup-pin" class="block mb-2 text-sm font-medium text-text-secondary">Withdraw PIN (6 digits)</label>
-                        <input type="password" id="signup-pin" class="w-full bg-bg-light border border-border-color rounded-lg p-3" pattern="\d{6}" title="PIN must be 6 digits" required>
+                        <label for="signup-pin" class="block mb-2 text-sm font-medium">Withdraw PIN (6 digits)</label>
+                        <input type="password" id="signup-pin" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5" pattern="\d{6}" title="PIN must be 6 digits" required>
                     </div>
-                    <button type="submit" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg">Sign Up</button>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Sign Up</button>
                 </form>
-                <p class="text-center text-sm mt-4 text-text-secondary">Already have an account? <a href="#" id="show-login" class="text-accent-blue hover:underline font-medium">Login</a></p>
+                <p class="text-center text-sm mt-4">Already have an account? <a href="#" onclick="toggleAuthForms()" class="text-blue-500 hover:underline">Login</a></p>
             </div>
         </div>
     </div>
 
     <!-- Main App Section -->
     <div id="app-section" class="hidden flex-grow flex flex-col overflow-hidden">
+        <!-- Main Content Area -->
         <main id="main-content" class="flex-grow overflow-y-auto p-4 pb-24">
-            <!-- Page content will be injected here -->
+            <!-- Each page content will be injected here -->
+            <div id="page-mining" class="page-content"></div>
+            <div id="page-history" class="page-content hidden"></div>
+            <div id="page-buy-plan" class="page-content hidden"></div>
+            <div id="page-tasks" class="page-content hidden"></div>
+            <div id="page-profile" class="page-content hidden"></div>
+            <div id="page-global-chat" class="page-content hidden"></div>
+            <div id="page-support-admin" class="page-content hidden"></div>
+            <div id="page-news" class="page-content hidden"></div>
+            <div id="page-feed" class="page-content hidden"></div>
+            <div id="page-social-video" class="page-content hidden"></div>
+            <div id="page-about" class="page-content hidden"></div>
         </main>
 
-        <nav class="fixed bottom-0 left-0 right-0 bg-bg-med border-t border-border-color">
-            <div id="menu-container" class="flex justify-around overflow-x-auto no-scrollbar p-1">
+        <!-- Bottom Navigation Bar -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 shadow-lg">
+            <div id="menu-container" class="flex overflow-x-auto no-scrollbar p-2 space-x-2">
                 <!-- Menu items will be injected by JS -->
             </div>
         </nav>
     </div>
 
-    <!-- Modals Container -->
-    <div id="modals-container"></div>
-
     <script>
-        // --- SUPABASE & GLOBAL SETUP ---
-        const SUPABASE_URL = 'https://vuecdeskfiiblejwqxfz.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZWNkZXNrZmlpYmxlandxeGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzc1MjksImV4cCI6MjA2ODg1MzUyOX0.CPqX0xQHNp-UzAf0t5rXSP6LQeQdffqTTx9LWJLFQ9c';
+        // --- SUPABASE SETUP ---
+        const SUPABASE_URL = 'https://vuecdeskfiiblejwqxfz.supabase.co'; // <-- Replace with your Supabase URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZWNkZXNrZmlpYmxlandxeGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzc1MjksImV4cCI6MjA2ODg1MzUyOX0.CPqX0xQHNp-UzAf0t5rXSP6LQeQdffqTTx9LWJLFQ9c'; // <-- Replace with your Supabase Anon Key
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // --- GLOBAL STATE ---
         let currentUser = null;
         let userProfile = null;
         let activePlan = null;
         let miningInterval = null;
-        let realtimeChannels = [];
 
+        // --- UI ELEMENTS ---
+        const authSection = document.getElementById('auth-section');
+        const appSection = document.getElementById('app-section');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const mainContent = document.getElementById('main-content');
+        const menuContainer = document.getElementById('menu-container');
+
+        // --- MENU ITEMS ---
         const menuItems = [
             { id: 'mining', label: 'Mining', icon: 'pickaxe' },
             { id: 'history', label: 'History', icon: 'history' },
@@ -214,24 +200,14 @@
             { id: 'about', label: 'About', icon: 'info' },
         ];
 
-        // --- DOM ELEMENTS ---
-        const authSection = document.getElementById('auth-section');
-        const appSection = document.getElementById('app-section');
-        const mainContent = document.getElementById('main-content');
-        const menuContainer = document.getElementById('menu-container');
-        const globalLoader = document.getElementById('global-loader');
-
-        // --- HELPER FUNCTIONS ---
-        const showLoader = () => globalLoader.classList.remove('hidden');
-        const hideLoader = () => globalLoader.classList.add('hidden');
-
+        // --- TOAST NOTIFICATION ---
         function showToast(message, type = 'info') {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
             const toastIcon = document.getElementById('toast-icon');
             
             toastMessage.textContent = message;
-            toast.className = 'toast glass-card p-4 rounded-lg shadow-lg flex items-center gap-3';
+            toast.className = 'toast show';
             
             if (type === 'success') {
                 toast.classList.add('toast-success');
@@ -250,26 +226,14 @@
             }, 3000);
         }
 
-        function openModal(modalId) { document.body.classList.add('modal-open'); document.getElementById(modalId).style.display = 'block'; }
-        function closeModal(modalId) { document.body.classList.remove('modal-open'); document.getElementById(modalId).style.display = 'none'; }
-
-        function formatTimeAgo(date) {
-            const now = new Date();
-            const diff = now - date;
-            const seconds = Math.floor(diff / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-
-            if (days > 0) return `${days}d ago`;
-            if (hours > 0) return `${hours}h ago`;
-            if (minutes > 0) return `${minutes}m ago`;
-            return `${seconds}s ago`;
+        // --- AUTH FUNCTIONS ---
+        function toggleAuthForms() {
+            loginForm.classList.toggle('hidden');
+            signupForm.classList.toggle('hidden');
         }
 
-        // --- AUTH & INITIALIZATION ---
-        async function handleSignUp(e) {
-            e.preventDefault();
+        async function handleSignUp(event) {
+            event.preventDefault();
             const name = document.getElementById('signup-name').value;
             const username = document.getElementById('signup-username').value;
             const password = document.getElementById('signup-password').value;
@@ -291,13 +255,13 @@
                 showToast(error.message, 'error');
             } else {
                 showToast('Sign up successful! Please login.', 'success');
-                document.getElementById('show-login').click();
-                e.target.reset();
+                toggleAuthForms();
+                event.target.reset();
             }
         }
 
-        async function handleLogin(e) {
-            e.preventDefault();
+        async function handleLogin(event) {
+            event.preventDefault();
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
@@ -322,11 +286,10 @@
             authSection.style.display = 'flex';
             appSection.style.display = 'none';
             if(miningInterval) clearInterval(miningInterval);
-            document.body.classList.remove('modal-open');
         }
 
+        // --- APP INITIALIZATION ---
         async function checkUserSession() {
-            showLoader();
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 currentUser = session.user;
@@ -335,40 +298,50 @@
                 authSection.style.display = 'flex';
                 appSection.style.display = 'none';
             }
-            hideLoader();
         }
 
         async function initializeApp() {
-            const { data, error } = await supabase.from('profiles').select(`*, levels(*)`).eq('id', currentUser.id).single();
-            if (error || !data) {
-                showToast('Error fetching profile. Logging out.', 'error');
+            const { data, error } = await supabase
+                .from('profiles')
+                .select(`*, levels(*)`)
+                .eq('id', currentUser.id)
+                .single();
+
+            if (error) {
+                showToast('Error fetching profile.', 'error');
                 handleLogout();
                 return;
             }
+            
             userProfile = data;
 
             if (userProfile.is_banned) {
-                document.getElementById('banned-overlay').style.display = 'flex';
+                showToast('Your account has been banned.', 'error');
+                mainContent.innerHTML = `
+                    <div class="text-center p-8">
+                        <h1 class="text-3xl font-bold text-red-500">Account Banned</h1>
+                        <p class="mt-4">Please contact support for more information.</p>
+                        <button onclick="handleLogout()" class="mt-8 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Logout</button>
+                    </div>
+                `;
+                authSection.style.display = 'none';
+                appSection.style.display = 'flex';
+                menuContainer.innerHTML = ''; // Clear menu
                 return;
             }
 
             authSection.style.display = 'none';
             appSection.style.display = 'flex';
+            
             renderMenu();
             navigateTo('mining');
             startRealtimeListeners();
-            await updateOfflineEarnings();
-        }
-        
-        async function updateOfflineEarnings() {
-            console.log("Checking for offline earnings...");
-            // In a real scenario: await supabase.functions.invoke('calculate-offline-earnings');
         }
 
-        // --- UI & NAVIGATION ---
+        // --- UI RENDERING ---
         function renderMenu() {
             menuContainer.innerHTML = menuItems.map(item => `
-                <button onclick="navigateTo('${item.id}')" id="menu-btn-${item.id}" class="flex-1 flex flex-col items-center justify-center p-2 rounded-lg text-text-secondary hover:bg-bg-light hover:text-white transition-colors">
+                <button onclick="navigateTo('${item.id}')" id="menu-btn-${item.id}" class="flex-1 flex flex-col items-center justify-center p-2 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition-colors">
                     <i data-lucide="${item.icon}" class="w-6 h-6"></i>
                     <span class="text-xs mt-1">${item.label}</span>
                 </button>
@@ -377,138 +350,76 @@
         }
 
         function navigateTo(pageId) {
-            mainContent.innerHTML = `<div class="flex justify-center items-center h-full"><div class="w-8 h-8 border-2 border-t-transparent border-blue-500 rounded-full animate-spin"></div></div>`;
-            
-            document.querySelectorAll('[id^="menu-btn-"]').forEach(btn => btn.classList.remove('text-white', 'bg-bg-light'));
-            document.getElementById(`menu-btn-${pageId}`).classList.add('text-white', 'bg-bg-light');
+            document.querySelectorAll('.page-content').forEach(page => page.classList.add('hidden'));
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
 
-            const pageLoaders = {
-                'mining': loadMiningPage,
-                'buy-plan': loadBuyPlanPage,
-                'tasks': loadTasksPage,
-                'profile': loadProfilePage,
-                'history': loadHistoryPage,
-                'global-chat': loadGlobalChatPage,
-                'support-admin': loadSupportChatPage,
-                'news': loadNewsPage,
-                'feed': loadFeedPage,
-                'social-video': loadSocialVideoPage,
-                'about': loadAboutPage,
-            };
-            
-            if (pageLoaders[pageId]) {
-                pageLoaders[pageId]();
-            } else {
-                mainContent.innerHTML = `<h1 class="text-center">Page not found</h1>`;
+            document.querySelectorAll('[id^="menu-btn-"]').forEach(btn => btn.classList.remove('text-white', 'bg-gray-700'));
+            document.getElementById(`menu-btn-${pageId}`).classList.add('text-white', 'bg-gray-700');
+
+            // Load content for the page
+            switch (pageId) {
+                case 'mining': loadMiningPage(); break;
+                case 'buy-plan': loadBuyPlanPage(); break;
+                // Add other page loaders here
+                case 'profile': loadProfilePage(); break;
             }
         }
 
-        // --- PAGE LOADERS (Detailed Implementations) ---
+        // --- PAGE LOADERS ---
         async function loadMiningPage() {
-            mainContent.innerHTML = `
-                <div class="fade-in">
-                    <div class="glass-card rounded-xl p-4 mb-6 flex justify-between items-center">
-                        <div>
-                            <p class="text-sm text-text-secondary">Balance</p>
-                            <p class="text-2xl font-bold">${parseFloat(userProfile.balance).toFixed(4)} MMK</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-sm text-text-secondary">Level</p>
-                            <div class="flex items-center gap-2">
-                                <img src="${userProfile.levels.icon_url}" class="w-6 h-6 rounded-full">
-                                <p class="font-semibold">${userProfile.levels.level_name}</p>
+            const page = document.getElementById('page-mining');
+            page.innerHTML = `
+                <div class="flex flex-col items-center justify-center text-center h-full">
+                    <div class="relative mb-8">
+                        <div id="mining-circle-outer" class="mining-circle-outer"></div>
+                        <div id="mining-circle" class="mining-circle">
+                            <div class="mining-circle-inner">
+                                <span class="text-3xl font-bold" id="mined-balance">0.0000 MMK</span>
+                                <span class="text-sm text-gray-400" id="mining-rate">0.00000000 MMK/sec</span>
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-col items-center justify-center text-center">
-                        <div class="mining-container mb-6">
-                            <div id="mining-core" class="mining-core">
-                                <div class="ring ring-1"></div>
-                                <div class="ring ring-2"></div>
-                                <div class="ring ring-3"></div>
-                                <div class="mining-center">
-                                    <span class="text-3xl font-bold text-white" id="mined-balance">0.0000</span>
-                                    <span class="text-sm text-text-primary">MMK</span>
-                                    <span class="text-xs text-accent-green mt-1" id="mining-rate">0.00/sec</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="plan-status" class="text-lg font-medium">No active plan</div>
-                        <div id="plan-timer" class="text-2xl font-mono text-text-secondary mt-2"></div>
-                    </div>
-                    <div class="mt-8">
+                    <div id="plan-status" class="text-lg">No active plan.</div>
+                    <div id="plan-timer" class="text-2xl font-mono text-gray-300 mt-4"></div>
+                    <div class="mt-8 w-full max-w-md">
                         <h3 class="text-xl font-semibold mb-4">Live Withdrawals</h3>
-                        <div id="live-withdrawals" class="space-y-3 h-48 overflow-y-auto"></div>
-                    </div>
-                </div>
-            `;
-            await checkActivePlan();
-            await loadLiveWithdrawals();
-        }
-        
-        async function loadTasksPage() {
-            mainContent.innerHTML = `...`; // Placeholder for brevity
-            // Logic to fetch all tasks, group them by type, and render them.
-            // Each task card will have a button that calls a function like `handleClaimTask(taskId, taskType, socialLink)`
-        }
-        
-        async function loadFeedPage() {
-            mainContent.innerHTML = `...`; // Placeholder for brevity
-            // Logic for:
-            // 1. A form to create a new post (text + video file input).
-            // 2. An `onchange` event for the file input to validate size (<10MB) and type.
-            // 3. A function to upload the video to Supabase Storage, get the URL, and then insert the post into the `feed_posts` table.
-            // 4. A function to fetch and display all posts with usernames, avatars, content, and videos.
-            // 5. A function `handleLike(postId)` to add/remove likes.
-        }
-        
-        async function loadGlobalChatPage() {
-            mainContent.innerHTML = `
-                <div class="h-full flex flex-col">
-                    <div id="chat-messages" class="flex-grow overflow-y-auto p-4 space-y-4"></div>
-                    <div class="p-4 bg-bg-med">
-                        <form id="chat-form" class="flex gap-2">
-                            <input id="chat-input" class="flex-grow bg-bg-light border border-border-color rounded-full px-4 py-2 outline-none" placeholder="Type a message...">
-                            <button type="submit" class="bg-accent-blue text-white rounded-full p-3"><i data-lucide="send"></i></button>
-                        </form>
+                        <div id="live-withdrawals" class="space-y-2 h-48 overflow-y-auto bg-gray-800 p-2 rounded-lg">
+                           <!-- Live withdrawals will be shown here -->
+                        </div>
                     </div>
                 </div>
             `;
             lucide.createIcons();
-            // Logic to:
-            // 1. Fetch initial messages.
-            // 2. Subscribe to the `global_chat_messages` channel for real-time updates.
-            // 3. Handle form submission to send new messages.
-            // 4. Render messages with user avatar, name, level, and distinguish admin messages.
+            await checkActivePlan();
         }
-
+        
         async function loadProfilePage() {
-            const page = document.getElementById('main-content');
+            const page = document.getElementById('page-profile');
             page.innerHTML = `
                 <div class="p-4">
-                    <div class="glass-card rounded-lg p-6 text-center">
-                        <img src="/placeholder.svg?height=96&width=96" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-accent-blue">
+                    <div class="bg-gray-800 rounded-lg p-6 text-center">
+                        <img src="/placeholder.svg?height=96&width=96" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-blue-500">
                         <h2 class="text-2xl font-bold">${userProfile.full_name}</h2>
-                        <p class="text-text-secondary">@${userProfile.username}</p>
+                        <p class="text-gray-400">@${userProfile.username}</p>
                         <div class="flex items-center justify-center mt-2">
                             <span class="font-semibold">${userProfile.levels.level_name}</span>
                             <img src="${userProfile.levels.icon_url}" class="w-6 h-6 ml-2">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                        <div class="glass-card rounded-lg p-4">
-                            <h3 class="text-text-secondary text-sm">Main Balance</h3>
+                        <div class="bg-gray-800 rounded-lg p-4">
+                            <h3 class="text-gray-400 text-sm">Main Balance</h3>
                             <p class="text-2xl font-bold">${parseFloat(userProfile.balance).toFixed(4)} MMK</p>
                         </div>
-                        <div class="glass-card rounded-lg p-4">
-                            <h3 class="text-text-secondary text-sm">Total Mined</h3>
+                        <div class="bg-gray-800 rounded-lg p-4">
+                            <h3 class="text-gray-400 text-sm">Total Mined</h3>
                             <p class="text-2xl font-bold" id="total-mined-balance">0.00 MMK</p>
                         </div>
                     </div>
                     <div class="mt-6">
-                        <button onclick="openWithdrawModal()" class="w-full btn-primary text-white font-bold py-3 rounded-lg">Withdraw</button>
+                        <button onclick="openWithdrawModal()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">Withdraw</button>
                     </div>
-                    <div class="mt-6">
+                     <div class="mt-6">
                         <button onclick="handleLogout()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">Logout</button>
                     </div>
                 </div>
@@ -516,7 +427,7 @@
         }
 
         async function loadBuyPlanPage() {
-            const page = document.getElementById('main-content');
+            const page = document.getElementById('page-buy-plan');
             page.innerHTML = `<div class="text-center">Loading plans...</div>`;
 
             const { data: plans, error } = await supabase.from('plans').select('*').order('price');
@@ -529,49 +440,24 @@
                 <h1 class="text-2xl font-bold mb-6">Buy a Plan</h1>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     ${plans.map(plan => `
-                        <div class="glass-card rounded-lg p-6 flex flex-col">
+                        <div class="bg-gray-800 rounded-lg p-6 flex flex-col">
                             <img src="${plan.image_url || '/placeholder.svg?height=150&width=250'}" class="rounded-md mb-4 h-32 object-cover">
                             <h2 class="text-xl font-bold">${plan.name}</h2>
-                            <p class="text-text-secondary text-sm mt-1">Duration: ${plan.duration_days} days</p>
+                            <p class="text-gray-400 text-sm mt-1">Duration: ${plan.duration_days} days</p>
                             <div class="my-4 space-y-2 text-left">
                                 <p><strong>Price:</strong> ${plan.price} MMK</p>
                                 <p><strong>Total Return:</strong> ${plan.total_return} MMK</p>
                                 <p><strong>Profit:</strong> ${plan.total_return - plan.price} MMK</p>
-                                <p class="text-accent-green"><strong>Rate:</strong> ${parseFloat(plan.mmk_per_second).toFixed(8)} MMK/sec</p>
+                                <p class="text-green-400"><strong>Rate:</strong> ${parseFloat(plan.mmk_per_second).toFixed(8)} MMK/sec</p>
                             </div>
-                            <button onclick="openPurchaseModal(${plan.id})" class="mt-auto w-full btn-primary text-white font-bold py-2 px-4 rounded-lg">Buy Now</button>
+                            <button onclick="openPurchaseModal(${plan.id})" class="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Buy Now</button>
                         </div>
                     `).join('')}
                 </div>
             `;
         }
 
-        async function loadHistoryPage() {
-            mainContent.innerHTML = `...`; // Placeholder for brevity
-            // Logic to fetch and display user's mining history
-        }
-
-        async function loadSupportChatPage() {
-            mainContent.innerHTML = `...`; // Placeholder for brevity
-            // Logic for support chat
-        }
-
-        async function loadNewsPage() {
-            mainContent.innerHTML = `...`; // Placeholder for brevity
-            // Logic for news page
-        }
-
-        async function loadSocialVideoPage() {
-            mainContent.innerHTML = `...`; // Placeholder for brevity
-            // Logic for social video page
-        }
-
-        async function loadAboutPage() {
-            mainContent.innerHTML = `...`; // Placeholder for brevity
-            // Logic for about page
-        }
-
-        // --- CORE LOGIC (Mining, Tasks, etc.) ---
+        // --- MINING LOGIC ---
         async function checkActivePlan() {
             const { data, error } = await supabase
                 .from('user_plans')
@@ -580,7 +466,8 @@
                 .eq('status', 'active')
                 .single();
 
-            const miningCore = document.getElementById('mining-core');
+            const miningCircle = document.getElementById('mining-circle');
+            const miningCircleOuter = document.getElementById('mining-circle-outer');
             const planStatus = document.getElementById('plan-status');
             const miningRate = document.getElementById('mining-rate');
 
@@ -588,12 +475,14 @@
                 activePlan = data;
                 planStatus.textContent = `Active Plan: ${activePlan.plans.name}`;
                 miningRate.textContent = `${parseFloat(activePlan.plans.mmk_per_second).toFixed(8)} MMK/sec`;
-                if (miningCore) miningCore.classList.remove('paused-animation');
+                miningCircle.classList.remove('paused-animation');
+                miningCircleOuter.classList.remove('paused-animation');
                 startMining();
             } else {
                 planStatus.textContent = 'No active plan.';
                 miningRate.textContent = '0.00000000 MMK/sec';
-                if (miningCore) miningCore.classList.add('paused-animation');
+                if (miningCircle) miningCircle.classList.add('paused-animation');
+                if (miningCircleOuter) miningCircleOuter.classList.add('paused-animation');
             }
         }
 
@@ -614,6 +503,7 @@
                 const endTime = new Date(activePlan.end_time);
 
                 if (now >= endTime) {
+                    // Plan completed
                     clearInterval(miningInterval);
                     planTimerEl.textContent = "Plan Completed";
                     await supabase.from('user_plans').update({ status: 'completed' }).eq('id', activePlan.id);
@@ -638,27 +528,28 @@
             }, 1000);
         }
         
-        async function handleClaimTask(taskId, type, link) {
-            if (type === 'cash' || type === 'power') {
-                // Show a modal "Please visit the link for 5 seconds to claim"
-                // Open link in new tab
-                // Start a 5-second timer on the modal
-                // After 5 seconds, enable the "Claim" button on the modal
-                // On claim, call a Supabase Edge Function to verify and grant reward.
-            } else if (type === 'goal') {
-                // Check userProfile.total_plan_investment against the goal
-                // If met, grant reward.
-            }
+        // This function should be called periodically to sync balance with the server
+        async function syncBalance() {
+            // This is a complex operation. For a static site, the most reliable way is to have a serverless function.
+            // As a simplified client-side approach, we can calculate and update.
+            // In a real app, a Supabase Edge Function would run periodically to update balances.
+            if (!activePlan) return;
+            
+            const now = new Date();
+            const startTime = new Date(activePlan.start_time);
+            const elapsedSeconds = (now - startTime) / 1000;
+            const minedAmount = elapsedSeconds * activePlan.plans.mmk_per_second;
+            
+            // This is where we would update the user's main balance.
+            // For security, this should be a call to a trusted Edge Function.
+            // const { error } = await supabase.rpc('update_mined_balance', { amount_to_add: minedAmount });
         }
 
-        // --- REALTIME ---
+
+        // --- REALTIME LISTENERS ---
         function startRealtimeListeners() {
-            if (realtimeChannels.length > 0) {
-                supabase.removeChannel(...realtimeChannels);
-                realtimeChannels = [];
-            }
-            
-            const profileChannel = supabase.channel(`public:profiles:id=eq.${currentUser.id}`)
+            // Listen for profile changes (e.g., balance updates, ban status)
+            supabase.channel(`public:profiles:id=eq.${currentUser.id}`)
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, payload => {
                     console.log('Profile updated:', payload.new);
                     userProfile = { ...userProfile, ...payload.new };
@@ -673,19 +564,21 @@
                 })
                 .subscribe();
             
-            const planChannel = supabase.channel(`public:user_plans:user_id=eq.${currentUser.id}`)
+            // Listen for plan status changes
+            supabase.channel(`public:user_plans:user_id=eq.${currentUser.id}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'user_plans' }, payload => {
                     showToast('Your plan status has been updated!', 'info');
                     checkActivePlan(); // Re-check active plan on any change
                 })
                 .subscribe();
-            
-            // Add more channels for chat, news, etc.
-            realtimeChannels.push(profileChannel, planChannel);
         }
 
         // --- ONLOAD ---
-        document.addEventListener('DOMContentLoaded', checkUserSession);
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            checkUserSession();
+        });
+
     </script>
 </body>
 </html>
