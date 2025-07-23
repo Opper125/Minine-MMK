@@ -4,6 +4,7 @@ body {
     color: #ffffff;
     margin: 0;
     overflow-x: hidden;
+    min-height: 100vh;
 }
 
 .text-gradient {
@@ -30,6 +31,7 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 9999;
+    transition: opacity 0.5s ease;
 }
 
 .loading-spinner {
@@ -46,9 +48,9 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 1.5rem;
 }
 
 .bg-gray-900\/80 {
@@ -56,28 +58,60 @@ body {
 }
 
 .backdrop-blur-md {
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
 }
 
 .shadow-2xl {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.6), 0 6px 8px -2px rgba(0, 0, 0, 0.4);
 }
 
 input, select, textarea {
     transition: all 0.3s ease;
+    border-radius: 8px;
+    background: rgba(31, 41, 55, 0.5);
+    border: 1px solid #374151;
+    color: #ffffff;
+    padding: 0.75rem;
 }
 
 input:focus, select:focus, textarea:focus {
     outline: none;
+    border-color: #4f46e5;
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
 }
 
 button {
     transition: all 0.3s ease;
+    border-radius: 8px;
 }
 
 button:hover {
     transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.bg-indigo-600 {
+    background: #4b6cb7;
+}
+
+.bg-indigo-600:hover {
+    background: #3b5794;
+}
+
+.bg-red-600 {
+    background: #dc2626;
+}
+
+.bg-red-600:hover {
+    background: #b91c1c;
+}
+
+.bg-gray-800\/50 {
+    background: rgba(31, 41, 55, 0.5);
+}
+
+.border-gray-700 {
+    border-color: #374151;
 }
 
 .fade-in {
@@ -90,87 +124,104 @@ button:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
+.grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.grid-cols-1 {
+    grid-template-columns: 1fr;
+}
+
+.md\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 .mining-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 200px;
-    position: relative;
 }
 
 .mining-circle {
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    background: radial-gradient(circle, #4b6cb7 0%, #182848 70%);
+    background: radial-gradient(circle, rgba(75, 108, 183, 0.5), transparent);
     position: relative;
-    animation: pulse 2s infinite;
-    box-shadow: 0 0 20px rgba(75, 108, 183, 0.5), inset 0 0 10px rgba(75, 108, 183, 0.3);
+    overflow: hidden;
 }
 
 .mining-particles {
     position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, transparent 50%, rgba(75, 108, 183, 0.2) 100%);
-    animation: particleFlow 3s infinite;
+    background: url('https://i.imgur.com/particle-bg.png') repeat;
+    animation: particles 10s linear infinite;
 }
 
-@keyframes particleFlow {
-    0% { transform: rotate(0deg); opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { transform: rotate(360deg); opacity: 0.7; }
+@keyframes particles {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100%); }
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 20px rgba(75, 108, 183, 0.5); }
-    50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(75, 108, 183, 0.8); }
-    100% { transform: scale(1); box-shadow: 0 0 20px rgba(75, 108, 183, 0.5); }
+#global-chat, #support-chat {
+    background: rgba(31, 41, 55, 0.5);
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 1rem;
 }
 
-.menu-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
+#global-chat > div, #support-chat > div {
+    transition: all 0.3s ease;
 }
 
-.menu-item {
-    flex: 1 1 100px;
-    max-width: 120px;
+#global-chat > div:hover, #support-chat > div:hover {
+    background: rgba(55, 65, 81, 0.7);
+}
+
+img, video, iframe {
+    border-radius: 8px;
+    max-width: 100%;
+    height: auto;
+}
+
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (max-width: 768px) {
-    .menu-container {
-        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    .container {
+        padding: 1rem;
     }
 
-    .menu-item button {
-        padding: 0.5rem;
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    button, input, select, textarea {
         font-size: 0.9rem;
     }
 
     .mining-circle {
-        width: 120px;
-        height: 120px;
+        width: 100px;
+        height: 100px;
     }
-}
-
-.success-check {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 40px;
-    height: 40px;
-    background: #4b6cb7;
-    border-radius: 50%;
-    animation: checkPop 0.5s ease;
-}
-
-@keyframes checkPop {
-    0% { transform: scale(0); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
 }
