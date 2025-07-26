@@ -1,0 +1,3197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMK Mining - Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #f59e0b;
+            --secondary-color: #1f2937;
+            --accent-color: #10b981;
+            --danger-color: #ef4444;
+            --text-light: #f9fafb;
+            --text-dark: #374151;
+            --bg-dark: #111827;
+            --bg-light: #1f2937;
+            --border-color: #374151;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1f2937 50%, #111827 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo i {
+            font-size: 32px;
+            color: var(--primary-color);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            padding: 8px 35px 8px 12px;
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-light);
+            width: 250px;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            background: rgba(31, 41, 55, 0.8);
+            padding: 0;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .nav-tabs-container {
+            display: flex;
+            min-width: max-content;
+        }
+
+        .nav-tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-light);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .nav-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(31, 41, 55, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary-color);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(17, 24, 39, 0.8);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .stat-change.positive {
+            color: var(--success-color);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-color);
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(17, 24, 39, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            background: rgba(17, 24, 39, 0.8);
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            color: var(--text-light);
+        }
+
+        .data-table tr:hover {
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(17, 24, 39, 0.8);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-light);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+        }
+
+        .status-approved {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-rejected {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-banned {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-light);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--danger-color);
+        }
+
+        /* Loading States */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: var(--success-color);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--danger-color);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--warning-color);
+        }
+
+        /* Image Upload */
+        .image-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-upload:hover {
+            border-color: var(--primary-color);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .image-upload.dragover {
+            border-color: var(--primary-color);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        /* Chat Styles */
+        .chat-container {
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(17, 24, 39, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .message-avatar.admin {
+            background: var(--danger-color);
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .message-username {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .message-level {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .message-level.admin {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .message-text {
+            color: #d1d5db;
+            line-height: 1.5;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background: rgba(31, 41, 55, 0.8);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            color: var(--text-light);
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #d97706;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-input {
+                width: 200px;
+            }
+
+            .nav-tabs {
+                padding: 0 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 10px 8px;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* Custom Styles for Specific Elements */
+        .receipt-image {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .receipt-image:hover {
+            transform: scale(1.1);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .level-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .notification-badge {
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #9ca3af;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <div class="header-title">MMK Mining Admin</div>
+                        <div style="font-size: 12px; color: #9ca3af;">Management Dashboard</div>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" id="globalSearch" class="search-input" placeholder="Search anything...">
+                        <button class="search-btn" onclick="performGlobalSearch()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <div class="container">
+            <div class="nav-tabs-container">
+                <button class="nav-tab active" onclick="showTab('analytics')">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </button>
+                <button class="nav-tab" onclick="showTab('purchases')">
+                    <i class="fas fa-shopping-cart"></i> Purchase Requests
+                </button>
+                <button class="nav-tab" onclick="showTab('withdrawals')">
+                    <i class="fas fa-money-bill-wave"></i> Withdrawals
+                </button>
+                <button class="nav-tab" onclick="showTab('users')">
+                    <i class="fas fa-users"></i> Users
+                </button>
+                <button class="nav-tab" onclick="showTab('plans')">
+                    <i class="fas fa-gem"></i> Mining Plans
+                </button>
+                <button class="nav-tab" onclick="showTab('tasks')">
+                    <i class="fas fa-tasks"></i> Tasks
+                </button>
+                <button class="nav-tab" onclick="showTab('levels')">
+                    <i class="fas fa-trophy"></i> Levels
+                </button>
+                <button class="nav-tab" onclick="showTab('news')">
+                    <i class="fas fa-newspaper"></i> News
+                </button>
+                <button class="nav-tab" onclick="showTab('about')">
+                    <i class="fas fa-info-circle"></i> About
+                </button>
+                <button class="nav-tab" onclick="showTab('chat')">
+                    <i class="fas fa-comments"></i> Global Chat
+                </button>
+                <button class="nav-tab" onclick="showTab('support')">
+                    <i class="fas fa-headset"></i> Support Chat
+                </button>
+                <button class="nav-tab" onclick="showTab('social')">
+                    <i class="fas fa-video"></i> Social Videos
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Analytics Tab -->
+            <div id="analyticsTab" class="tab-content active">
+                <div class="stats-grid" id="analyticsStats">
+                    <!-- Stats will be loaded here -->
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Platform Overview
+                        </h2>
+                    </div>
+                    <div id="platformOverview">
+                        <!-- Platform overview will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchase Requests Tab -->
+            <div id="purchasesTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-clock"></i>
+                            Pending Purchase Requests
+                        </h2>
+                        <button class="btn btn-primary" onclick="refreshPurchases()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="pendingPurchases">
+                        <!-- Pending purchases will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-history"></i>
+                            Purchase History
+                        </h2>
+                    </div>
+                    <div id="purchaseHistory">
+                        <!-- Purchase history will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdrawals Tab -->
+            <div id="withdrawalsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-clock"></i>
+                            Pending Withdrawals
+                        </h2>
+                        <button class="btn btn-primary" onclick="refreshWithdrawals()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="pendingWithdrawals">
+                        <!-- Pending withdrawals will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-history"></i>
+                            Withdrawal History
+                        </h2>
+                    </div>
+                    <div id="withdrawalHistory">
+                        <!-- Withdrawal history will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="usersTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-users"></i>
+                            User Management
+                        </h2>
+                        <div class="search-box">
+                            <input type="text" id="userSearch" class="search-input" placeholder="Search users..." onkeyup="searchUsers()">
+                        </div>
+                    </div>
+                    <div id="usersTable">
+                        <!-- Users table will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mining Plans Tab -->
+            <div id="plansTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-gem"></i>
+                            Mining Plans Management
+                        </h2>
+                        <button class="btn btn-primary" onclick="showAddPlanModal()">
+                            <i class="fas fa-plus"></i> Add Plan
+                        </button>
+                    </div>
+                    <div id="plansTable">
+                        <!-- Plans table will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div id="tasksTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-tasks"></i>
+                            Tasks Management
+                        </h2>
+                        <button class="btn btn-primary" onclick="showAddTaskModal()">
+                            <i class="fas fa-plus"></i> Add Task
+                        </button>
+                    </div>
+                    <div id="tasksTable">
+                        <!-- Tasks table will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Levels Tab -->
+            <div id="levelsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-trophy"></i>
+                            Levels Management
+                        </h2>
+                        <button class="btn btn-primary" onclick="showAddLevelModal()">
+                            <i class="fas fa-plus"></i> Add Level
+                        </button>
+                    </div>
+                    <div id="levelsTable">
+                        <!-- Levels table will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- News Tab -->
+            <div id="newsTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-newspaper"></i>
+                            News Management
+                        </h2>
+                        <button class="btn btn-primary" onclick="showAddNewsModal()">
+                            <i class="fas fa-plus"></i> Add News
+                        </button>
+                    </div>
+                    <div id="newsTable">
+                        <!-- News table will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Tab -->
+            <div id="aboutTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-info-circle"></i>
+                            About Information Management
+                        </h2>
+                        <button class="btn btn-primary" onclick="showAddAboutModal()">
+                            <i class="fas fa-plus"></i> Add Contact Info
+                        </button>
+                    </div>
+                    <div id="aboutTable">
+                        <!-- About table will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Chat Tab -->
+            <div id="chatTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-comments"></i>
+                            Global Chat Monitor
+                        </h2>
+                        <button class="btn btn-warning btn-sm" onclick="clearGlobalChat()">
+                            <i class="fas fa-trash"></i> Clear Chat
+                        </button>
+                    </div>
+                    <div class="chat-container">
+                        <div class="chat-messages" id="globalChatMessages">
+                            <!-- Global chat messages will be loaded here -->
+                        </div>
+                        <div class="chat-input">
+                            <input type="text" id="adminChatInput" placeholder="Send message as admin..." maxlength="500">
+                            <button class="send-btn" onclick="sendAdminMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Chat Tab -->
+            <div id="supportTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-headset"></i>
+                            Support Chat Management
+                        </h2>
+                    </div>
+                    <div id="supportChatList">
+                        <!-- Support chat list will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Videos Tab -->
+            <div id="socialTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-video"></i>
+                            Social Videos Management
+                        </h2>
+                        <button class="btn btn-primary" onclick="showAddSocialVideoModal()">
+                            <i class="fas fa-plus"></i> Add Video
+                        </button>
+                    </div>
+                    <div id="socialVideosTable">
+                        <!-- Social videos table will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Add Plan Modal -->
+    <div id="addPlanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add/Edit Mining Plan</h3>
+                <button class="close-btn" onclick="closeModal('addPlanModal')">&times;</button>
+            </div>
+            <form id="planForm">
+                <input type="hidden" id="planId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Plan Name</label>
+                        <input type="text" id="planName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cost (MMK)</label>
+                        <input type="number" id="planCost" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Total Return (MMK)</label>
+                        <input type="number" id="planReturn" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Duration (Days)</label>
+                        <input type="number" id="planDuration" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <input type="text" id="planPaymentMethod" class="form-input" placeholder="e.g., KPay">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Phone</label>
+                        <input type="text" id="planPaymentPhone" class="form-input" placeholder="09xxxxxxxxx">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="planDescription" class="form-textarea" placeholder="Plan description..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Plan Image</label>
+                    <div class="image-upload" onclick="document.getElementById('planImageFile').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload plan image</p>
+                        <input type="file" id="planImageFile" accept="image/*" style="display: none;">
+                    </div>
+                    <img id="planImagePreview" class="image-preview" style="display: none;">
+                </div>
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Plan
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addPlanModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add/Edit Task</h3>
+                <button class="close-btn" onclick="closeModal('addTaskModal')">&times;</button>
+            </div>
+            <form id="taskForm">
+                <input type="hidden" id="taskId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Task Title</label>
+                        <input type="text" id="taskTitle" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Social Media Link</label>
+                        <input type="url" id="taskLink" class="form-input" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">User Limit</label>
+                        <input type="number" id="taskUserLimit" class="form-input" placeholder="Leave blank for unlimited">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reward Type</label>
+                        <select id="taskRewardType" class="form-select" onchange="toggleTaskRewardFields()" required>
+                            <option value="cash">💰 Cash Reward</option>
+                            <option value="mining_power">⚡ Mining Power Reward</option>
+                            <option value="purchase_goal">🎯 Purchase Goal Reward</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="cashRewardFields">
+                    <div class="form-group">
+                        <label class="form-label">Cash Reward (MMK)</label>
+                        <input type="number" id="taskCashReward" class="form-input">
+                    </div>
+                </div>
+
+                <div id="miningRewardFields" style="display: none;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Mining Power (MMK/sec)</label>
+                            <input type="number" step="0.0001" id="taskMiningPower" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Duration (Hours)</label>
+                            <input type="number" id="taskMiningDuration" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="purchaseGoalFields" style="display: none;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Required Purchase Amount (MMK)</label>
+                            <input type="number" id="taskPurchaseGoal" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Goal Reward (MMK)</label>
+                            <input type="number" id="taskGoalReward" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="taskDescription" class="form-textarea" placeholder="Task description..."></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Task
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addTaskModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Level Modal -->
+    <div id="addLevelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add/Edit Level</h3>
+                <button class="close-btn" onclick="closeModal('addLevelModal')">&times;</button>
+            </div>
+            <form id="levelForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Level Number</label>
+                        <input type="number" id="levelNumber" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Level Name</label>
+                        <input type="text" id="levelName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Required Volume (MMK)</label>
+                        <input type="number" id="levelVolume" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Icon Name</label>
+                        <input type="text" id="levelIcon" class="form-input" placeholder="e.g., Shield, Star, Crown">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Primary Color</label>
+                        <input type="color" id="levelColor1" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secondary Color</label>
+                        <input type="color" id="levelColor2" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Level Icon Image</label>
+                    <div class="image-upload" onclick="document.getElementById('levelIconFile').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload level icon</p>
+                        <input type="file" id="levelIconFile" accept="image/*" style="display: none;">
+                    </div>
+                    <img id="levelIconPreview" class="image-preview" style="display: none;">
+                </div>
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Level
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addLevelModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add News Modal -->
+    <div id="addNewsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add/Edit News</h3>
+                <button class="close-btn" onclick="closeModal('addNewsModal')">&times;</button>
+            </div>
+            <form id="newsForm">
+                <input type="hidden" id="newsId">
+                <div class="form-group">
+                    <label class="form-label">News Title</label>
+                    <input type="text" id="newsTitle" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">News Content</label>
+                    <textarea id="newsContent" class="form-textarea" rows="6" placeholder="Write your news content here..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">News Image</label>
+                    <div class="image-upload" onclick="document.getElementById('newsImageFile').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload news image</p>
+                        <input type="file" id="newsImageFile" accept="image/*" style="display: none;">
+                    </div>
+                    <img id="newsImagePreview" class="image-preview" style="display: none;">
+                </div>
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save News
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addNewsModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add About Info Modal -->
+    <div id="addAboutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add/Edit About Information</h3>
+                <button class="close-btn" onclick="closeModal('addAboutModal')">&times;</button>
+            </div>
+            <form id="aboutForm">
+                <input type="hidden" id="aboutId">
+                <div class="form-group">
+                    <label class="form-label">Content Key (e.g., phone, email, address, telegram)</label>
+                    <input type="text" id="aboutKey" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Content Value</label>
+                    <input type="text" id="aboutValue" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Link URL (Optional)</label>
+                    <input type="url" id="aboutLink" class="form-input" placeholder="https://...">
+                </div>
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Info
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addAboutModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Social Video Modal -->
+    <div id="addSocialVideoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add/Edit Social Video</h3>
+                <button class="close-btn" onclick="closeModal('addSocialVideoModal')">&times;</button>
+            </div>
+            <form id="socialVideoForm">
+                <input type="hidden" id="socialVideoId">
+                <div class="form-group">
+                    <label class="form-label">Platform Name (e.g., YouTube, TikTok)</label>
+                    <input type="text" id="socialVideoPlatformName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Video URL</label>
+                    <input type="url" id="socialVideoUrl" class="form-input" placeholder="https://youtube.com/watch?v=..." required>
+                </div>
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Video
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addSocialVideoModal')">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Receipt Modal -->
+    <div id="viewReceiptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Payment Receipt</h3>
+                <button class="close-btn" onclick="closeModal('viewReceiptModal')">&times;</button>
+            </div>
+            <div class="text-center">
+                <img id="receiptImageView" src="/placeholder.svg" alt="Payment Receipt" style="max-width: 100%; height: auto; border-radius: 8px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Chat Modal -->
+    <div id="supportChatModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="supportChatModalTitle">Support Chat</h3>
+                <button class="close-btn" onclick="closeModal('supportChatModal')">&times;</button>
+            </div>
+            <div class="chat-container">
+                <div class="chat-messages" id="supportChatMessagesModal">
+                    <!-- Support chat messages will be loaded here -->
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="supportChatInputModal" placeholder="Reply to user..." maxlength="500">
+                    <button class="send-btn" onclick="sendSupportMessageModal()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://kmgpydjkkadmcudiwdxk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZ3B5ZGpra2FkbWN1ZGl3ZHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0ODc1NzYsImV4cCI6MjA2OTA2MzU3Nn0.0MecKykuSX_-uE-xzZuOnqJwqFqXVAUftlTOz8ie7KQ';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let adminUser = null;
+        let currentSupportTicketId = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAdminAuth();
+            setupFormListeners();
+            setupRealtimeSubscriptions();
+        });
+
+        async function checkAdminAuth() {
+            const sessionToken = localStorage.getItem('mmk_admin_session_token');
+            if (!sessionToken) {
+                window.location.href = '/login'; // Redirect to login if no session
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.rpc('verify_session', {
+                    p_session_token: sessionToken
+                });
+
+                if (data && data.success && data.user.role === 'admin') {
+                    adminUser = data.user;
+                    loadAdminDashboardData();
+                } else {
+                    localStorage.removeItem('mmk_admin_session_token');
+                    window.location.href = '/login'; // Redirect if not admin or session invalid
+                }
+            } catch (error) {
+                console.error('Admin session verification error:', error);
+                localStorage.removeItem('mmk_admin_session_token');
+                window.location.href = '/login';
+            }
+        }
+
+        async function logout() {
+            const sessionToken = localStorage.getItem('mmk_admin_session_token');
+            if (sessionToken) {
+                try {
+                    await supabase.rpc('logout_user', { p_session_token: sessionToken });
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            }
+            localStorage.removeItem('mmk_admin_session_token');
+            window.location.href = '/login';
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+
+            document.getElementById(tabId + 'Tab').classList.add('active');
+            document.querySelector(`.nav-tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+
+            // Load data for the selected tab
+            switch(tabId) {
+                case 'analytics': loadAnalytics(); break;
+                case 'purchases': loadPendingPurchases(); loadPurchaseHistory(); break;
+                case 'withdrawals': loadPendingWithdrawals(); loadWithdrawalHistory(); break;
+                case 'users': loadUsers(); break;
+                case 'plans': loadMiningPlans(); break;
+                case 'tasks': loadTasks(); break;
+                case 'levels': loadLevels(); break;
+                case 'news': loadNews(); break;
+                case 'about': loadAboutInfo(); break;
+                case 'chat': loadGlobalChat(); break;
+                case 'support': loadSupportTickets(); break;
+                case 'social': loadSocialVideos(); break;
+            }
+        }
+
+        async function loadAdminDashboardData() {
+            showTab('analytics'); // Default tab
+        }
+
+        // Utility Functions
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        function clearAlert(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            // Reset forms when closing modals
+            const form = document.querySelector(`#${modalId} form`);
+            if (form) form.reset();
+            // Clear image previews
+            const preview = document.querySelector(`#${modalId} .image-preview`);
+            if (preview) {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+
+        function formatCurrency(amount, currency = 'MMK') {
+            if (currency === 'USD') {
+                return `$${parseFloat(amount).toFixed(2)}`;
+            }
+            return `${parseFloat(amount).toLocaleString()} MMK`;
+        }
+
+        // Analytics Tab
+        async function loadAnalytics() {
+            try {
+                const { data: totalUsers } = await supabase.from('users').select('count', { count: 'exact' });
+                const { data: totalPlans } = await supabase.from('mining_plans').select('count', { count: 'exact' });
+                const { data: totalPurchases } = await supabase.from('user_mining_contracts').select('cost', { count: 'exact' });
+                const { data: totalWithdrawals } = await supabase.from('withdrawal_requests').select('amount', { count: 'exact' });
+                const { data: totalEarned } = await supabase.from('users').select('total_earned_mmk');
+
+                const totalPurchaseAmount = totalPurchases.reduce((sum, p) => sum + parseFloat(p.cost), 0);
+                const totalWithdrawalAmount = totalWithdrawals.reduce((sum, w) => sum + parseFloat(w.amount), 0);
+                const totalPlatformEarned = totalEarned.reduce((sum, u) => sum + parseFloat(u.total_earned_mmk), 0);
+
+
+                const statsContainer = document.getElementById('analyticsStats');
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${totalUsers[0].count}</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalPlans[0].count}</div>
+                        <div class="stat-label">Active Plans</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${formatCurrency(totalPurchaseAmount)}</div>
+                        <div class="stat-label">Total Purchases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${formatCurrency(totalWithdrawalAmount)}</div>
+                        <div class="stat-label">Total Withdrawals</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${formatCurrency(totalPlatformEarned)}</div>
+                        <div class="stat-label">Platform Earnings</div>
+                    </div>
+                `;
+
+                // Platform Overview (simplified for now)
+                document.getElementById('platformOverview').innerHTML = `
+                    <p class="text-slate-300">Detailed analytics and charts would go here.</p>
+                    <p class="text-slate-300">e.g., User growth, revenue trends, active miners, etc.</p>
+                `;
+
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                showAlert('analyticsStats', 'Failed to load analytics data.', 'error');
+            }
+        }
+
+        // Purchase Requests Tab
+        async function loadPendingPurchases() {
+            try {
+                const { data: purchases, error } = await supabase
+                    .from('user_mining_contracts')
+                    .select('*, users(full_name, email)')
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                const container = document.getElementById('pendingPurchases');
+                if (purchases.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i><h3>No Pending Purchases</h3><p>All purchase requests have been processed.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Receipt</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+                purchases.forEach(p => {
+                    html += `
+                        <tr>
+                            <td>${p.users.full_name} (${p.users.email})</td>
+                            <td>${p.currency_type} Plan</td>
+                            <td>${formatCurrency(p.amount_paid, p.currency_type)}</td>
+                            <td><img src="${p.receipt_url}" class="receipt-image" onclick="viewReceipt('${p.receipt_url}')"></td>
+                            <td>${new Date(p.created_at).toLocaleString()}</td>
+                            <td class="action-buttons">
+                                <button class="btn btn-success btn-sm" onclick="handlePurchase('${p.id}', 'active', '${p.user_id}', ${p.amount_paid}, '${p.currency_type}')">Approve</button>
+                                <button class="btn btn-danger btn-sm" onclick="handlePurchase('${p.id}', 'rejected', '${p.user_id}', ${p.amount_paid}, '${p.currency_type}')">Reject</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading pending purchases:', error);
+                showAlert('pendingPurchases', 'Failed to load pending purchase requests.', 'error');
+            }
+        }
+
+        async function loadPurchaseHistory() {
+            try {
+                const { data: purchases, error } = await supabase
+                    .from('user_mining_contracts')
+                    .select('*, users(full_name, email)')
+                    .neq('status', 'pending')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
+                if (error) throw error;
+
+                const container = document.getElementById('purchaseHistory');
+                if (purchases.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><h3>No Purchase History</h3><p>No past purchase records found.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>`;
+                purchases.forEach(p => {
+                    html += `
+                        <tr>
+                            <td>${p.users.full_name} (${p.users.email})</td>
+                            <td>${p.currency_type} Plan</td>
+                            <td>${formatCurrency(p.amount_paid, p.currency_type)}</td>
+                            <td><span class="status-badge status-${p.status}">${p.status}</span></td>
+                            <td>${new Date(p.created_at).toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading purchase history:', error);
+                showAlert('purchaseHistory', 'Failed to load purchase history.', 'error');
+            }
+        }
+
+        async function handlePurchase(contractId, decision, userId, amount, currencyType) {
+            try {
+                const { error: updateError } = await supabase
+                    .from('user_mining_contracts')
+                    .update({ status: decision, admin_notes: `Processed by ${adminUser.full_name}` })
+                    .eq('id', contractId);
+
+                if (updateError) throw updateError;
+
+                if (decision === 'active') {
+                    // Add balance to user and record transaction
+                    const { data: user, error: userError } = await supabase
+                        .from('users')
+                        .select('usd_balance, mmk_balance')
+                        .eq('id', userId)
+                        .single();
+
+                    if (userError) throw userError;
+
+                    let updateData = {};
+                    if (currencyType === 'USD') {
+                        updateData.usd_balance = user.usd_balance + amount;
+                    } else {
+                        updateData.mmk_balance = user.mmk_balance + amount;
+                    }
+
+                    await supabase.from('users').update(updateData).eq('id', userId);
+
+                    await supabase.from('transactions').insert({
+                        user_id: userId,
+                        type: 'plan_purchase',
+                        currency: currencyType,
+                        amount: amount,
+                        status: 'completed',
+                        description: `Mining plan purchase approved`,
+                        processed_by: adminUser.id
+                    });
+                } else if (decision === 'rejected') {
+                    // Record transaction for rejection (no balance change needed as it was pending)
+                    await supabase.from('transactions').insert({
+                        user_id: userId,
+                        type: 'plan_purchase',
+                        currency: currencyType,
+                        amount: amount,
+                        status: 'failed',
+                        description: `Mining plan purchase rejected`,
+                        processed_by: adminUser.id
+                    });
+                }
+
+                showAlert('pendingPurchases', `Purchase request ${decision} successfully!`, 'success');
+                loadPendingPurchases();
+                loadPurchaseHistory();
+            } catch (error) {
+                console.error('Error handling purchase:', error);
+                showAlert('pendingPurchases', `Failed to ${decision} purchase request.`, 'error');
+            }
+        }
+
+        function viewReceipt(url) {
+            document.getElementById('receiptImageView').src = url;
+            showModal('viewReceiptModal');
+        }
+
+        function refreshPurchases() {
+            loadPendingPurchases();
+            loadPurchaseHistory();
+        }
+
+        // Withdrawal Tab
+        async function loadPendingWithdrawals() {
+            try {
+                const { data: withdrawals, error } = await supabase
+                    .from('withdrawal_requests')
+                    .select('*, users(full_name, email)')
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                const container = document.getElementById('pendingWithdrawals');
+                if (withdrawals.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i><h3>No Pending Withdrawals</h3><p>All withdrawal requests have been processed.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+                withdrawals.forEach(w => {
+                    html += `
+                        <tr>
+                            <td>${w.users.full_name} (${w.users.email})</td>
+                            <td>${formatCurrency(w.amount, w.currency)}</td>
+                            <td>${w.payment_method} (${w.payment_account})</td>
+                            <td>${w.account_name}</td>
+                            <td>${new Date(w.created_at).toLocaleString()}</td>
+                            <td class="action-buttons">
+                                <button class="btn btn-success btn-sm" onclick="handleWithdrawal('${w.id}', 'completed', '${w.user_id}', ${w.amount}, '${w.currency}')">Approve</button>
+                                <button class="btn btn-danger btn-sm" onclick="handleWithdrawal('${w.id}', 'rejected', '${w.user_id}', ${w.amount}, '${w.currency}')">Reject</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading pending withdrawals:', error);
+                showAlert('pendingWithdrawals', 'Failed to load pending withdrawal requests.', 'error');
+            }
+        }
+
+        async function loadWithdrawalHistory() {
+            try {
+                const { data: withdrawals, error } = await supabase
+                    .from('withdrawal_requests')
+                    .select('*, users(full_name, email)')
+                    .neq('status', 'pending')
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+
+                if (error) throw error;
+
+                const container = document.getElementById('withdrawalHistory');
+                if (withdrawals.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><h3>No Withdrawal History</h3><p>No past withdrawal records found.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead><tbody>`;
+                withdrawals.forEach(w => {
+                    html += `
+                        <tr>
+                            <td>${w.users.full_name} (${w.users.email})</td>
+                            <td>${formatCurrency(w.amount, w.currency)}</td>
+                            <td>${w.payment_method}</td>
+                            <td><span class="status-badge status-${w.status}">${w.status}</span></td>
+                            <td>${new Date(w.created_at).toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading withdrawal history:', error);
+                showAlert('withdrawalHistory', 'Failed to load withdrawal history.', 'error');
+            }
+        }
+
+        async function handleWithdrawal(withdrawalId, decision, userId, amount, currency) {
+            try {
+                const { error: updateError } = await supabase
+                    .from('withdrawal_requests')
+                    .update({ status: decision, processed_by: adminUser.id, processed_at: new Date().toISOString() })
+                    .eq('id', withdrawalId);
+
+                if (updateError) throw updateError;
+
+                if (decision === 'rejected') {
+                    // Refund the amount to user's balance
+                    const { data: user, error: userError } = await supabase
+                        .from('users')
+                        .select('usd_balance, mmk_balance')
+                        .eq('id', userId)
+                        .single();
+
+                    if (userError) throw userError;
+
+                    let updateData = {};
+                    if (currency === 'USD') {
+                        updateData.usd_balance = user.usd_balance + amount;
+                    } else {
+                        updateData.mmk_balance = user.mmk_balance + amount;
+                    }
+
+                    await supabase.from('users').update(updateData).eq('id', userId);
+
+                    await supabase.from('transactions').insert({
+                        user_id: userId,
+                        type: 'withdrawal',
+                        currency: currency,
+                        amount: amount,
+                        status: 'failed',
+                        description: `Withdrawal rejected, amount refunded`,
+                        processed_by: adminUser.id
+                    });
+                } else if (decision === 'completed') {
+                    // Record transaction for completed withdrawal
+                    await supabase.from('transactions').insert({
+                        user_id: userId,
+                        type: 'withdrawal',
+                        currency: currency,
+                        amount: amount,
+                        status: 'completed',
+                        description: `Withdrawal approved`,
+                        processed_by: adminUser.id
+                    });
+                }
+
+                showAlert('pendingWithdrawals', `Withdrawal request ${decision} successfully!`, 'success');
+                loadPendingWithdrawals();
+                loadWithdrawalHistory();
+            } catch (error) {
+                console.error('Error handling withdrawal:', error);
+                showAlert('pendingWithdrawals', `Failed to ${decision} withdrawal request.`, 'error');
+            }
+        }
+
+        function refreshWithdrawals() {
+            loadPendingWithdrawals();
+            loadWithdrawalHistory();
+        }
+
+        // Users Tab
+        async function loadUsers(searchQuery = '') {
+            try {
+                let query = supabase.from('users').select('*').order('created_at', { ascending: false });
+
+                if (searchQuery) {
+                    query = query.or(`email.ilike.%${searchQuery}%,full_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`);
+                }
+
+                const { data: users, error } = await query;
+
+                if (error) throw error;
+
+                const container = document.getElementById('usersTable');
+                if (users.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-users"></i><h3>No Users Found</h3><p>No users match your search criteria.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>User</th><th>Email</th><th>Balance (MMK)</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+                users.forEach(u => {
+                    html += `
+                        <tr>
+                            <td>
+                                <div class="user-avatar">${u.full_name.charAt(0).toUpperCase()}</div>
+                                ${u.full_name} (${u.username || 'N/A'})
+                            </td>
+                            <td>${u.email}</td>
+                            <td>${formatCurrency(u.mmk_balance)}</td>
+                            <td>${u.role}</td>
+                            <td><span class="status-badge status-${u.is_banned ? 'banned' : 'active'}">${u.is_banned ? 'Banned' : 'Active'}</span></td>
+                            <td class="action-buttons">
+                                <button class="btn btn-secondary btn-sm" onclick="editUser('${u.id}')">Edit</button>
+                                ${u.is_banned ? 
+                                    `<button class="btn btn-success btn-sm" onclick="toggleUserBan('${u.id}', false)">Unban</button>` :
+                                    `<button class="btn btn-danger btn-sm" onclick="toggleUserBan('${u.id}', true)">Ban</button>`
+                                }
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showAlert('usersTable', 'Failed to load user data.', 'error');
+            }
+        }
+
+        function searchUsers() {
+            const query = document.getElementById('userSearch').value;
+            loadUsers(query);
+        }
+
+        async function toggleUserBan(userId, banStatus) {
+            const reason = banStatus ? prompt('Enter ban reason:') : '';
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ is_banned: banStatus, ban_reason: reason || null })
+                    .eq('id', userId);
+
+                if (error) throw error;
+                showAlert('usersTable', `User ${banStatus ? 'banned' : 'unbanned'} successfully!`, 'success');
+                loadUsers();
+            } catch (error) {
+                console.error('Error toggling ban status:', error);
+                showAlert('usersTable', `Failed to update user ban status.`, 'error');
+            }
+        }
+
+        // Mining Plans Tab
+        async function loadMiningPlans() {
+            try {
+                const { data: plans, error } = await supabase
+                    .from('mining_plans')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('plansTable');
+                if (plans.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-gem"></i><h3>No Mining Plans</h3><p>Add new mining plans to get started.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>Name</th><th>Cost (MMK)</th><th>Return (MMK)</th><th>Duration (Days)</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+                plans.forEach(p => {
+                    html += `
+                        <tr>
+                            <td>${p.name}</td>
+                            <td>${formatCurrency(p.mmk_price)}</td>
+                            <td>${formatCurrency(p.mmk_daily_return * p.duration_days)}</td>
+                            <td>${p.duration_days}</td>
+                            <td><span class="status-badge status-${p.is_active ? 'active' : 'rejected'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+                            <td class="action-buttons">
+                                <button class="btn btn-secondary btn-sm" onclick="editPlan('${p.id}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deletePlan('${p.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading mining plans:', error);
+                showAlert('plansTable', 'Failed to load mining plans.', 'error');
+            }
+        }
+
+        function showAddPlanModal() {
+            document.getElementById('planForm').reset();
+            document.getElementById('planId').value = '';
+            document.getElementById('planImagePreview').style.display = 'none';
+            document.getElementById('planImagePreview').src = '';
+            showModal('addPlanModal');
+        }
+
+        async function editPlan(planId) {
+            try {
+                const { data: plan, error } = await supabase
+                    .from('mining_plans')
+                    .select('*')
+                    .eq('id', planId)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('planId').value = plan.id;
+                document.getElementById('planName').value = plan.name;
+                document.getElementById('planCost').value = plan.mmk_price;
+                document.getElementById('planReturn').value = plan.mmk_daily_return * plan.duration_days; // Assuming total return is daily * duration
+                document.getElementById('planDuration').value = plan.duration_days;
+                document.getElementById('planPaymentMethod').value = plan.payment_method || '';
+                document.getElementById('planPaymentPhone').value = plan.payment_phone || '';
+                document.getElementById('planDescription').value = plan.description || '';
+                
+                if (plan.image_url) {
+                    document.getElementById('planImagePreview').src = plan.image_url;
+                    document.getElementById('planImagePreview').style.display = 'block';
+                } else {
+                    document.getElementById('planImagePreview').style.display = 'none';
+                }
+
+                showModal('addPlanModal');
+            } catch (error) {
+                console.error('Error editing plan:', error);
+                showAlert('plansTable', 'Failed to load plan for editing.', 'error');
+            }
+        }
+
+        async function handlePlanFormSubmit(event) {
+            event.preventDefault();
+            const planId = document.getElementById('planId').value;
+            const name = document.getElementById('planName').value;
+            const cost = parseFloat(document.getElementById('planCost').value);
+            const totalReturn = parseFloat(document.getElementById('planReturn').value);
+            const duration = parseInt(document.getElementById('planDuration').value);
+            const paymentMethod = document.getElementById('planPaymentMethod').value;
+            const paymentPhone = document.getElementById('planPaymentPhone').value;
+            const description = document.getElementById('planDescription').value;
+            const imageFile = document.getElementById('planImageFile').files[0];
+
+            let imageUrl = document.getElementById('planImagePreview').src; // Keep existing image if not new file
+
+            try {
+                if (imageFile) {
+                    const fileName = `plan_images/${Date.now()}-${imageFile.name}`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('images') // Assuming a bucket named 'images' for general images
+                        .upload(fileName, imageFile);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabase.storage
+                        .from('images')
+                        .getPublicUrl(fileName);
+                    imageUrl = urlData.publicUrl;
+                }
+
+                const dailyReturn = totalReturn / duration; // Calculate daily return
+
+                const planData = {
+                    name: name,
+                    mmk_price: cost,
+                    mmk_daily_return: dailyReturn,
+                    duration_days: duration,
+                    payment_method: paymentMethod,
+                    payment_phone: paymentPhone,
+                    description: description,
+                    image_url: imageUrl || null,
+                    currency_type: 'MMK', // Hardcode MMK for now based on current plans
+                    is_active: true // Default to active
+                };
+
+                let error;
+                if (planId) {
+                    ({ error } = await supabase.from('mining_plans').update(planData).eq('id', planId));
+                } else {
+                    ({ error } = await supabase.from('mining_plans').insert(planData));
+                }
+
+                if (error) throw error;
+
+                showAlert('plansTable', `Plan ${planId ? 'updated' : 'added'} successfully!`, 'success');
+                closeModal('addPlanModal');
+                loadMiningPlans();
+            } catch (error) {
+                console.error('Error saving plan:', error);
+                showAlert('plansTable', `Failed to save plan: ${error.message}`, 'error');
+            }
+        }
+
+        async function deletePlan(planId) {
+            if (!confirm('Are you sure you want to delete this plan?')) return;
+            try {
+                const { error } = await supabase.from('mining_plans').delete().eq('id', planId);
+                if (error) throw error;
+                showAlert('plansTable', 'Plan deleted successfully!', 'success');
+                loadMiningPlans();
+            } catch (error) {
+                console.error('Error deleting plan:', error);
+                showAlert('plansTable', 'Failed to delete plan.', 'error');
+            }
+        }
+
+        // Tasks Tab
+        async function loadTasks() {
+            try {
+                const { data: tasks, error } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('tasksTable');
+                if (tasks.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-tasks"></i><h3>No Tasks</h3><p>Add new tasks for users to complete.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>Title</th><th>Reward</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+                tasks.forEach(t => {
+                    let rewardText = '';
+                    if (t.usd_reward > 0) rewardText += formatCurrency(t.usd_reward, 'USD');
+                    if (t.mmk_reward > 0) rewardText += (rewardText ? ' / ' : '') + formatCurrency(t.mmk_reward, 'MMK');
+
+                    html += `
+                        <tr>
+                            <td>${t.title}</td>
+                            <td>${rewardText}</td>
+                            <td>${t.task_type}</td>
+                            <td><span class="status-badge status-${t.is_active ? 'active' : 'rejected'}">${t.is_active ? 'Active' : 'Inactive'}</span></td>
+                            <td class="action-buttons">
+                                <button class="btn btn-secondary btn-sm" onclick="editTask('${t.id}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                showAlert('tasksTable', 'Failed to load tasks.', 'error');
+            }
+        }
+
+        function showAddTaskModal() {
+            document.getElementById('taskForm').reset();
+            document.getElementById('taskId').value = '';
+            toggleTaskRewardFields(); // Reset reward fields visibility
+            showModal('addTaskModal');
+        }
+
+        async function editTask(taskId) {
+            try {
+                const { data: task, error } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .eq('id', taskId)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('taskId').value = task.id;
+                document.getElementById('taskTitle').value = task.title;
+                document.getElementById('taskLink').value = task.external_url || '';
+                document.getElementById('taskUserLimit').value = task.max_completions || '';
+                document.getElementById('taskDescription').value = task.description || '';
+                
+                // Set reward type and values
+                if (task.usd_reward > 0 || task.mmk_reward > 0) {
+                    document.getElementById('taskRewardType').value = 'cash';
+                    document.getElementById('taskCashReward').value = task.mmk_reward || task.usd_reward; // Assuming MMK is primary
+                } else if (task.requirements && task.requirements.mining_power_reward) {
+                    document.getElementById('taskRewardType').value = 'mining_power';
+                    document.getElementById('taskMiningPower').value = task.requirements.mining_power_reward;
+                    document.getElementById('taskMiningDuration').value = task.requirements.mining_duration_hours;
+                } else if (task.requirements && task.requirements.purchase_goal_amount) {
+                    document.getElementById('taskRewardType').value = 'purchase_goal';
+                    document.getElementById('taskPurchaseGoal').value = task.requirements.purchase_goal_amount;
+                    document.getElementById('taskGoalReward').value = task.requirements.goal_reward_amount;
+                }
+                toggleTaskRewardFields();
+
+                showModal('addTaskModal');
+            } catch (error) {
+                console.error('Error editing task:', error);
+                showAlert('tasksTable', 'Failed to load task for editing.', 'error');
+            }
+        }
+
+        function toggleTaskRewardFields() {
+            const rewardType = document.getElementById('taskRewardType').value;
+            document.getElementById('cashRewardFields').style.display = 'none';
+            document.getElementById('miningRewardFields').style.display = 'none';
+            document.getElementById('purchaseGoalFields').style.display = 'none';
+
+            if (rewardType === 'cash') {
+                document.getElementById('cashRewardFields').style.display = 'block';
+            } else if (rewardType === 'mining_power') {
+                document.getElementById('miningRewardFields').style.display = 'block';
+            } else if (rewardType === 'purchase_goal') {
+                document.getElementById('purchaseGoalFields').style.display = 'block';
+            }
+        }
+
+        async function handleTaskFormSubmit(event) {
+            event.preventDefault();
+            const taskId = document.getElementById('taskId').value;
+            const title = document.getElementById('taskTitle').value;
+            const link = document.getElementById('taskLink').value;
+            const userLimit = document.getElementById('taskUserLimit').value;
+            const description = document.getElementById('taskDescription').value;
+            const rewardType = document.getElementById('taskRewardType').value;
+
+            let usdReward = 0;
+            let mmkReward = 0;
+            let requirements = {};
+
+            if (rewardType === 'cash') {
+                mmkReward = parseFloat(document.getElementById('taskCashReward').value) || 0;
+            } else if (rewardType === 'mining_power') {
+                requirements = {
+                    mining_power_reward: parseFloat(document.getElementById('taskMiningPower').value) || 0,
+                    mining_duration_hours: parseInt(document.getElementById('taskMiningDuration').value) || 0
+                };
+            } else if (rewardType === 'purchase_goal') {
+                requirements = {
+                    purchase_goal_amount: parseFloat(document.getElementById('taskPurchaseGoal').value) || 0,
+                    goal_reward_amount: parseFloat(document.getElementById('taskGoalReward').value) || 0
+                };
+            }
+
+            try {
+                const taskData = {
+                    title: title,
+                    description: description,
+                    usd_reward: usdReward,
+                    mmk_reward: mmkReward,
+                    task_type: rewardType, // Using rewardType as task_type for simplicity
+                    requirements: Object.keys(requirements).length > 0 ? requirements : null,
+                    external_url: link || null,
+                    max_completions: userLimit ? parseInt(userLimit) : null,
+                    is_active: true
+                };
+
+                let error;
+                if (taskId) {
+                    ({ error } = await supabase.from('tasks').update(taskData).eq('id', taskId));
+                } else {
+                    ({ error } = await supabase.from('tasks').insert(taskData));
+                }
+
+                if (error) throw error;
+
+                showAlert('tasksTable', `Task ${taskId ? 'updated' : 'added'} successfully!`, 'success');
+                closeModal('addTaskModal');
+                loadTasks();
+            } catch (error) {
+                console.error('Error saving task:', error);
+                showAlert('tasksTable', `Failed to save task: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteTask(taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+            try {
+                const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+                if (error) throw error;
+                showAlert('tasksTable', 'Task deleted successfully!', 'success');
+                loadTasks();
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showAlert('tasksTable', 'Failed to delete task.', 'error');
+            }
+        }
+
+        // Levels Tab
+        async function loadLevels() {
+            try {
+                const { data: levels, error } = await supabase
+                    .from('user_levels')
+                    .select('*')
+                    .order('level', { ascending: true });
+
+                if (error) throw error;
+
+                const container = document.getElementById('levelsTable');
+                if (levels.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-trophy"></i><h3>No Levels Defined</h3><p>Add user levels to define progression.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>Level</th><th>Name</th><th>Min Experience</th><th>Mining Bonus</th><th>Referral Bonus</th><th>Actions</th></tr></thead><tbody>`;
+                levels.forEach(l => {
+                    html += `
+                        <tr>
+                            <td>${l.level}</td>
+                            <td>${l.name}</td>
+                            <td>${l.min_experience.toLocaleString()}</td>
+                            <td>${l.mining_bonus_percentage}%</td>
+                            <td>${l.referral_bonus_percentage}%</td>
+                            <td class="action-buttons">
+                                <button class="btn btn-secondary btn-sm" onclick="editLevel(${l.level})">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteLevel(${l.level})">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading levels:', error);
+                showAlert('levelsTable', 'Failed to load levels data.', 'error');
+            }
+        }
+
+        function showAddLevelModal() {
+            document.getElementById('levelForm').reset();
+            document.getElementById('levelNumber').readOnly = false; // Allow editing level number for new
+            document.getElementById('levelIconPreview').style.display = 'none';
+            document.getElementById('levelIconPreview').src = '';
+            showModal('addLevelModal');
+        }
+
+        async function editLevel(levelNumber) {
+            try {
+                const { data: level, error } = await supabase
+                    .from('user_levels')
+                    .select('*')
+                    .eq('level', levelNumber)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('levelNumber').value = level.level;
+                document.getElementById('levelNumber').readOnly = true; // Prevent editing level number for existing
+                document.getElementById('levelName').value = level.name;
+                document.getElementById('levelVolume').value = level.min_experience;
+                document.getElementById('levelIcon').value = level.badge_icon || '';
+                document.getElementById('levelColor1').value = level.badge_color || '#CD7F32'; // Default color
+                document.getElementById('levelColor2').value = level.badge_color_secondary || '#CD7F32'; // Assuming a secondary color field
+
+                if (level.image_url) {
+                    document.getElementById('levelIconPreview').src = level.image_url;
+                    document.getElementById('levelIconPreview').style.display = 'block';
+                } else {
+                    document.getElementById('levelIconPreview').style.display = 'none';
+                }
+
+                showModal('addLevelModal');
+            } catch (error) {
+                console.error('Error editing level:', error);
+                showAlert('levelsTable', 'Failed to load level for editing.', 'error');
+            }
+        }
+
+        async function handleLevelFormSubmit(event) {
+            event.preventDefault();
+            const levelNumber = parseInt(document.getElementById('levelNumber').value);
+            const name = document.getElementById('levelName').value;
+            const minExperience = parseInt(document.getElementById('levelVolume').value);
+            const iconName = document.getElementById('levelIcon').value;
+            const color1 = document.getElementById('levelColor1').value;
+            const color2 = document.getElementById('levelColor2').value;
+            const iconFile = document.getElementById('levelIconFile').files[0];
+
+            let imageUrl = document.getElementById('levelIconPreview').src;
+
+            try {
+                if (iconFile) {
+                    const fileName = `level_icons/${Date.now()}-${iconFile.name}`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('images')
+                        .upload(fileName, iconFile);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabase.storage
+                        .from('images')
+                        .getPublicUrl(fileName);
+                    imageUrl = urlData.publicUrl;
+                }
+
+                const levelData = {
+                    level: levelNumber,
+                    name: name,
+                    min_experience: minExperience,
+                    badge_icon: iconName || null,
+                    badge_color: color1,
+                    badge_color_secondary: color2,
+                    image_url: imageUrl || null
+                };
+
+                let error;
+                // Check if level exists to decide between insert and update
+                const { data: existingLevel } = await supabase.from('user_levels').select('level').eq('level', levelNumber).single();
+                if (existingLevel) {
+                    ({ error } = await supabase.from('user_levels').update(levelData).eq('level', levelNumber));
+                } else {
+                    ({ error } = await supabase.from('user_levels').insert(levelData));
+                }
+
+                if (error) throw error;
+
+                showAlert('levelsTable', `Level ${levelNumber ? 'updated' : 'added'} successfully!`, 'success');
+                closeModal('addLevelModal');
+                loadLevels();
+            } catch (error) {
+                console.error('Error saving level:', error);
+                showAlert('levelsTable', `Failed to save level: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteLevel(levelNumber) {
+            if (!confirm('Are you sure you want to delete this level? This cannot be undone.')) return;
+            try {
+                const { error } = await supabase.from('user_levels').delete().eq('level', levelNumber);
+                if (error) throw error;
+                showAlert('levelsTable', 'Level deleted successfully!', 'success');
+                loadLevels();
+            } catch (error) {
+                console.error('Error deleting level:', error);
+                showAlert('levelsTable', 'Failed to delete level.', 'error');
+            }
+        }
+
+        // News Tab
+        async function loadNews() {
+            try {
+                const { data: news, error } = await supabase
+                    .from('news')
+                    .select('*, author:users(full_name)')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('newsTable');
+                if (news.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-newspaper"></i><h3>No News Articles</h3><p>Add news to keep your users updated.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>Title</th><th>Author</th><th>Published</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+                news.forEach(n => {
+                    html += `
+                        <tr>
+                            <td>${n.title}</td>
+                            <td>${n.author?.full_name || 'N/A'}</td>
+                            <td><span class="status-badge status-${n.is_published ? 'active' : 'pending'}">${n.is_published ? 'Published' : 'Draft'}</span></td>
+                            <td>${new Date(n.created_at).toLocaleString()}</td>
+                            <td class="action-buttons">
+                                <button class="btn btn-secondary btn-sm" onclick="editNews('${n.id}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteNews('${n.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading news:', error);
+                showAlert('newsTable', 'Failed to load news data.', 'error');
+            }
+        }
+
+        function showAddNewsModal() {
+            document.getElementById('newsForm').reset();
+            document.getElementById('newsId').value = '';
+            document.getElementById('newsImagePreview').style.display = 'none';
+            document.getElementById('newsImagePreview').src = '';
+            showModal('addNewsModal');
+        }
+
+        async function editNews(newsId) {
+            try {
+                const { data: news, error } = await supabase
+                    .from('news')
+                    .select('*')
+                    .eq('id', newsId)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('newsId').value = news.id;
+                document.getElementById('newsTitle').value = news.title;
+                document.getElementById('newsContent').value = news.content;
+                if (news.image_url) {
+                    document.getElementById('newsImagePreview').src = news.image_url;
+                    document.getElementById('newsImagePreview').style.display = 'block';
+                } else {
+                    document.getElementById('newsImagePreview').style.display = 'none';
+                }
+
+                showModal('addNewsModal');
+            } catch (error) {
+                console.error('Error editing news:', error);
+                showAlert('newsTable', 'Failed to load news for editing.', 'error');
+            }
+        }
+
+        async function handleNewsFormSubmit(event) {
+            event.preventDefault();
+            const newsId = document.getElementById('newsId').value;
+            const title = document.getElementById('newsTitle').value;
+            const content = document.getElementById('newsContent').value;
+            const imageFile = document.getElementById('newsImageFile').files[0];
+
+            let imageUrl = document.getElementById('newsImagePreview').src;
+
+            try {
+                if (imageFile) {
+                    const fileName = `news_images/${Date.now()}-${imageFile.name}`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('images')
+                        .upload(fileName, imageFile);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: urlData } = supabase.storage
+                        .from('images')
+                        .getPublicUrl(fileName);
+                    imageUrl = urlData.publicUrl;
+                }
+
+                const newsData = {
+                    title: title,
+                    content: content,
+                    excerpt: content.substring(0, 150) + '...', // Auto-generate excerpt
+                    image_url: imageUrl || null,
+                    is_published: true, // Default to published
+                    published_at: new Date().toISOString(),
+                    author_id: adminUser.id
+                };
+
+                let error;
+                if (newsId) {
+                    ({ error } = await supabase.from('news').update(newsData).eq('id', newsId));
+                } else {
+                    ({ error } = await supabase.from('news').insert(newsData));
+                }
+
+                if (error) throw error;
+
+                showAlert('newsTable', `News ${newsId ? 'updated' : 'added'} successfully!`, 'success');
+                closeModal('addNewsModal');
+                loadNews();
+            } catch (error) {
+                console.error('Error saving news:', error);
+                showAlert('newsTable', `Failed to save news: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteNews(newsId) {
+            if (!confirm('Are you sure you want to delete this news article?')) return;
+            try {
+                const { error } = await supabase.from('news').delete().eq('id', newsId);
+                if (error) throw error;
+                showAlert('newsTable', 'News deleted successfully!', 'success');
+                loadNews();
+            } catch (error) {
+                console.error('Error deleting news:', error);
+                showAlert('newsTable', 'Failed to delete news.', 'error');
+            }
+        }
+
+        // About Tab
+        async function loadAboutInfo() {
+            try {
+                const { data: aboutInfo, error } = await supabase
+                    .from('system_settings')
+                    .select('*')
+                    .or('key.eq.support_email,key.eq.support_phone,key.eq.telegram_link,key.eq.youtube_link,key.eq.viber_link,key.eq.address'); // Filter for relevant keys
+
+                if (error) throw error;
+
+                const container = document.getElementById('aboutTable');
+                if (aboutInfo.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-info-circle"></i><h3>No About Info</h3><p>Add contact and about information for your platform.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>Key</th><th>Value</th><th>Link</th><th>Actions</th></tr></thead><tbody>`;
+                aboutInfo.forEach(info => {
+                    html += `
+                        <tr>
+                            <td>${info.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
+                            <td>${info.value}</td>
+                            <td>${info.description || 'N/A'}</td>
+                            <td class="action-buttons">
+                                <button class="btn btn-secondary btn-sm" onclick="editAboutInfo('${info.key}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteAboutInfo('${info.key}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading about info:', error);
+                showAlert('aboutTable', 'Failed to load about information.', 'error');
+            }
+        }
+
+        function showAddAboutModal() {
+            document.getElementById('aboutForm').reset();
+            document.getElementById('aboutId').value = ''; // Not used for system_settings, but for consistency
+            showModal('addAboutModal');
+        }
+
+        async function editAboutInfo(key) {
+            try {
+                const { data: info, error } = await supabase
+                    .from('system_settings')
+                    .select('*')
+                    .eq('key', key)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('aboutId').value = info.key; // Use key as ID for editing
+                document.getElementById('aboutKey').value = info.key;
+                document.getElementById('aboutKey').readOnly = true; // Prevent changing key
+                document.getElementById('aboutValue').value = info.value;
+                document.getElementById('aboutLink').value = info.description || ''; // Using description for link_url
+
+                showModal('addAboutModal');
+            } catch (error) {
+                console.error('Error editing about info:', error);
+                showAlert('aboutTable', 'Failed to load about information for editing.', 'error');
+            }
+        }
+
+        async function handleAboutFormSubmit(event) {
+            event.preventDefault();
+            const key = document.getElementById('aboutKey').value;
+            const value = document.getElementById('aboutValue').value;
+            const link = document.getElementById('aboutLink').value;
+
+            try {
+                const aboutData = {
+                    key: key,
+                    value: value,
+                    description: link || null, // Using description for link_url
+                    updated_at: new Date().toISOString()
+                };
+
+                let error;
+                // Check if key exists to decide between insert and update
+                const { data: existingKey } = await supabase.from('system_settings').select('key').eq('key', key).single();
+                if (existingKey) {
+                    ({ error } = await supabase.from('system_settings').update(aboutData).eq('key', key));
+                } else {
+                    ({ error } = await supabase.from('system_settings').insert(aboutData));
+                }
+
+                if (error) throw error;
+
+                showAlert('aboutTable', `About info ${key ? 'updated' : 'added'} successfully!`, 'success');
+                closeModal('addAboutModal');
+                loadAboutInfo();
+            } catch (error) {
+                console.error('Error saving about info:', error);
+                showAlert('aboutTable', `Failed to save about info: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteAboutInfo(key) {
+            if (!confirm('Are you sure you want to delete this information?')) return;
+            try {
+                const { error } = await supabase.from('system_settings').delete().eq('key', key);
+                if (error) throw error;
+                showAlert('aboutTable', 'Information deleted successfully!', 'success');
+                loadAboutInfo();
+            } catch (error) {
+                console.error('Error deleting about info:', error);
+                showAlert('aboutTable', 'Failed to delete information.', 'error');
+            }
+        }
+
+        // Global Chat Tab
+        async function loadGlobalChat() {
+            try {
+                const { data: messages, error } = await supabase
+                    .from('global_chat')
+                    .select('*, users(full_name, username, level, role)')
+                    .order('created_at', { ascending: true })
+                    .limit(100);
+
+                if (error) throw error;
+
+                const container = document.getElementById('globalChatMessages');
+                container.innerHTML = '';
+
+                messages.forEach(msg => {
+                    const is_admin = msg.users.role === 'admin';
+                    const username = msg.users.username || msg.users.full_name;
+                    const level = msg.users.level;
+                    const avatarChar = username.charAt(0).toUpperCase();
+
+                    container.innerHTML += `
+                        <div class="chat-message">
+                            <div class="message-avatar ${is_admin ? 'admin' : ''}">${avatarChar}</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-username">${username}</span>
+                                    <span class="message-level ${is_admin ? 'admin' : ''}">${is_admin ? 'ADMIN' : `Level ${level}`}</span>
+                                    <span class="message-time">${getTimeAgo(new Date(msg.created_at))}</span>
+                                </div>
+                                <div class="message-text">${msg.message}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.scrollTop = container.scrollHeight; // Scroll to bottom
+            } catch (error) {
+                console.error('Error loading global chat:', error);
+                showAlert('globalChatMessages', 'Failed to load global chat messages.', 'error');
+            }
+        }
+
+        async function sendAdminMessage() {
+            const input = document.getElementById('adminChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            try {
+                const { error } = await supabase
+                    .from('global_chat')
+                    .insert({
+                        user_id: adminUser.id,
+                        message: message,
+                        message_type: 'text'
+                    });
+
+                if (error) throw error;
+                input.value = '';
+                loadGlobalChat(); // Reload to show new message
+            } catch (error) {
+                console.error('Error sending admin message:', error);
+                showAlert('globalChatMessages', 'Failed to send message.', 'error');
+            }
+        }
+
+        async function clearGlobalChat() {
+            if (!confirm('Are you sure you want to clear the entire global chat history? This cannot be undone.')) return;
+            try {
+                const { error } = await supabase.from('global_chat').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
+                if (error) throw error;
+                showAlert('globalChatMessages', 'Global chat cleared successfully!', 'success');
+                loadGlobalChat();
+            } catch (error) {
+                console.error('Error clearing global chat:', error);
+                showAlert('globalChatMessages', 'Failed to clear chat.', 'error');
+            }
+        }
+
+        // Support Chat Tab
+        async function loadSupportTickets() {
+            try {
+                const { data: tickets, error } = await supabase
+                    .from('support_tickets')
+                    .select('*, user:users(full_name, email)')
+                    .order('status', { ascending: true }) // Open tickets first
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('supportChatList');
+                if (tickets.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-headset"></i><h3>No Support Tickets</h3><p>No active or past support tickets.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>Subject</th><th>User</th><th>Status</th><th>Priority</th><th>Last Update</th><th>Actions</th></tr></thead><tbody>`;
+                tickets.forEach(ticket => {
+                    html += `
+                        <tr>
+                            <td>${ticket.subject}</td>
+                            <td>${ticket.user.full_name} (${ticket.user.email})</td>
+                            <td><span class="status-badge status-${ticket.status === 'open' ? 'pending' : ticket.status === 'resolved' ? 'approved' : 'secondary'}">${ticket.status}</span></td>
+                            <td>${ticket.priority}</td>
+                            <td>${getTimeAgo(new Date(ticket.updated_at))}</td>
+                            <td class="action-buttons">
+                                <button class="btn btn-primary btn-sm" onclick="openSupportChatModal('${ticket.id}', '${ticket.user.full_name}')">View Chat</button>
+                                ${ticket.status !== 'resolved' ? `<button class="btn btn-success btn-sm" onclick="resolveTicket('${ticket.id}')">Resolve</button>` : ''}
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading support tickets:', error);
+                showAlert('supportChatList', 'Failed to load support tickets.', 'error');
+            }
+        }
+
+        async function openSupportChatModal(ticketId, userName) {
+            currentSupportTicketId = ticketId;
+            document.getElementById('supportChatModalTitle').textContent = `Chat with ${userName}`;
+            await loadSupportMessages(ticketId);
+            showModal('supportChatModal');
+        }
+
+        async function loadSupportMessages(ticketId) {
+            try {
+                const { data: messages, error } = await supabase
+                    .from('support_messages')
+                    .select('*, sender:users(full_name, role)')
+                    .eq('ticket_id', ticketId)
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                const container = document.getElementById('supportChatMessagesModal');
+                container.innerHTML = '';
+
+                messages.forEach(msg => {
+                    const is_admin_message = msg.sender.role === 'admin';
+                    const senderName = is_admin_message ? 'Admin' : msg.sender.full_name;
+                    const avatarChar = senderName.charAt(0).toUpperCase();
+
+                    container.innerHTML += `
+                        <div class="chat-message">
+                            <div class="message-avatar ${is_admin_message ? 'admin' : ''}">${avatarChar}</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-username">${senderName}</span>
+                                    <span class="message-time">${getTimeAgo(new Date(msg.created_at))}</span>
+                                </div>
+                                <div class="message-text">${msg.message}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.scrollTop = container.scrollHeight;
+            } catch (error) {
+                console.error('Error loading support messages:', error);
+                showAlert('supportChatMessagesModal', 'Failed to load chat messages.', 'error');
+            }
+        }
+
+        async function sendSupportMessageModal() {
+            const input = document.getElementById('supportChatInputModal');
+            const message = input.value.trim();
+            if (!message || !currentSupportTicketId) return;
+
+            try {
+                const { error } = await supabase
+                    .from('support_messages')
+                    .insert({
+                        ticket_id: currentSupportTicketId,
+                        sender_id: adminUser.id,
+                        message: message,
+                        message_type: 'text'
+                    });
+
+                if (error) throw error;
+                input.value = '';
+                await supabase.from('support_tickets').update({ updated_at: new Date().toISOString(), status: 'in_progress' }).eq('id', currentSupportTicketId);
+                loadSupportMessages(currentSupportTicketId);
+            } catch (error) {
+                console.error('Error sending support message:', error);
+                showAlert('supportChatMessagesModal', 'Failed to send message.', 'error');
+            }
+        }
+
+        async function resolveTicket(ticketId) {
+            if (!confirm('Are you sure you want to mark this ticket as resolved?')) return;
+            try {
+                const { error } = await supabase
+                    .from('support_tickets')
+                    .update({ status: 'resolved', updated_at: new Date().toISOString(), assigned_to: adminUser.id })
+                    .eq('id', ticketId);
+
+                if (error) throw error;
+                showAlert('supportChatList', 'Ticket resolved successfully!', 'success');
+                loadSupportTickets();
+            } catch (error) {
+                console.error('Error resolving ticket:', error);
+                showAlert('supportChatList', 'Failed to resolve ticket.', 'error');
+            }
+        }
+
+        // Social Videos Tab
+        async function loadSocialVideos() {
+            try {
+                const { data: videos, error } = await supabase
+                    .from('video_posts')
+                    .select('*, user:users(full_name, username)')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const container = document.getElementById('socialVideosTable');
+                if (videos.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-video"></i><h3>No Social Videos</h3><p>Add videos to showcase your platform or user content.</p></div>`;
+                    return;
+                }
+
+                let html = `<table class="data-table"><thead><tr><th>Title</th><th>User</th><th>URL</th><th>Views</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+                videos.forEach(v => {
+                    html += `
+                        <tr>
+                            <td>${v.title}</td>
+                            <td>${v.user?.full_name || 'N/A'}</td>
+                            <td><a href="${v.video_url}" target="_blank" class="text-primary-color">${v.video_url.substring(0, 30)}...</a></td>
+                            <td>${v.views.toLocaleString()}</td>
+                            <td><span class="status-badge status-${v.is_approved ? 'approved' : 'pending'}">${v.is_approved ? 'Approved' : 'Pending'}</span></td>
+                            <td class="action-buttons">
+                                <button class="btn btn-secondary btn-sm" onclick="editSocialVideo('${v.id}')">Edit</button>
+                                ${v.is_approved ? 
+                                    `<button class="btn btn-warning btn-sm" onclick="toggleVideoApproval('${v.id}', false)">Unapprove</button>` :
+                                    `<button class="btn btn-success btn-sm" onclick="toggleVideoApproval('${v.id}', true)">Approve</button>`
+                                }
+                                <button class="btn btn-danger btn-sm" onclick="deleteSocialVideo('${v.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading social videos:', error);
+                showAlert('socialVideosTable', 'Failed to load social videos.', 'error');
+            }
+        }
+
+        function showAddSocialVideoModal() {
+            document.getElementById('socialVideoForm').reset();
+            document.getElementById('socialVideoId').value = '';
+            showModal('addSocialVideoModal');
+        }
+
+        async function editSocialVideo(videoId) {
+            try {
+                const { data: video, error } = await supabase
+                    .from('video_posts')
+                    .select('*')
+                    .eq('id', videoId)
+                    .single();
+
+                if (error) throw error;
+
+                document.getElementById('socialVideoId').value = video.id;
+                document.getElementById('socialVideoPlatformName').value = video.title; // Using title for platform name
+                document.getElementById('socialVideoUrl').value = video.video_url;
+
+                showModal('addSocialVideoModal');
+            } catch (error) {
+                console.error('Error editing social video:', error);
+                showAlert('socialVideosTable', 'Failed to load video for editing.', 'error');
+            }
+        }
+
+        async function handleSocialVideoFormSubmit(event) {
+            event.preventDefault();
+            const videoId = document.getElementById('socialVideoId').value;
+            const platformName = document.getElementById('socialVideoPlatformName').value;
+            const videoUrl = document.getElementById('socialVideoUrl').value;
+
+            try {
+                const videoData = {
+                    title: platformName, // Using platform name as title
+                    video_url: videoUrl,
+                    user_id: adminUser.id, // Assign to admin for simplicity
+                    is_approved: true, // Default to approved
+                    approved_by: adminUser.id
+                };
+
+                let error;
+                if (videoId) {
+                    ({ error } = await supabase.from('video_posts').update(videoData).eq('id', videoId));
+                } else {
+                    ({ error } = await supabase.from('video_posts').insert(videoData));
+                }
+
+                if (error) throw error;
+
+                showAlert('socialVideosTable', `Video ${videoId ? 'updated' : 'added'} successfully!`, 'success');
+                closeModal('addSocialVideoModal');
+                loadSocialVideos();
+            } catch (error) {
+                console.error('Error saving social video:', error);
+                showAlert('socialVideosTable', `Failed to save video: ${error.message}`, 'error');
+            }
+        }
+
+        async function toggleVideoApproval(videoId, approvalStatus) {
+            try {
+                const { error } = await supabase
+                    .from('video_posts')
+                    .update({ is_approved: approvalStatus, approved_by: adminUser.id })
+                    .eq('id', videoId);
+
+                if (error) throw error;
+                showAlert('socialVideosTable', `Video ${approvalStatus ? 'approved' : 'unapproved'} successfully!`, 'success');
+                loadSocialVideos();
+            } catch (error) {
+                console.error('Error toggling video approval:', error);
+                showAlert('socialVideosTable', 'Failed to update video approval status.', 'error');
+            }
+        }
+
+        async function deleteSocialVideo(videoId) {
+            if (!confirm('Are you sure you want to delete this video?')) return;
+            try {
+                const { error } = await supabase.from('video_posts').delete().eq('id', videoId);
+                if (error) throw error;
+                showAlert('socialVideosTable', 'Video deleted successfully!', 'success');
+                loadSocialVideos();
+            } catch (error) {
+                console.error('Error deleting video:', error);
+                showAlert('socialVideosTable', 'Failed to delete video.', 'error');
+            }
+        }
+
+        // Event Listeners for Forms
+        function setupFormListeners() {
+            document.getElementById('planForm').addEventListener('submit', handlePlanFormSubmit);
+            document.getElementById('taskForm').addEventListener('submit', handleTaskFormSubmit);
+            document.getElementById('levelForm').addEventListener('submit', handleLevelFormSubmit);
+            document.getElementById('newsForm').addEventListener('submit', handleNewsFormSubmit);
+            document.getElementById('aboutForm').addEventListener('submit', handleAboutFormSubmit);
+            document.getElementById('socialVideoForm').addEventListener('submit', handleSocialVideoFormSubmit);
+
+            // Image file input change listeners for preview
+            document.getElementById('planImageFile').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('planImagePreview').src = e.target.result;
+                        document.getElementById('planImagePreview').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    document.getElementById('planImagePreview').src = '';
+                    document.getElementById('planImagePreview').style.display = 'none';
+                }
+            });
+
+            document.getElementById('levelIconFile').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('levelIconPreview').src = e.target.result;
+                        document.getElementById('levelIconPreview').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    document.getElementById('levelIconPreview').src = '';
+                    document.getElementById('levelIconPreview').style.display = 'none';
+                }
+            });
+
+            document.getElementById('newsImageFile').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('newsImagePreview').src = e.target.result;
+                        document.getElementById('newsImagePreview').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    document.getElementById('newsImagePreview').src = '';
+                    document.getElementById('newsImagePreview').style.display = 'none';
+                }
+            });
+        }
+
+        // Real-time Subscriptions for Admin
+        function setupRealtimeSubscriptions() {
+            // Listen for new purchase requests
+            supabase.channel('admin_purchases')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'user_mining_contracts', filter: 'status=eq.pending' }, payload => {
+                    if (document.getElementById('purchasesTab').classList.contains('active')) {
+                        loadPendingPurchases();
+                    }
+                })
+                .subscribe();
+
+            // Listen for new withdrawal requests
+            supabase.channel('admin_withdrawals')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'withdrawal_requests', filter: 'status=eq.pending' }, payload => {
+                    if (document.getElementById('withdrawalsTab').classList.contains('active')) {
+                        loadPendingWithdrawals();
+                    }
+                })
+                .subscribe();
+
+            // Listen for new global chat messages
+            supabase.channel('admin_global_chat')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
+                    if (document.getElementById('chatTab').classList.contains('active')) {
+                        loadGlobalChat();
+                    }
+                })
+                .subscribe();
+
+            // Listen for new support tickets or messages
+            supabase.channel('admin_support_tickets')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_tickets' }, payload => {
+                    if (document.getElementById('supportTab').classList.contains('active')) {
+                        loadSupportTickets();
+                    }
+                })
+                .subscribe();
+            supabase.channel('admin_support_messages')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, payload => {
+                    if (currentSupportTicketId === payload.new.ticket_id) {
+                        loadSupportMessages(currentSupportTicketId);
+                    }
+                    if (document.getElementById('supportTab').classList.contains('active')) {
+                        loadSupportTickets(); // Refresh list to show new messages/updates
+                    }
+                })
+                .subscribe();
+        }
+
+        // Global Search (simplified)
+        function performGlobalSearch() {
+            const query = document.getElementById('globalSearch').value.toLowerCase();
+            alert(`Performing global search for: "${query}" (This is a placeholder for a more advanced search feature)`);
+            // In a real application, this would trigger searches across multiple tables
+        }
+    </script>
+</body>
+</html>
