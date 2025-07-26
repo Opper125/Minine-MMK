@@ -31,6 +31,8 @@
             background: linear-gradient(135deg, #1e3a8a 0%, #1f2937 50%, #111827 100%);
             color: var(--text-light);
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
@@ -145,6 +147,7 @@
         /* Main Content */
         .main-content {
             padding: 30px 0;
+            flex-grow: 1; /* Allow content to grow */
         }
 
         .tab-content {
@@ -801,330 +804,402 @@
         .empty-state p {
             font-size: 14px;
         }
+
+        /* Login Page Styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1f2937 50%, #111827 100%);
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(31, 41, 55, 0.9);
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .login-card h2 {
+            font-size: 28px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .login-card .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .login-card .form-input {
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+        }
+
+        .login-card .btn-primary {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .login-error {
+            color: var(--danger-color);
+            margin-top: 15px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="header-logo">
-                    <i class="fas fa-shield-alt"></i>
-                    <div>
-                        <div class="header-title">MMK Mining Admin</div>
-                        <div style="font-size: 12px; color: #9ca3af;">Management Dashboard</div>
-                    </div>
+    <!-- Login Container -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-card">
+            <h2>Admin Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail" class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" required autocomplete="off">
                 </div>
+                <div class="form-group">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div id="loginError" class="login-error" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
 
-                <div class="header-actions">
-                    <div class="search-box">
-                        <input type="text" id="globalSearch" class="search-input" placeholder="Search anything...">
-                        <button class="search-btn" onclick="performGlobalSearch()">
-                            <i class="fas fa-search"></i>
+    <!-- Dashboard Content -->
+    <div id="dashboardContent" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="header-logo">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            <div class="header-title">MMK Mining Admin</div>
+                            <div style="font-size: 12px; color: #9ca3af;">Management Dashboard</div>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <input type="text" id="globalSearch" class="search-input" placeholder="Search anything...">
+                            <button class="search-btn" onclick="performGlobalSearch()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
                         </button>
                     </div>
-                    <button class="btn btn-danger btn-sm" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <div class="container">
+                <div class="nav-tabs-container">
+                    <button class="nav-tab active" onclick="showTab('analytics')">
+                        <i class="fas fa-chart-line"></i> Analytics
+                    </button>
+                    <button class="nav-tab" onclick="showTab('purchases')">
+                        <i class="fas fa-shopping-cart"></i> Purchase Requests
+                    </button>
+                    <button class="nav-tab" onclick="showTab('withdrawals')">
+                        <i class="fas fa-money-bill-wave"></i> Withdrawals
+                    </button>
+                    <button class="nav-tab" onclick="showTab('users')">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                    <button class="nav-tab" onclick="showTab('plans')">
+                        <i class="fas fa-gem"></i> Mining Plans
+                    </button>
+                    <button class="nav-tab" onclick="showTab('tasks')">
+                        <i class="fas fa-tasks"></i> Tasks
+                    </button>
+                    <button class="nav-tab" onclick="showTab('levels')">
+                        <i class="fas fa-trophy"></i> Levels
+                    </button>
+                    <button class="nav-tab" onclick="showTab('news')">
+                        <i class="fas fa-newspaper"></i> News
+                    </button>
+                    <button class="nav-tab" onclick="showTab('about')">
+                        <i class="fas fa-info-circle"></i> About
+                    </button>
+                    <button class="nav-tab" onclick="showTab('chat')">
+                        <i class="fas fa-comments"></i> Global Chat
+                    </button>
+                    <button class="nav-tab" onclick="showTab('support')">
+                        <i class="fas fa-headset"></i> Support Chat
+                    </button>
+                    <button class="nav-tab" onclick="showTab('social')">
+                        <i class="fas fa-video"></i> Social Videos
                     </button>
                 </div>
             </div>
-        </div>
-    </header>
+        </nav>
 
-    <!-- Navigation Tabs -->
-    <nav class="nav-tabs">
-        <div class="container">
-            <div class="nav-tabs-container">
-                <button class="nav-tab active" onclick="showTab('analytics')">
-                    <i class="fas fa-chart-line"></i> Analytics
-                </button>
-                <button class="nav-tab" onclick="showTab('purchases')">
-                    <i class="fas fa-shopping-cart"></i> Purchase Requests
-                </button>
-                <button class="nav-tab" onclick="showTab('withdrawals')">
-                    <i class="fas fa-money-bill-wave"></i> Withdrawals
-                </button>
-                <button class="nav-tab" onclick="showTab('users')">
-                    <i class="fas fa-users"></i> Users
-                </button>
-                <button class="nav-tab" onclick="showTab('plans')">
-                    <i class="fas fa-gem"></i> Mining Plans
-                </button>
-                <button class="nav-tab" onclick="showTab('tasks')">
-                    <i class="fas fa-tasks"></i> Tasks
-                </button>
-                <button class="nav-tab" onclick="showTab('levels')">
-                    <i class="fas fa-trophy"></i> Levels
-                </button>
-                <button class="nav-tab" onclick="showTab('news')">
-                    <i class="fas fa-newspaper"></i> News
-                </button>
-                <button class="nav-tab" onclick="showTab('about')">
-                    <i class="fas fa-info-circle"></i> About
-                </button>
-                <button class="nav-tab" onclick="showTab('chat')">
-                    <i class="fas fa-comments"></i> Global Chat
-                </button>
-                <button class="nav-tab" onclick="showTab('support')">
-                    <i class="fas fa-headset"></i> Support Chat
-                </button>
-                <button class="nav-tab" onclick="showTab('social')">
-                    <i class="fas fa-video"></i> Social Videos
-                </button>
-            </div>
-        </div>
-    </nav>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Analytics Tab -->
+                <div id="analyticsTab" class="tab-content active">
+                    <div class="stats-grid" id="analyticsStats">
+                        <!-- Stats will be loaded here -->
+                    </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container">
-            <!-- Analytics Tab -->
-            <div id="analyticsTab" class="tab-content active">
-                <div class="stats-grid" id="analyticsStats">
-                    <!-- Stats will be loaded here -->
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-chart-bar"></i>
-                            Platform Overview
-                        </h2>
-                    </div>
-                    <div id="platformOverview">
-                        <!-- Platform overview will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Purchase Requests Tab -->
-            <div id="purchasesTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-clock"></i>
-                            Pending Purchase Requests
-                        </h2>
-                        <button class="btn btn-primary" onclick="refreshPurchases()">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
-                    </div>
-                    <div id="pendingPurchases">
-                        <!-- Pending purchases will be loaded here -->
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-history"></i>
-                            Purchase History
-                        </h2>
-                    </div>
-                    <div id="purchaseHistory">
-                        <!-- Purchase history will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Withdrawals Tab -->
-            <div id="withdrawalsTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-clock"></i>
-                            Pending Withdrawals
-                        </h2>
-                        <button class="btn btn-primary" onclick="refreshWithdrawals()">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
-                    </div>
-                    <div id="pendingWithdrawals">
-                        <!-- Pending withdrawals will be loaded here -->
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-history"></i>
-                            Withdrawal History
-                        </h2>
-                    </div>
-                    <div id="withdrawalHistory">
-                        <!-- Withdrawal history will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Users Tab -->
-            <div id="usersTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-users"></i>
-                            User Management
-                        </h2>
-                        <div class="search-box">
-                            <input type="text" id="userSearch" class="search-input" placeholder="Search users..." onkeyup="searchUsers()">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-chart-bar"></i>
+                                Platform Overview
+                            </h2>
+                        </div>
+                        <div id="platformOverview">
+                            <!-- Platform overview will be loaded here -->
                         </div>
                     </div>
-                    <div id="usersTable">
-                        <!-- Users table will be loaded here -->
-                    </div>
                 </div>
-            </div>
 
-            <!-- Mining Plans Tab -->
-            <div id="plansTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-gem"></i>
-                            Mining Plans Management
-                        </h2>
-                        <button class="btn btn-primary" onclick="showAddPlanModal()">
-                            <i class="fas fa-plus"></i> Add Plan
-                        </button>
-                    </div>
-                    <div id="plansTable">
-                        <!-- Plans table will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tasks Tab -->
-            <div id="tasksTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-tasks"></i>
-                            Tasks Management
-                        </h2>
-                        <button class="btn btn-primary" onclick="showAddTaskModal()">
-                            <i class="fas fa-plus"></i> Add Task
-                        </button>
-                    </div>
-                    <div id="tasksTable">
-                        <!-- Tasks table will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Levels Tab -->
-            <div id="levelsTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-trophy"></i>
-                            Levels Management
-                        </h2>
-                        <button class="btn btn-primary" onclick="showAddLevelModal()">
-                            <i class="fas fa-plus"></i> Add Level
-                        </button>
-                    </div>
-                    <div id="levelsTable">
-                        <!-- Levels table will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- News Tab -->
-            <div id="newsTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-newspaper"></i>
-                            News Management
-                        </h2>
-                        <button class="btn btn-primary" onclick="showAddNewsModal()">
-                            <i class="fas fa-plus"></i> Add News
-                        </button>
-                    </div>
-                    <div id="newsTable">
-                        <!-- News table will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- About Tab -->
-            <div id="aboutTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-info-circle"></i>
-                            About Information Management
-                        </h2>
-                        <button class="btn btn-primary" onclick="showAddAboutModal()">
-                            <i class="fas fa-plus"></i> Add Contact Info
-                        </button>
-                    </div>
-                    <div id="aboutTable">
-                        <!-- About table will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Global Chat Tab -->
-            <div id="chatTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-comments"></i>
-                            Global Chat Monitor
-                        </h2>
-                        <button class="btn btn-warning btn-sm" onclick="clearGlobalChat()">
-                            <i class="fas fa-trash"></i> Clear Chat
-                        </button>
-                    </div>
-                    <div class="chat-container">
-                        <div class="chat-messages" id="globalChatMessages">
-                            <!-- Global chat messages will be loaded here -->
-                        </div>
-                        <div class="chat-input">
-                            <input type="text" id="adminChatInput" placeholder="Send message as admin..." maxlength="500">
-                            <button class="send-btn" onclick="sendAdminMessage()">
-                                <i class="fas fa-paper-plane"></i>
+                <!-- Purchase Requests Tab -->
+                <div id="purchasesTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-clock"></i>
+                                Pending Purchase Requests
+                            </h2>
+                            <button class="btn btn-primary" onclick="refreshPurchases()">
+                                <i class="fas fa-sync-alt"></i> Refresh
                             </button>
                         </div>
+                        <div id="pendingPurchases">
+                            <!-- Pending purchases will be loaded here -->
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Support Chat Tab -->
-            <div id="supportTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-headset"></i>
-                            Support Chat Management
-                        </h2>
-                    </div>
-                    <div id="supportChatList">
-                        <!-- Support chat list will be loaded here -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-history"></i>
+                                Purchase History
+                            </h2>
+                        </div>
+                        <div id="purchaseHistory">
+                            <!-- Purchase history will be loaded here -->
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Social Videos Tab -->
-            <div id="socialTab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-video"></i>
-                            Social Videos Management
-                        </h2>
-                        <button class="btn btn-primary" onclick="showAddSocialVideoModal()">
-                            <i class="fas fa-plus"></i> Add Video
-                        </button>
+                <!-- Withdrawals Tab -->
+                <div id="withdrawalsTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-clock"></i>
+                                Pending Withdrawals
+                            </h2>
+                            <button class="btn btn-primary" onclick="refreshWithdrawals()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="pendingWithdrawals">
+                            <!-- Pending withdrawals will be loaded here -->
+                        </div>
                     </div>
-                    <div id="socialVideosTable">
-                        <!-- Social videos table will be loaded here -->
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-history"></i>
+                                Withdrawal History
+                            </h2>
+                        </div>
+                        <div id="withdrawalHistory">
+                            <!-- Withdrawal history will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="usersTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-users"></i>
+                                User Management
+                            </h2>
+                            <div class="search-box">
+                                <input type="text" id="userSearch" class="search-input" placeholder="Search users..." onkeyup="searchUsers()">
+                            </div>
+                        </div>
+                        <div id="usersTable">
+                            <!-- Users table will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mining Plans Tab -->
+                <div id="plansTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-gem"></i>
+                                Mining Plans Management
+                            </h2>
+                            <button class="btn btn-primary" onclick="showAddPlanModal()">
+                                <i class="fas fa-plus"></i> Add Plan
+                            </button>
+                        </div>
+                        <div id="plansTable">
+                            <!-- Plans table will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Tab -->
+                <div id="tasksTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-tasks"></i>
+                                Tasks Management
+                            </h2>
+                            <button class="btn btn-primary" onclick="showAddTaskModal()">
+                                <i class="fas fa-plus"></i> Add Task
+                            </button>
+                        </div>
+                        <div id="tasksTable">
+                            <!-- Tasks table will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Levels Tab -->
+                <div id="levelsTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-trophy"></i>
+                                Levels Management
+                            </h2>
+                            <button class="btn btn-primary" onclick="showAddLevelModal()">
+                                <i class="fas fa-plus"></i> Add Level
+                            </button>
+                        </div>
+                        <div id="levelsTable">
+                            <!-- Levels table will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Tab -->
+                <div id="newsTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-newspaper"></i>
+                                News Management
+                            </h2>
+                            <button class="btn btn-primary" onclick="showAddNewsModal()">
+                                <i class="fas fa-plus"></i> Add News
+                            </button>
+                        </div>
+                        <div id="newsTable">
+                            <!-- News table will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Tab -->
+                <div id="aboutTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-info-circle"></i>
+                                About Information Management
+                            </h2>
+                            <button class="btn btn-primary" onclick="showAddAboutModal()">
+                                <i class="fas fa-plus"></i> Add Contact Info
+                            </button>
+                        </div>
+                        <div id="aboutTable">
+                            <!-- About table will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Global Chat Tab -->
+                <div id="chatTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-comments"></i>
+                                Global Chat Monitor
+                            </h2>
+                            <button class="btn btn-warning btn-sm" onclick="clearGlobalChat()">
+                                <i class="fas fa-trash"></i> Clear Chat
+                            </button>
+                        </div>
+                        <div class="chat-container">
+                            <div class="chat-messages" id="globalChatMessages">
+                                <!-- Global chat messages will be loaded here -->
+                            </div>
+                            <div class="chat-input">
+                                <input type="text" id="adminChatInput" placeholder="Send message as admin..." maxlength="500">
+                                <button class="send-btn" onclick="sendAdminMessage()">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support Chat Tab -->
+                <div id="supportTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-headset"></i>
+                                Support Chat Management
+                            </h2>
+                        </div>
+                        <div id="supportChatList">
+                            <!-- Support chat list will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Videos Tab -->
+                <div id="socialTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-video"></i>
+                                Social Videos Management
+                            </h2>
+                            <button class="btn btn-primary" onclick="showAddSocialVideoModal()">
+                                <i class="fas fa-plus"></i> Add Video
+                            </button>
+                        </div>
+                        <div id="socialVideosTable">
+                            <!-- Social videos table will be loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- Modals -->
     <!-- Add Plan Modal -->
@@ -1468,52 +1543,70 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let adminUser = null;
+        // Hardcoded Admin Credentials
+        const ADMIN_EMAIL = 'crakb68@gmail.com';
+        const ADMIN_PASSWORD = '155872';
+        const SESSION_STORAGE_KEY = 'mmk_admin_logged_in';
+
+        let adminUser = {
+            id: 'hardcoded-admin-id-123', // A dummy ID for admin actions
+            full_name: 'Admin User',
+            email: ADMIN_EMAIL,
+            role: 'admin'
+        };
         let currentSupportTicketId = null;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            await checkAdminAuth();
             setupFormListeners();
-            setupRealtimeSubscriptions();
-        });
-
-        async function checkAdminAuth() {
-            const sessionToken = localStorage.getItem('mmk_admin_session_token');
-            if (!sessionToken) {
-                window.location.href = '/login'; // Redirect to login if no session
-                return;
+            // Check if already logged in via session storage
+            if (sessionStorage.getItem(SESSION_STORAGE_KEY) === 'true') {
+                showDashboard();
+                loadAdminDashboardData();
+                setupRealtimeSubscriptions();
+            } else {
+                showLogin();
             }
 
-            try {
-                const { data, error } = await supabase.rpc('verify_session', {
-                    p_session_token: sessionToken
-                });
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        });
 
-                if (data && data.success && data.user.role === 'admin') {
-                    adminUser = data.user;
-                    loadAdminDashboardData();
-                } else {
-                    localStorage.removeItem('mmk_admin_session_token');
-                    window.location.href = '/login'; // Redirect if not admin or session invalid
-                }
-            } catch (error) {
-                console.error('Admin session verification error:', error);
-                localStorage.removeItem('mmk_admin_session_token');
-                window.location.href = '/login';
+        function showLogin() {
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('loginEmail').value = ''; // Ensure fields are empty
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginError').style.display = 'none';
+            sessionStorage.removeItem(SESSION_STORAGE_KEY); // Clear session on showing login
+        }
+
+        function showDashboard() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            sessionStorage.setItem(SESSION_STORAGE_KEY, 'true'); // Mark as logged in
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById('loginEmail').value;
+            const passwordInput = document.getElementById('loginPassword').value;
+            const loginErrorDiv = document.getElementById('loginError');
+
+            if (emailInput === ADMIN_EMAIL && passwordInput === ADMIN_PASSWORD) {
+                loginErrorDiv.style.display = 'none';
+                showDashboard();
+                loadAdminDashboardData();
+                setupRealtimeSubscriptions();
+            } else {
+                loginErrorDiv.textContent = 'Invalid email or password.';
+                loginErrorDiv.style.display = 'block';
             }
         }
 
         async function logout() {
-            const sessionToken = localStorage.getItem('mmk_admin_session_token');
-            if (sessionToken) {
-                try {
-                    await supabase.rpc('logout_user', { p_session_token: sessionToken });
-                } catch (error) {
-                    console.error('Logout error:', error);
-                }
+            if (confirm('Are you sure you want to log out?')) {
+                sessionStorage.removeItem(SESSION_STORAGE_KEY);
+                showLogin();
             }
-            localStorage.removeItem('mmk_admin_session_token');
-            window.location.href = '/login';
         }
 
         function showTab(tabId) {
@@ -2791,7 +2884,7 @@
                 const { error } = await supabase
                     .from('global_chat')
                     .insert({
-                        user_id: adminUser.id,
+                        user_id: adminUser.id, // Use the hardcoded adminUser ID
                         message: message,
                         message_type: 'text'
                     });
@@ -2915,7 +3008,7 @@
                     .from('support_messages')
                     .insert({
                         ticket_id: currentSupportTicketId,
-                        sender_id: adminUser.id,
+                        sender_id: adminUser.id, // Use the hardcoded adminUser ID
                         message: message,
                         message_type: 'text'
                     });
