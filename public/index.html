@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>MMK Mining</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lottie-web@5.9.6/build/player/lottie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #1a1a3a;
+            --bg-tertiary: #2a2a5a;
+            --accent-primary: #f0b90b;
+            --accent-secondary: #4c5fdc;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a9a9a9;
+            --success: #2ebd85;
+            --error: #f6465d;
+            --warning: #ffc107;
+            --info: #17a2b8;
+
+            --gradient-gold: linear-gradient(90deg, #f0b90b, #ffdd00);
+            --gradient-blue: linear-gradient(90deg, #4c5fdc, #7a8aff);
+            --gradient-green: linear-gradient(90deg, #2ebd85, #5cb85c);
+            --gradient-red: linear-gradient(90deg, #f6465d, #dc3545);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            padding-bottom: 80px;
+            overflow-y: auto;
+            background-color: var(--bg-primary);
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            display: none;
+            flex-shrink: 0;
+        }
+        .page.active {
+            transform: translateX(0);
+            display: block;
+        }
+        .page::-webkit-scrollbar { width: 8px; }
+        .page::-webkit-scrollbar-track { background: var(--bg-primary); }
+        .page::-webkit-scrollbar-thumb { background-color: var(--bg-tertiary); border-radius: 10px; border: 2px solid var(--bg-primary); }
+
+        #page-auth {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding-bottom: 20px;
+            background: var(--bg-primary) url('https://vuecdeskfiiblejwqxfz.supabase.co/storage/v1/object/public/news_images/auth_bg.jpg') no-repeat center center/cover;
+            position: relative;
+            overflow: hidden;
+        }
+        #page-auth::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1;
+        }
+        .auth-form {
+            width: 100%;
+            max-width: 380px;
+            background: rgba(26,26,58,0.8);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 2;
+            animation: fadeInScale 0.6s ease-out;
+        }
+        .auth-form h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--accent-primary);
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(240,185,11,0.5);
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 0 3px rgba(76,95,220,0.3);
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--gradient-blue);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(76,95,220,0.4);
+        }
+        .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(76,95,220,0.5); }
+        .auth-btn:active { transform: scale(0.98); box-shadow: 0 3px 10px rgba(76,95,220,0.3); }
+        .auth-btn:disabled {
+            background: #3a3a6a;
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+        }
+        .toggle-auth {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .toggle-auth span {
+            color: var(--accent-primary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        .toggle-auth span:hover { color: #ffdd00; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--bg-secondary);
+            padding: 10px 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            z-index: 100;
+        }
+        .bottom-nav::-webkit-scrollbar { display: none; }
+        .nav-menu {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 0 10px;
+            min-width: fit-content;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            padding: 5px 15px;
+            cursor: pointer;
+            transition: color 0.3s, transform 0.3s, background-color 0.3s;
+            flex-shrink: 0;
+            border-radius: 10px;
+            min-width: 80px;
+        }
+        .nav-item.active {
+            color: var(--accent-primary);
+            transform: translateY(-5px);
+            background-color: rgba(240,185,11,0.1);
+        }
+        .nav-item i {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        .nav-item span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+        .overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .overlay-content {
+            text-align: center;
+            animation: fadeInScale 0.5s ease-out;
+        }
+        #lottie-animation { width: 150px; height: 150px; margin: 0 auto; }
+        .overlay-message {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 10px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .toast-message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        .toast-message.success { background: var(--gradient-green); }
+        .toast-message.error { background: var(--gradient-red); }
+        .toast-message.info { background: var(--gradient-blue); }
+        .toast-message.warning { background: var(--gradient-gold); }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--bg-tertiary);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease-out;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .card-title { font-size: 20px; font-weight: 600; color: var(--accent-primary); }
+        .card-description { font-size: 14px; color: var(--text-secondary); margin-top: 5px; }
+        .card-content { font-size: 14px; color: var(--text-primary); }
+
+        #page-mining .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding-top: 20px;
+        }
+        .mining-circle-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .mining-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid;
+        }
+        .outer-circle {
+            width: 100%;
+            height: 100%;
+            border-color: transparent var(--accent-secondary) transparent var(--accent-secondary);
+            animation: spin 10s linear infinite;
+        }
+        .inner-circle {
+            width: 80%;
+            height: 80%;
+            border-color: var(--accent-primary) transparent var(--accent-primary) transparent;
+            animation: spin-reverse 8s linear infinite;
+        }
+        .mining-info {
+            text-align: center;
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite alternate;
+        }
+        .mining-info h3 {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        .mining-info p {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-shadow: 0 0 10px rgba(240,185,11,0.5);
+        }
+        .countdown-timer {
+            margin-top: 30px;
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideInUp 0.6s ease-out;
+        }
+        .timer-segment { text-align: center; }
+        .timer-segment .value { font-size: 24px; font-weight: 600; color: var(--accent-secondary); }
+        .timer-segment .label { font-size: 12px; color: var(--text-secondary); }
+        .live-feed-card {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: fadeIn 0.6s ease-out;
+        }
+        .live-feed-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+        .live-feed-item:last-child { border-bottom: none; }
+        .live-feed-item .amount { font-weight: 600; color: var(--success); }
+        .live-feed-item .username { font-weight: 500; color: var(--accent-primary); }
+        .live-feed-item .status { font-size: 12px; color: var(--text-secondary); }
+        .live-feed-item .method { font-size: 12px; color: var(--info); }
+        .top-withdrawal-card {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: fadeIn 0.6s ease-out;
+        }
+        .top-withdrawal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+        .top-withdrawal-item:last-child { border-bottom: none; }
+        .top-withdrawal-item .rank { font-size: 20px; font-weight: 700; color: var(--accent-primary); }
+        .top-withdrawal-item .username { font-weight: 600; color: var(--text-primary); }
+        .top-withdrawal-item .amount { font-weight: 700; color: var(--success); }
+
+        #page-history .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .history-item {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideInRight 0.4s ease-out;
+        }
+        .history-item .status-badge {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+        .status-badge.pending { background: var(--warning); }
+        .status-badge.active, .status-badge.approved { background: var(--success); }
+        .status-badge.completed { background: var(--info); }
+        .status-badge.rejected { background: var(--error); }
+
+        #page-buy-plan .plan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .plan-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .plan-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        .plan-card .plan-icon { width: 60px; height: 60px; margin: 0 auto 15px; }
+        .plan-card h3 { font-size: 24px; color: var(--accent-primary); margin-bottom: 10px; }
+        .plan-card .cost { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 15px; }
+        .plan-card .details p { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
+        .plan-card .buy-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--gradient-gold);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg-primary);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(240,185,11,0.4);
+        }
+        .plan-card .buy-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(240,185,11,0.5); }
+        .plan-card .buy-btn:active { transform: scale(0.98); box-shadow: 0 3px 10px rgba(240,185,11,0.3); }
+        .plan-card .buy-btn:disabled { background: #3a3a6a; cursor: not-allowed; opacity: 0.7; box-shadow: none; }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+        .dialog-overlay.visible { opacity: 1; pointer-events: all; }
+        .dialog-content {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 450px;
+            animation: fadeInScale 0.4s ease-out;
+            color: var(--text-primary);
+        }
+        .dialog-header { margin-bottom: 20px; text-align: center; }
+        .dialog-title { font-size: 24px; font-weight: 600; color: var(--accent-primary); }
+        .dialog-body { margin-bottom: 20px; }
+        .dialog-body p { margin-bottom: 10px; }
+        .dialog-body strong { color: var(--accent-primary); }
+        .dialog-body .payment-info {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .dialog-body input[type="file"] {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 10px;
+            color: var(--text-primary);
+        }
+        .dialog-body input[type="file"]::file-selector-button {
+            background: var(--accent-secondary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .dialog-footer { text-align: right; }
+        .dialog-footer button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+        .dialog-footer .submit-btn {
+            background: var(--gradient-green);
+            color: var(--bg-primary);
+            box-shadow: 0 5px 15px rgba(46,189,133,0.4);
+        }
+        .dialog-footer .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(46,189,133,0.5); }
+        .dialog-footer .submit-btn:active { transform: scale(0.98); box-shadow: 0 3px 10px rgba(46,189,133,0.3); }
+        .dialog-footer .submit-btn:disabled { background: #3a3a6a; cursor: not-allowed; opacity: 0.7; box-shadow: none; }
+
+        #page-tasks .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .task-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease-out;
+        }
+        .task-card .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .task-card .task-title { font-size: 18px; font-weight: 600; color: var(--accent-primary); }
+        .task-card .task-reward { font-size: 16px; font-weight: 700; color: var(--success); display: flex; align-items: center; gap: 5px; }
+        .task-card .task-description { font-size: 14px; color: var(--text-secondary); margin-bottom: 15px; }
+        .task-card .task-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-card .task-link {
+            color: var(--accent-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s;
+        }
+        .task-card .task-link:hover { color: #7a8aff; }
+        .task-card .claim-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--gradient-blue);
+            color: white;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(76,95,220,0.4);
+        }
+        .task-card .claim-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(76,95,220,0.5); }
+        .task-card .claim-btn:active { transform: scale(0.98); box-shadow: 0 3px 10px rgba(76,95,220,0.3); }
+        .task-card .claim-btn:disabled { background: #3a3a6a; cursor: not-allowed; opacity: 0.7; box-shadow: none; }
+        .task-card .claimed-badge {
+            background: var(--success);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #page-profile .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        #page-profile .profile-avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--accent-primary);
+            box-shadow: 0 0 20px rgba(240,185,11,0.3);
+        }
+        #page-profile .profile-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #page-profile .upload-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--accent-secondary);
+            color: white;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        #page-profile .upload-btn:hover { transform: scale(1.1); }
+        #page-profile .profile-name { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+        #page-profile .profile-username { font-size: 16px; color: var(--text-secondary); }
+        #page-profile .level-display {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #page-profile .level-display .level-icon { width: 40px; height: 40px; margin-bottom: 10px; }
+        #page-profile .level-display .level-name { font-size: 18px; font-weight: 600; color: var(--accent-primary); }
+        #page-profile .level-display .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        #page-profile .level-display .progress-fill {
+            height: 100%;
+            background: var(--gradient-gold);
+            border-radius: 5px;
+            transition: width 0.5s ease-out;
+        }
+        #page-profile .level-display .progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        #page-profile .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        #page-profile .stat-item {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        #page-profile .stat-item .label { font-size: 12px; color: var(--text-secondary); }
+        #page-profile .stat-item .value { font-size: 18px; font-weight: 600; color: var(--text-primary); }
+        #page-profile .withdraw-form {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+        #page-profile .withdraw-form h3 { font-size: 20px; font-weight: 600; color: var(--accent-primary); margin-bottom: 15px; }
+        #page-profile .withdraw-form input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        #page-profile .withdraw-form .withdraw-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--gradient-green);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg-primary);
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(46,189,133,0.4);
+        }
+        #page-profile .withdraw-form .withdraw-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(46,189,133,0.5); }
+        #page-profile .withdraw-form .withdraw-btn:active { transform: scale(0.98); box-shadow: 0 3px 10px rgba(46,189,133,0.3); }
+        #page-profile .withdraw-form .withdraw-btn:disabled { background: #3a3a6a; cursor: not-allowed; opacity: 0.7; box-shadow: none; }
+        #page-profile .logout-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--gradient-red);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(246,70,93,0.4);
+        }
+        #page-profile .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(246,70,93,0.5); }
+        #page-profile .logout-btn:active { transform: scale(0.98); box-shadow: 0 3px 10px rgba(246,70,93,0.3); }
+
+        #page-global-chat .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 60px);
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #page-global-chat .messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-bottom: 15px;
+        }
+        #page-global-chat .message-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 15px;
+            animation: slideInLeft 0.3s ease-out;
+        }
+        #page-global-chat .message-item.admin {
+            justify-content: flex-end;
+            animation: slideInRight 0.3s ease-out;
+        }
+        #page-global-chat .message-item.admin .message-bubble {
+            background: var(--accent-secondary);
+            color: white;
+        }
+        #page-global-chat .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-primary);
+            flex-shrink: 0;
+        }
+        #page-global-chat .message-content {
+            display: flex;
+            flex-direction: column;
+        }
+        #page-global-chat .message-sender {
+            font-weight: 600;
+            color: var(--accent-primary);
+            font-size: 14px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #page-global-chat .message-sender .level-badge {
+            background: var(--accent-secondary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        #page-global-chat .message-bubble {
+            background: var(--bg-tertiary);
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        #page-global-chat .chat-input-form {
+            display: flex;
+            gap: 10px;
+        }
+        #page-global-chat .chat-input-form input {
+            flex-grow: 1;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+        #page-global-chat .chat-input-form button {
+            background: var(--gradient-blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #page-global-chat .chat-input-form button:hover { transform: translateY(-2px); }
+
+        #page-support-admin .support-chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 60px);
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #page-support-admin .messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-bottom: 15px;
+        }
+        #page-support-admin .message-item {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        #page-support-admin .message-item.user-message {
+            justify-content: flex-end;
+        }
+        #page-support-admin .message-bubble {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 15px;
+            word-wrap: break-word;
+        }
+        #page-support-admin .message-bubble.user-message {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+        #page-support-admin .message-bubble.admin-message {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        #page-support-admin .chat-input-form {
+            display: flex;
+            gap: 10px;
+        }
+        #page-support-admin .chat-input-form input {
+            flex-grow: 1;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+        #page-support-admin .chat-input-form button {
+            background: var(--gradient-blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #page-support-admin .chat-input-form button:hover { transform: translateY(-2px); }
+
+        #page-news .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .news-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease-out;
+        }
+        .news-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+        .news-card .news-content {
+            padding: 20px;
+        }
+        .news-card .news-title { font-size: 20px; font-weight: 600; color: var(--accent-primary); margin-bottom: 10px; }
+        .news-card .news-meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+        .news-card .news-text { font-size: 15px; color: var(--text-primary); line-height: 1.5; }
+        .news-card .news-text a { color: var(--accent-secondary); text-decoration: underline; }
+
+        #page-feed .post-form {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #page-feed .post-form textarea {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            padding: 10px;
+            min-height: 80px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        #page-feed .post-form input[type="file"] {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 10px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        #page-feed .post-form input[type="file"]::file-selector-button {
+            background: var(--accent-secondary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        #page-feed .post-form .upload-progress {
+            font-size: 12px;
+            color: var(--info);
+            margin-bottom: 10px;
+        }
+        #page-feed .post-form button {
+            width: 100%;
+            padding: 12px;
+            background: var(--gradient-blue);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #page-feed .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .post-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease-out;
+        }
+        .post-card .post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .post-card .post-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-primary);
+        }
+        .post-card .post-username { font-weight: 600; color: var(--accent-primary); }
+        .post-card .post-time { font-size: 12px; color: var(--text-secondary); }
+        .post-card .post-content { font-size: 15px; color: var(--text-primary); line-height: 1.5; margin-bottom: 15px; }
+        .post-card video {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: black;
+        }
+        .post-card .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .post-card .like-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .post-card .like-btn.liked { color: var(--error); }
+        .post-card .like-btn:hover { color: var(--accent-primary); }
+        .post-card .delete-btn {
+            background: none;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .post-card .delete-btn:hover { color: #dc3545; }
+
+        #page-social-video .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .video-card {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease-out;
+        }
+        .video-card .video-title {
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+        .video-card .video-embed {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+        .video-card .video-embed iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        #page-about .about-info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .about-info-item {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            animation: slideInRight 0.4s ease-out;
+        }
+        .about-info-item .icon { font-size: 24px; color: var(--accent-primary); }
+        .about-info-item .text { font-size: 16px; color: var(--text-primary); }
+        .about-info-item .text a { color: var(--accent-secondary); text-decoration: underline; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(240,185,11,0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(240,185,11,0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 20px rgba(240,185,11,0.3); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideInLeft {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .shimmer-effect {
+            background: linear-gradient(to right, var(--bg-secondary) 0%, var(--bg-tertiary) 20%, var(--bg-secondary) 40%, var(--bg-secondary) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--accent-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        .banned-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            text-align: center;
+            color: var(--error);
+            font-size: 24px;
+            font-weight: 700;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .banned-overlay .banned-message {
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(246,70,93,0.5);
+        }
+        .banned-overlay .logout-btn {
+            background: var(--gradient-red);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(246,70,93,0.4);
+        }
+        .banned-overlay .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(246,70,93,0.5); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="page-auth" class="page active">
+            <div id="login-form" class="auth-form">
+                <h2>Login</h2>
+                <form onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <input type="text" id="login-username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="login-password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="auth-btn" id="login-btn">Login</button>
+                </form>
+                <p class="toggle-auth">Don't have an account? <span onclick="toggleAuthForm()">Sign Up</span></p>
+            </div>
+            <div id="signup-form" class="auth-form" style="display: none;">
+                <h2>Sign Up</h2>
+                <form onsubmit="handleSignUp(event)">
+                    <div class="input-group">
+                        <input type="text" id="signup-name" placeholder="Name" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="signup-username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="signup-password" placeholder="Password" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="signup-pin" placeholder="6-Digit Withdraw PIN" required maxlength="6" pattern="\d{6}">
+                    </div>
+                    <button type="submit" class="auth-btn" id="signup-btn">Create Account</button>
+                </form>
+                <p class="toggle-auth">Already have an account? <span onclick="toggleAuthForm()">Login</span></p>
+            </div>
+        </div>
+
+        <div id="app-content" style="display: none; flex-grow: 1; display: flex; flex-direction: column;">
+            <div id="page-mining" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Your Mining Dashboard</h1>
+                <div class="content" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <div class="card" style="width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px;">
+                        <div class="card-header">
+                            <h2 class="card-title">Your Mining Stats</h2>
+                        </div>
+                        <div class="card-content" style="display: flex; flex-direction: column; gap: 15px;">
+                            <div>
+                                <p style="font-size: 14px; color: var(--text-secondary);">Lifetime Earnings</p>
+                                <p id="lifetime-earnings" style="font-size: 28px; font-weight: 700; color: var(--success);">0.000000 MMK</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 14px; color: var(--text-secondary);">Ready to Collect</p>
+                                <p id="mining-balance" style="font-size: 24px; font-weight: 700; color: var(--accent-secondary);">0.000000 MMK</p>
+                            </div>
+                            <button class="auth-btn" id="collect-mining-btn" style="background: var(--gradient-green); box-shadow: 0 5px 15px rgba(46,189,133,0.4);">Collect All Mining Balance</button>
+                        </div>
+                    </div>
+
+                    <div class="mining-circle-container">
+                        <div class="outer-circle mining-circle"></div>
+                        <div class="inner-circle mining-circle"></div>
+                        <div class="mining-info">
+                            <h3>Current Rate</h3>
+                            <p id="mining-rate">0.000000</p>
+                            <p style="font-size: 12px; color: var(--accent-secondary);">MMK/sec</p>
+                        </div>
+                    </div>
+                    <div class="countdown-timer" style="margin-top: 30px;">
+                        <div class="timer-segment"><span id="days" class="value">00</span><span class="label">Days</span></div>
+                        <div class="timer-segment"><span id="hours" class="value">00</span><span class="label">Hours</span></div>
+                        <div class="timer-segment"><span id="minutes" class="value">00</span><span class="label">Mins</span></div>
+                        <div class="timer-segment"><span id="seconds" class="value">00</span><span class="label">Secs</span></div>
+                    </div>
+                    <div class="live-feed-card">
+                        <h2 class="card-title" style="text-align: center; margin-bottom: 15px;">Live Withdrawals</h2>
+                        <div id="live-withdrawal-feed" style="max-height: 200px; overflow-y: auto;">
+                        </div>
+                    </div>
+                    <div class="top-withdrawal-card">
+                        <h2 class="card-title" style="text-align: center; margin-bottom: 15px;">Top Withdrawals</h2>
+                        <div id="top-withdrawal-feed">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="page-history" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Transaction History</h1>
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Purchase History</h2></div>
+                    <div class="card-content history-list" id="purchase-history-list">
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Withdrawal History</h2></div>
+                    <div class="card-content history-list" id="withdrawal-history-list">
+                    </div>
+                </div>
+            </div>
+            <div id="page-buy-plan" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Buy Mining Power</h1>
+                <div class="plan-grid" id="mining-plans-grid">
+                </div>
+            </div>
+            <div id="page-tasks" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Earn Free Rewards</h1>
+                <div class="task-list" id="tasks-list">
+                </div>
+            </div>
+            <div id="page-profile" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Your Profile</h1>
+                <div class="card">
+                    <div class="profile-header">
+                        <div class="profile-avatar-container">
+                            <img id="profile-avatar" src="/placeholder.svg" alt="Profile Avatar" class="profile-avatar">
+                            <label for="avatar-upload" class="upload-btn"><i data-feather="upload"></i></label>
+                            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                        </div>
+                        <h2 class="profile-name" id="profile-name"></h2>
+                        <p class="profile-username" id="profile-username"></p>
+                    </div>
+                    <div class="level-display">
+                        <img id="level-icon" src="/placeholder.svg" alt="Level Icon" class="level-icon">
+                        <p class="level-name" id="level-name"></p>
+                        <p class="progress-text" id="level-progress-text"></p>
+                        <div class="progress-bar"><div class="progress-fill" id="level-progress-fill"></div></div>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="stat-item"><p class="label">Main Balance</p><p class="value" id="main-balance">0.00 MMK</p></div>
+                        <div class="stat-item"><p class="label">Total Purchases</p><p class="value" id="total-purchases">0.00 MMK</p></div>
+                        <div class="stat-item"><p class="label">Total Withdrawals</p><p class="value" id="total-withdrawals">0.00 MMK</p></div>
+                        <div class="stat-item"><p class="label">Lifetime Mining</p><p class="value" id="lifetime-mining">0.00 MMK</p></div>
+                    </div>
+                    <div class="withdraw-form">
+                        <h3>Withdraw Funds</h3>
+                        <input type="number" id="withdraw-amount" placeholder="Amount (Min 100,000 MMK)" required min="100000">
+                        <input type="text" id="withdraw-method" placeholder="Payment Method (e.g., KBZPay)" required>
+                        <input type="text" id="withdraw-phone" placeholder="Receiver Phone Number" required>
+                        <input type="text" id="withdraw-account-name" placeholder="Account Name" required>
+                        <input type="password" id="withdraw-pin" placeholder="6-Digit Withdraw PIN" required maxlength="6" pattern="\d{6}">
+                        <button class="withdraw-btn" id="submit-withdraw-btn">Submit Withdrawal</button>
+                    </div>
+                    <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                </div>
+            </div>
+            <div id="page-global-chat" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Global Chat</h1>
+                <div class="chat-container">
+                    <div class="messages" id="global-chat-messages">
+                    </div>
+                    <form class="chat-input-form" onsubmit="sendGlobalMessage(event)">
+                        <input type="text" id="global-chat-input" placeholder="Type your message..." required>
+                        <button type="submit"><i data-feather="send"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div id="page-support-admin" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Support Chat</h1>
+                <div class="support-chat-container">
+                    <div class="messages" id="support-messages">
+                    </div>
+                    <form class="chat-input-form" onsubmit="sendSupportMessage(event)">
+                        <input type="text" id="support-chat-input" placeholder="Type your message..." required>
+                        <button type="submit"><i data-feather="send"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div id="page-news" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Latest News & Updates</h1>
+                <div class="news-list" id="news-list">
+                </div>
+            </div>
+            <div id="page-feed" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Social Feed</h1>
+                <div class="post-form">
+                    <textarea id="post-content" placeholder="What's on your mind?" rows="3"></textarea>
+                    <input type="file" id="post-video-upload" accept="video/mp4" onchange="handleVideoSelect(event)">
+                    <p id="upload-progress" class="upload-progress" style="display: none;">Uploading: 0%</p>
+                    <button onclick="createPost()">Post</button>
+                </div>
+                <div class="post-list" id="feed-posts">
+                </div>
+            </div>
+            <div id="page-social-video" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">Social & Videos</h1>
+                <div class="video-grid" id="social-videos-grid">
+                </div>
+            </div>
+            <div id="page-about" class="page">
+                <h1 class="page-title" style="text-align: center; font-size: 28px; font-weight: 700; color: var(--accent-primary); margin-bottom: 20px; text-shadow: 0 0 10px rgba(240,185,11,0.5);">About Us & Contact</h1>
+                <div class="about-info-list" id="about-info-list">
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+                <div class="nav-menu" id="bottom-nav-menu">
+                </div>
+            </nav>
+        </div>
+
+        <div id="overlay" class="overlay">
+            <div class="overlay-content">
+                <div id="lottie-animation"></div>
+                <p id="overlay-message"></p>
+            </div>
+        </div>
+
+        <div id="toast" class="toast-message">
+            <span id="toast-icon"></span>
+            <span id="toast-text"></span>
+        </div>
+
+        <div id="banned-overlay" class="banned-overlay" style="display: none;">
+            <i data-feather="slash" style="width: 80px; height: 80px; margin-bottom: 20px;"></i>
+            <p class="banned-message">Your account has been banned.</p>
+            <p class="banned-message" style="font-size: 18px; font-weight: 500;">Please contact support for more information.</p>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
