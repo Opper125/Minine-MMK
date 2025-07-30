@@ -261,6 +261,7 @@
                         <th>ID</th>
                         <th>Username</th>
                         <th>Name</th>
+                        <th>Email</th> <!-- Added Email Column -->
                         <th>Balance</th>
                         <th>Mining Balance</th>
                         <th>Locked Balance</th>
@@ -912,6 +913,7 @@
                         <td>${user.id}</td>
                         <td>${user.username}</td>
                         <td>${user.name}</td>
+                        <td>${user.email || 'N/A'}</td> <!-- Display Email -->
                         <td>${user.balance.toLocaleString()} MMK</td>
                         <td>${user.mining_balance.toLocaleString()} MMK</td>
                         <td>${user.locked_balance.toLocaleString()} MMK</td>
