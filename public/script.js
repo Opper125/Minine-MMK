@@ -1,8 +1,11 @@
-const SUPABASE_URL = "https://slfmlndfcouckcqaztup.supabase.co"
+import { createClient } from "@supabase/supabase-js"
+import feather from "feather-icons"
+import lottie from "lottie-web"
+const SUPABASE_URL = "https://vuecdeskfiiblejwqxfz.supabase.co"
 const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsZm1sbmRmY291Y2tjcWF6dHVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MjU3NDksImV4cCI6MjA2OTQwMTc0OX0.ELZdUytnVYTG2RYjfyzL5mD_trcG7EsaBbgOuJLoAB4"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZWNkZXNrZmlpYmxlandxeGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzc1MjksImV4cCI6MjA2ODg1MzUyOX0.CPqX0xQHNp-UzAf0t5rXSP6LQeQdffqTTx9LWJLFQ9c"
 
-const { createClient } = supabase
+const {} = supabase
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const app = {
@@ -85,6 +88,7 @@ async function handleSignUp(event) {
   event.preventDefault()
   const name = document.getElementById("signup-name").value
   const username = document.getElementById("signup-username").value
+  const email = document.getElementById("signup-email").value
   const password = document.getElementById("signup-password").value
   const pin = document.getElementById("signup-pin").value
 
@@ -96,7 +100,7 @@ async function handleSignUp(event) {
   showLoading("Creating Account...")
 
   const { data: authData, error: authError } = await db.auth.signUp({
-    email: `${username}@mmk-mining.app`,
+    email: email,
     password: password,
     options: {
       data: {
@@ -145,7 +149,7 @@ async function handleLogin(event) {
 
   const { data: userProfile, error: userError } = await db
     .from("users")
-    .select("id, password, is_banned")
+    .select("id, email, password, is_banned")
     .eq("username", username)
     .single()
 
@@ -162,7 +166,7 @@ async function handleLogin(event) {
   }
 
   const { data, error } = await db.auth.signInWithPassword({
-    email: `${username}@mmk-mining.app`,
+    email: userProfile.email,
     password: password,
   })
 
@@ -1046,6 +1050,12 @@ async function fetchGlobalMessages() {
     return
   }
 
+  if (data.length === 0) {
+    chatMessagesEl.innerHTML =
+      '<p style="text-align: center; color: var(--text-secondary);">No messages yet. Be the first to say hi!</p>'
+    return
+  }
+
   chatMessagesEl.innerHTML = data
     .map(
       (msg) => `
@@ -1163,6 +1173,12 @@ async function fetchSupportMessages() {
   if (error) {
     console.error("Error fetching support messages:", error)
     chatMessagesEl.innerHTML = `<p style="color: var(--error);">Error loading chat: ${error.message}</p>`
+    return
+  }
+
+  if (data.length === 0) {
+    chatMessagesEl.innerHTML =
+      '<p style="text-align: center; color: var(--text-secondary);">Start a conversation with support!</p>'
     return
   }
 
@@ -1464,7 +1480,8 @@ async function renderSocialVideoPage() {
     return
   }
 
-  gridEl.innerHTML = data
+  const listEl = document.getElementById("social-videos-grid")
+  listEl.innerHTML = data
     .map((link) => {
       let embedHtml = ""
       if (link.video_url.includes("youtube.com") || link.video_url.includes("youtu.be")) {
