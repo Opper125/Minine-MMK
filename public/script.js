@@ -1,11 +1,11 @@
-import { createClient } from "@supabase/supabase-js"
-import feather from "feather-icons"
-import lottie from "lottie-web"
-const SUPABASE_URL = "https://slfmlndfcouckcqaztup.supabase."
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsZm1sbmRmY291Y2tjcWF6dHVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MjU3NDksImV4cCI6MjA2OTQwMTc0OX0.ELZdUytnVYTG2RYjfyzL5mD_trcG7EsaBbgOuJLoAB4"
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+import feather from "https://cdn.jsdelivr.net/npm/feather-icons@4.29.1/dist/feather.min.js/+esm"
+import lottie from "https://cdn.jsdelivr.net/npm/lottie-web@5.9.6/build/player/lottie.min.js/+esm"
 
-const {} = supabase
+const SUPABASE_URL = "https://vuecdeskfiiblejwqxfz.supabase.co"
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const app = {
@@ -122,51 +122,33 @@ async function handleSignUp(event) {
     return
   }
 
+  // Insert user profile into public.users table
   const { error: profileError } = await db
     .from("users")
-    .update({ password: password, withdraw_pin: pin })
-    .eq("id", authData.user.id)
+    .insert({ id: authData.user.id, name: name, username: username, email: email, withdraw_pin: pin })
 
   if (profileError) {
     hideOverlay()
-    showToast("error", `Profile Update Error: ${profileError.message}`)
+    showToast("error", `Profile Creation Error: ${profileError.message}`)
     return
   }
 
-  showSuccess("Account Created!", () => {
+  showSuccess("Account Created! Please login.", () => {
     toggleAuthForm()
-    document.getElementById("login-username").value = username
+    document.getElementById("login-email").value = email
     document.getElementById("login-password").value = password
   })
 }
 
 async function handleLogin(event) {
   event.preventDefault()
-  const username = document.getElementById("login-username").value
+  const email = document.getElementById("login-email").value
   const password = document.getElementById("login-password").value
 
   showLoading("Logging In...")
 
-  const { data: userProfile, error: userError } = await db
-    .from("users")
-    .select("id, email, password, is_banned")
-    .eq("username", username)
-    .single()
-
-  if (userError || !userProfile || userProfile.password !== password) {
-    hideOverlay()
-    showToast("error", "Invalid username or password.")
-    return
-  }
-
-  if (userProfile.is_banned) {
-    hideOverlay()
-    showToast("error", "Your account has been banned. Please contact support.")
-    return
-  }
-
   const { data, error } = await db.auth.signInWithPassword({
-    email: userProfile.email,
+    email: email,
     password: password,
   })
 
@@ -178,7 +160,13 @@ async function handleLogin(event) {
 
   app.session = data.session
   app.user = data.user
-  app.isBanned = false
+  await fetchUserProfile() // Fetch full user profile including is_banned status
+
+  if (app.isBanned) {
+    hideOverlay()
+    showBannedOverlay()
+    return
+  }
 
   showSuccess("Login Successful!", () => {
     showAppContent()
@@ -421,6 +409,8 @@ function updateCountdownTimer(expiryTimestamp) {
   if (!expiryTimestamp) {
     daysEl.textContent = "00"
     hoursEl.textContent = "00"
+    minutesEl.textContent = "00"
+    secondsEl.textContent = "00"
     minutesEl.textContent = "00"
     secondsEl.textContent = "00"
     return
