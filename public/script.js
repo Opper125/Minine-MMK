@@ -2,9 +2,9 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import feather from "https://cdn.jsdelivr.net/npm/feather-icons@4.29.1/dist/feather.min.js/+esm"
 import lottie from "https://cdn.jsdelivr.net/npm/lottie-web@5.9.6/build/player/lottie.min.js/+esm"
 
-const SUPABASE_URL = "https://vuecdeskfiiblejwqxfz.supabase.co"
+const SUPABASE_URL = "https://slfmlndfcouckcqaztup.supabase.co"
 const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsZm1sbmRmY291Y2tjcWF6dHVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MjU3NDksImV4cCI6MjA2OTQwMTc0OX0.ELZdUytnVYTG2RYjfyzL5mD_trcG7EsaBbgOuJLoAB4"
 
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
