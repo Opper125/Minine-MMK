@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js"
 import feather from "feather-icons"
 import lottie from "lottie-web"
-const SUPABASE_URL = "https://vuecdeskfiiblejwqxfz.supabase.co"
+const SUPABASE_URL = "https://slfmlndfcouckcqaztup.supabase."
 const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZWNkZXNrZmlpYmxlandxeGZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNzc1MjksImV4cCI6MjA2ODg1MzUyOX0.CPqX0xQHNp-UzAf0t5rXSP6LQeQdffqTTx9LWJLFQ9c"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsZm1sbmRmY291Y2tjcWF6dHVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MjU3NDksImV4cCI6MjA2OTQwMTc0OX0.ELZdUytnVYTG2RYjfyzL5mD_trcG7EsaBbgOuJLoAB4"
 
 const {} = supabase
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
